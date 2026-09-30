@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  /* ================================
+     SEPY — Color System
+     ================================ */
+
+  --background: #ffffff;
+  --foreground: #171717;
+
+  --surface: #f7f7f5;
+  --surface-muted: #f1f1ee;
+
+  --border: #e5e5e0;
+  --border-strong: #cfcfc8;
+
+  --text-primary: #171717;
+  --text-secondary: #5f5f5a;
+  --text-muted: #85857e;
+  --text-inverse: #ffffff;
+
+  --accent: #171717;
+  --accent-foreground: #ffffff;
+
+  /* ================================
+     SEPY — Typography
+     ================================ */
+
+  --font-display: var(--font-sepy-display);
+  --font-sans: var(--font-sepy-sans);
+
+  /* ================================
+     SEPY — Layout
+     ================================ */
+
+  --container-max: 1440px;
+  --content-max: 1200px;
+
+  /* ================================
+     SEPY — Spacing
+     ================================ */
+
+  --space-section: 96px;
+  --space-section-lg: 128px;
+}
+
+/* ================================
+   Tailwind Theme
+   ================================ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --font-display: var(--font-sepy-display);
+  --font-sans: var(--font-sepy-sans);
+}
+
+/* ================================
+   Global Reset
+   ================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sepy-sans), sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+/* ================================
+   Selection
+   ================================ */
+
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* ================================
+   Focus Accessibility
+   ================================ */
+
+:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+/* ================================
+   Motion Accessibility
+   ================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
