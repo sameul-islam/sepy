@@ -55,7 +55,7 @@ export default function MenuButton({
           tabIndex={-1}
           className="hidden cursor-pointer md:flex"
         >
-          <span className="text-sm">Menu</span>
+          <span className="">Menu</span>
         </button>
       </div>
 

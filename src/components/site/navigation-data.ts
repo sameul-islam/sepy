@@ -75,7 +75,7 @@ export const secondaryNavigation: NavigationItem[] = [
 
 export const supportNavigation: NavigationItem[] = [
   {
-    label: "Contact",
+    label: "Contact Us",
     href: "/contact",
   },
 ];

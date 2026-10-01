@@ -25,7 +25,7 @@ export default function HeaderActions() {
       >
         <GrFavorite
           aria-hidden="true"
-          className="h-4 w-4 text-gray-700"
+          className="h-4 w-4"
           strokeWidth={1.35}
         />
       </Link>
