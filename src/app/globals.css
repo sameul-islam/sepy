@@ -109,6 +109,75 @@ body {
   outline-offset: 3px;
 }
 
+
+
+
+
+/* ================================
+   Category Discovery — Card Motion
+   ================================ */
+
+@keyframes sepy-category-card-enter-right {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sepy-category-card-enter-left {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sepy-category-card-exit-left {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes sepy-category-card-exit-right {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.sepy-category-card-enter-right {
+  animation: sepy-category-card-enter-right 560ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sepy-category-card-enter-left {
+  animation: sepy-category-card-enter-left 560ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sepy-category-card-exit-left {
+  animation: sepy-category-card-exit-left 560ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sepy-category-card-exit-right {
+  animation: sepy-category-card-exit-right 560ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
 /* ================================
    Motion Accessibility
    ================================ */
@@ -116,6 +185,14 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .sepy-category-card-enter-right,
+  .sepy-category-card-enter-left,
+  .sepy-category-card-exit-left,
+  .sepy-category-card-exit-right {
+    animation: none;
+    transform: none;
   }
 
   *,

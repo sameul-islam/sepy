@@ -1,23 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function HeroMedia() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isImageVisible, setIsImageVisible] = useState(false);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const timeout = window.setTimeout(() => {
-      setIsImageVisible(true);
-    }, 40);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [isLoaded]);
 
   return (
     <>
@@ -26,21 +13,17 @@ export default function HeroMedia() {
         <picture className="relative block h-full w-full">
           <source
             media="(max-width: 767px)"
-            srcSet="/images/hero/sepy-hero-mobile.webp"
+            srcSet="/images/hero/hum.jpg"
           />
 
           <Image
-            src="/images/hero/sepy-hero-desktop.webp"
+            src="/images/hero/bojo.jpg"
             alt="SEPY premium sports fashion campaign"
             fill
             preload
             sizes="100vw"
             onLoad={() => setIsLoaded(true)}
-            className={`object-cover object-center transition-[opacity,transform] duration-1400 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isImageVisible
-                ? "scale-100 opacity-100"
-                : "scale-[1.025] opacity-0"
-            }`}
+            className="scale-[1.025] object-cover object-center opacity-100 transition-transform duration-1400 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:scale-100 motion-reduce:transition-none"
           />
         </picture>
       </div>
@@ -48,7 +31,7 @@ export default function HeroMedia() {
       {/* Loading placeholder */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1000 ease-out ${
+        className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-1000 ease-out motion-reduce:transition-none ${
           isLoaded ? "opacity-0" : "opacity-100"
         }`}
       >
