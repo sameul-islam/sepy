@@ -7,15 +7,15 @@ export default function CollectionEditorial() {
       aria-labelledby="collection-editorial-title"
       className="relative isolate overflow-hidden bg-surface"
     >
-      <div className="relative min-h-[78svh] w-full">
+      <div className="relative min-h-[75svh] lg:min-h-[85svh] w-full">
         <picture className="absolute inset-0 block">
           <source
             media="(max-width: 767px)"
-            srcSet="/images/collection/hum.jpg"
+            srcSet="/images/collection/sepy-mobile-collection.webp"
           />
 
           <Image
-            src="/images/collection/ddj.png"
+            src="/images/collection/sepy-desktop-collection.webp"
             alt=""
             fill
             sizes="100vw"
@@ -23,10 +23,7 @@ export default function CollectionEditorial() {
           />
         </picture>
 
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-black/15"
-        />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/15" />
 
         <div className="relative z-10 flex min-h-[78svh] items-end px-6 py-10 sm:px-10 sm:py-12 lg:px-16 lg:py-16">
           <div className="max-w-sm text-white">
@@ -50,6 +47,10 @@ export default function CollectionEditorial() {
             </Link>
           </div>
         </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-10  bg-black/20 "
+        />
       </div>
     </section>
   );

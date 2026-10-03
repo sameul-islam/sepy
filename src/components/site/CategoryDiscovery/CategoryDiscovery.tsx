@@ -69,14 +69,18 @@ export default function CategoryDiscovery() {
   return (
     <section
       aria-labelledby="category-discovery-title"
-      className="bg-background px-3 py-20 sm:px-5 sm:py-18 lg:px-6 lg:py-22 xl:px-10"
+      className="bg-background px-3 py-15 sm:px-5 md:py-17 lg:px-6 xl:px-10"
     >
       <div className="mx-auto max-w-full">
         {/* Intro */}
         <div className="mx-auto max-w-xl text-center">
+          <h1  id="category-discovery-title"
+            className="text-lg sm:text-2xl text-black font-bold py-2">
+            New Arrivals
+          </h1>
           <h2
-            id="category-discovery-title"
-            className="text-sm text-black leading-6 font-semibold  sm:text-base"
+            id="category-discovery-subtitle"
+            className="text-sm text-gray-800 leading-6 font-semibold  sm:text-base"
           >
             Designed around movement. Refined for everyday life.
           </h2>
