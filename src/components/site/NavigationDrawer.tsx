@@ -101,7 +101,7 @@ export default function NavigationDrawer({
         aria-label="Close navigation"
         onClick={handleClose}
         tabIndex={isOpen ? 0 : -1}
-        className={`fixed inset-0 z-40 bg-black/10 backdrop-blur-[2px] transition-opacity duration-500 ${
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-500 ${
           isOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
@@ -115,7 +115,7 @@ export default function NavigationDrawer({
         tabIndex={-1}
         aria-label="Main navigation"
         aria-hidden={!isOpen}
-        className={`fixed inset-y-0 left-0 z-40 w-full overflow-hidden bg-white/85 backdrop-blur-md transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-105 md:w-115 xl:w-150 ${
+        className={`fixed inset-y-0 left-0 z-40 w-full overflow-hidden bg-white transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-105 md:w-115 xl:w-150 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

@@ -69,7 +69,7 @@ export default function CategoryDiscovery() {
   return (
     <section
       aria-labelledby="category-discovery-title"
-      className="bg-background px-3 py-20 sm:px-5 sm:py-24 lg:px-6 lg:py-32 xl:px-10"
+      className="bg-background px-3 py-20 sm:px-5 sm:py-18 lg:px-6 lg:py-22 xl:px-10"
     >
       <div className="mx-auto max-w-full">
         {/* Intro */}

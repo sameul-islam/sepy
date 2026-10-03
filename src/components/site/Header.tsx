@@ -31,10 +31,10 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-500 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
           isScrolled || isMenuOpen
-            ? "border-black/5 bg-white/85 backdrop-blur-md"
-            : "border-transparent bg-transparent"
+            ? "bg-white"
+            : "bg-transparent hover:bg-white"
         }`}
       >
         <div className="relative mx-auto flex h-12 w-full items-center px-4 sm:h-15 lg:h-18 sm:px-6 lg:px-10">

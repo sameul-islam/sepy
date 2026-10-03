@@ -5,32 +5,27 @@ export default function Hero() {
   return (
     <section
       aria-labelledby="hero-title"
-      className="relative isolate h-svh min-h-150 w-full overflow-hidden bg-surface"
+      className="relative isolate h-[80svh] sm:h-[60svh] md:h-[70svh] lg:h-[90svh] w-full overflow-hidden bg-surface"
     >
       {/* Hero media */}
       <HeroMedia />
 
       {/* Hero content */}
-      <div className="relative z-20 mx-auto flex h-full w-full max-w-420 items-center justify-center md:justify-start md:items-end px-5 md:px-8 md:pb-12 lg:px-12 lg:pb-16">
-        <div className="max-w-xl">
-          <p className="mb-3 text-[0.65rem] text-center md:text-start font-medium uppercase tracking-[0.24em] text-white/80 sm:text-xs">
-            SEPY Performance
-          </p>
-
+      <div className="relative z-20 mx-auto flex h-full w-full max-w-420 items-center justify-center px-5 md:px-8 md:pb-12 lg:px-12 lg:pb-16">
+        <div className="">
           <h1
             id="hero-title"
-            className="max-w-lg text-center md:text-start font-display text-4xl leading-[0.95] tracking-[-0.035em] text-white sm:text-5xl lg:text-6xl xl:text-7xl"
+            className="text-center font-display text-4xl leading-[0.95] tracking-[-0.035em] text-white sm:text-5xl md:text-6xl lg:text-7xl"
           >
             Performance,
-            <br />
-            refined.
+            Refined.
           </h1>
 
-          <p className="mt-5 text-center md:text-start max-w-md text-sm leading-6 text-white/85 sm:text-base">
+          <p className="mt-5 mx-auto text-center max-w-md font-semibold text-sm leading-6 text-white sm:text-base">
             Premium sportswear designed for movement and everyday life.
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center md:justify-start gap-3">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/"
               className="inline-flex h-11 items-center justify-center bg-white px-6 text-xs font-semibold uppercase tracking-[0.16em] text-black transition-colors duration-300 hover:bg-white/90 focus-visible:outline-white"
