@@ -74,16 +74,16 @@ export default function CategoryDiscovery() {
       <div className="mx-auto max-w-full">
         {/* Intro */}
         <div className="mx-auto max-w-xl text-center">
-          <h1  id="category-discovery-title"
+          <h2  id="category-discovery-title"
             className="text-lg sm:text-2xl text-black font-bold py-2">
-            New Arrivals
-          </h1>
-          <h2
+            Our Categories
+          </h2>
+          <p
             id="category-discovery-subtitle"
             className="text-sm text-gray-800 leading-6 font-semibold  sm:text-base"
           >
             Designed around movement. Refined for everyday life.
-          </h2>
+          </p>
 
           <div
             className="mt-7 flex items-center justify-center gap-6"

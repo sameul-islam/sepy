@@ -1,0 +1,363 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
+
+import { theLook } from "./the-look-data";
+
+const PROGRESS_WIDTH = 20;
+
+export default function TheLook() {
+  const [progress, setProgress] = useState(0);
+
+  return (
+    <section
+      aria-labelledby="the-look-title"
+      className="overflow-hidden bg-surface"
+    >
+      <div className="mx-auto grid min-h-[78svh] max-w-450 lg:grid-cols-[1.45fr_1fr] gap-5">
+        {/* Model */}
+        <div className="relative min-h-[72svh] overflow-hidden lg:min-h-[78svh]">
+          <Image
+            src={theLook.modelImage}
+            alt="SEPY women's movement look"
+            fill
+            sizes="(max-width: 1023px) 100vw, 58vw"
+            className="object-cover object-center"
+          />
+        </div>
+
+        {/* Products */}
+        <div className="flex min-w-0 flex-col justify-center px-5 py-14 sm:px-8 lg:px-10 xl:px-14">
+          <div className="mb-9">
+            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-text-muted sm:text-xs">
+              {theLook.eyebrow}
+            </p>
+
+            <h2
+              id="the-look-title"
+              className="mt-3 max-w-xs font-display text-3xl leading-[0.98] tracking-[-0.035em] text-text-primary sm:text-4xl"
+            >
+              {theLook.title}
+            </h2>
+          </div>
+
+          <TheLookProductRail
+            onProgressChange={setProgress}
+          />
+
+          <TheLookProgress progress={progress} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type TheLookProductRailProps = {
+  onProgressChange: (progress: number) => void;
+};
+
+function TheLookProductRail({
+  onProgressChange,
+}: TheLookProductRailProps) {
+  const railRef = useRef<HTMLDivElement>(null);
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const dragState = useRef({
+    active: false,
+    pointerId: -1,
+    startX: 0,
+    startScrollLeft: 0,
+    moved: false,
+    currentX: 0,
+    frame: 0,
+  });
+
+  const updateProgress = useCallback(() => {
+    const rail = railRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    const maxScroll =
+      rail.scrollWidth - rail.clientWidth;
+
+    if (maxScroll <= 0) {
+      onProgressChange(0);
+      return;
+    }
+
+    onProgressChange(
+      Math.min(
+        Math.max(rail.scrollLeft / maxScroll, 0),
+        1,
+      ),
+    );
+  }, [onProgressChange]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    updateProgress();
+
+    rail.addEventListener("scroll", updateProgress, {
+      passive: true,
+    });
+
+    const resizeObserver = new ResizeObserver(
+      updateProgress,
+    );
+
+    resizeObserver.observe(rail);
+
+    return () => {
+      rail.removeEventListener(
+        "scroll",
+        updateProgress,
+      );
+
+      resizeObserver.disconnect();
+
+      if (dragState.current.frame) {
+        cancelAnimationFrame(
+          dragState.current.frame,
+        );
+      }
+    };
+  }, [updateProgress]);
+
+  const updateDragPosition = () => {
+    const rail = railRef.current;
+
+    if (!rail || !dragState.current.active) {
+      return;
+    }
+
+    const distance =
+      dragState.current.currentX -
+      dragState.current.startX;
+
+    rail.scrollLeft =
+      dragState.current.startScrollLeft - distance;
+
+    dragState.current.frame = 0;
+  };
+
+  const handlePointerDown = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.pointerType !== "mouse") {
+      return;
+    }
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    const rail = railRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    event.preventDefault();
+
+    dragState.current = {
+      active: true,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: rail.scrollLeft,
+      moved: false,
+      currentX: event.clientX,
+      frame: 0,
+    };
+
+    setIsDragging(true);
+
+    rail.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (
+      !dragState.current.active ||
+      event.pointerId !==
+        dragState.current.pointerId
+    ) {
+      return;
+    }
+
+    const distance =
+      event.clientX -
+      dragState.current.startX;
+
+    if (Math.abs(distance) > 4) {
+      dragState.current.moved = true;
+    }
+
+    dragState.current.currentX = event.clientX;
+
+    if (!dragState.current.frame) {
+      dragState.current.frame =
+        requestAnimationFrame(
+          updateDragPosition,
+        );
+    }
+  };
+
+  const endPointerDrag = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (
+      !dragState.current.active ||
+      event.pointerId !==
+        dragState.current.pointerId
+    ) {
+      return;
+    }
+
+    const rail = railRef.current;
+
+    dragState.current.active = false;
+
+    setIsDragging(false);
+
+    if (dragState.current.frame) {
+      cancelAnimationFrame(
+        dragState.current.frame,
+      );
+
+      dragState.current.frame = 0;
+    }
+
+    if (
+      rail &&
+      rail.hasPointerCapture(event.pointerId)
+    ) {
+      rail.releasePointerCapture(
+        event.pointerId,
+      );
+    }
+  };
+
+  const handleClickCapture = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!dragState.current.moved) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    dragState.current.moved = false;
+  };
+
+  return (
+    <div
+      ref={railRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endPointerDrag}
+      onPointerCancel={endPointerDrag}
+      onClickCapture={handleClickCapture}
+      className={`touch-pan-x -mx-5 overflow-x-auto overscroll-x-contain px-5 select-none scrollbar-none sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14 [&::-webkit-scrollbar]:hidden ${
+        isDragging
+          ? "cursor-grabbing"
+          : "cursor-grab"
+      }`}
+    >
+      <div className="flex w-max gap-3">
+        {theLook.products.map((product) => (
+          <TheLookProductCard
+            key={product.id}
+            product={product}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type TheLookProductCardProps = {
+  product: {
+    title: string;
+    slug: string;
+    image: string;
+  };
+};
+
+function TheLookProductCard({
+  product,
+}: TheLookProductCardProps) {
+  return (
+    <article className="w-[calc((100vw-3rem)/2)] shrink-0 sm:w-[calc((100vw-5rem)/2)] lg:w-[calc((100%-0.75rem)/2)]">
+      <Link
+        href={`/products/${product.slug}`}
+        draggable={false}
+        className="group block cursor-pointer focus-visible:outline-none"
+      >
+        <div className="relative aspect-3/4 overflow-hidden bg-background">
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            draggable={false}
+            sizes="(max-width: 639px) 46vw, (max-width: 1023px) 40vw, 20vw"
+            className="pointer-events-none object-cover transition-transform duration-700 ease-out motion-reduce:transition-none"
+          />
+        </div>
+
+        <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-primary sm:text-xs">
+          {product.title}
+        </p>
+      </Link>
+    </article>
+  );
+}
+
+type TheLookProgressProps = {
+  progress: number;
+};
+
+function TheLookProgress({
+  progress,
+}: TheLookProgressProps) {
+  return (
+    <div className="mt-7">
+      <div
+        className="relative h-px w-16 bg-border sm:w-20"
+        role="progressbar"
+        aria-label="The Look product scroll position"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(
+          progress * 100,
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 bg-foreground motion-reduce:transition-none"
+          style={{
+            left: `${progress * (100 - PROGRESS_WIDTH)}%`,
+            width: `${PROGRESS_WIDTH}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}

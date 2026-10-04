@@ -7,7 +7,7 @@ export default function CollectionEditorial() {
       aria-labelledby="collection-editorial-title"
       className="relative isolate overflow-hidden bg-surface"
     >
-      <div className="relative min-h-[75svh] lg:min-h-[85svh] w-full">
+      <div className="relative min-h-[75svh] w-full lg:min-h-[85svh]">
         <picture className="absolute inset-0 block">
           <source
             media="(max-width: 767px)"
@@ -23,9 +23,12 @@ export default function CollectionEditorial() {
           />
         </picture>
 
-        <div aria-hidden="true" className="absolute inset-0 bg-black/15" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-black/20"
+        />
 
-        <div className="relative z-10 flex min-h-[78svh] items-end px-6 py-10 sm:px-10 sm:py-12 lg:px-16 lg:py-16">
+        <div className="relative z-10 flex min-h-[75svh] items-end px-6 py-10 sm:px-10 sm:py-12 lg:min-h-[85svh] lg:px-16 lg:py-16">
           <div className="max-w-sm text-white">
             <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.24em] sm:text-xs">
               The Movement Collection
@@ -43,14 +46,12 @@ export default function CollectionEditorial() {
               className="mt-6 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] transition-opacity duration-300 hover:opacity-65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
             >
               <span>Explore Collection</span>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true">
+                ──
+              </span>
             </Link>
           </div>
         </div>
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-10  bg-black/20 "
-        />
       </div>
     </section>
   );

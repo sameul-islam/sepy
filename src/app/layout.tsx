@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/site/Header";
+import Header from "@/components/site/Navbar/Header";
 
 const displayFont = Cormorant_Garamond({
   variable: "--font-sepy-display",
