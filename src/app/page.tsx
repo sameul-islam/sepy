@@ -1,8 +1,8 @@
-import CategoryDiscovery from "@/components/site/CategoryDiscovery/CategoryDiscovery";
-import CollectionEditorial from "@/components/site/CategoryDiscovery/CollectionEditorial";
-import FeaturedProducts from "@/components/site/Featured/FeaturedProducts";
-import Hero from "@/components/site/Hero/Hero";
-import TheLook from "@/components/site/Look/TheLook";
+import CategoryDiscovery from "@/components/home/category-discovery/CategoryDiscovery";
+import CollectionEditorial from "@/components/home/collection/CollectionEditorial";
+import FeaturedProducts from "@/components/home/featured/FeaturedProducts";
+import Hero from "@/components/home/hero/Hero";
+import TheLook from "@/components/home/look/TheLook";
 
 export default function Home() {
   return (

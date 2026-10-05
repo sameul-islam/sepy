@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/site/Navbar/Header";
+import Header from "@/components/site/navbar/Header";
+import Footer from "@/components/site/Footer";
 
 const displayFont = Cormorant_Garamond({
   variable: "--font-sepy-display",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <Header />
         {children}
+        <Footer/>
       </body>
     </html>
   );
