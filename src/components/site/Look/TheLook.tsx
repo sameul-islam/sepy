@@ -20,11 +20,11 @@ export default function TheLook() {
   return (
     <section
       aria-labelledby="the-look-title"
-      className="overflow-hidden bg-surface"
+      className="overflow-hidden sm:px-5 md:px-6 xl:px-10"
     >
-      <div className="mx-auto grid min-h-[78svh] max-w-450 lg:grid-cols-[1.45fr_1fr] gap-5">
+      <div className="mx-auto grid min-h-[78svh] xl:min-h-[85svh] max-w-450 lg:grid-cols-[1.45fr_1fr] xl:grid-cols-[1fr_1.30fr]">
         {/* Model */}
-        <div className="relative min-h-[72svh] overflow-hidden lg:min-h-[78svh]">
+        <div className="relative min-h-[72svh] overflow-hidden xl:min-h-[78svh]">
           <Image
             src={theLook.modelImage}
             alt="SEPY women's movement look"
@@ -35,25 +35,26 @@ export default function TheLook() {
         </div>
 
         {/* Products */}
-        <div className="flex min-w-0 flex-col justify-center px-5 py-14 sm:px-8 lg:px-10 xl:px-14">
+        <div className="flex w-full min-w-0 flex-col justify-center px-2 py-14 md:px-0 lg:pl-10 xl:pl-14">
           <div className="mb-9">
-            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-text-muted sm:text-xs">
+            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-text-muted sm:text-xs text-center lg:text-start">
               {theLook.eyebrow}
             </p>
 
             <h2
               id="the-look-title"
-              className="mt-3 max-w-xs font-display text-3xl leading-[0.98] tracking-[-0.035em] text-text-primary sm:text-4xl"
+              className="mt-3 max-w-xs font-display text-3xl leading-[0.98] tracking-[-0.035em] text-text-primary sm:text-4xl w-full mx-auto text-center lg:text-start lg:mx-0"
             >
               {theLook.title}
             </h2>
           </div>
-
           <TheLookProductRail
             onProgressChange={setProgress}
           />
 
           <TheLookProgress progress={progress} />
+
+
         </div>
       </div>
     </section>
@@ -275,13 +276,13 @@ function TheLookProductRail({
       onPointerUp={endPointerDrag}
       onPointerCancel={endPointerDrag}
       onClickCapture={handleClickCapture}
-      className={`touch-pan-x -mx-5 overflow-x-auto overscroll-x-contain px-5 select-none scrollbar-none sm:-mx-8 sm:px-8 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14 [&::-webkit-scrollbar]:hidden ${
+      className={`overflow-x-auto overscroll-x-contain select-none scrollbar-none [&::-webkit-scrollbar]:hidden ${
         isDragging
           ? "cursor-grabbing"
           : "cursor-grab"
       }`}
     >
-      <div className="flex w-max gap-3">
+      <div className="flex w-max gap-1 sm:gap-2">
         {theLook.products.map((product) => (
           <TheLookProductCard
             key={product.id}
@@ -338,9 +339,9 @@ function TheLookProgress({
   progress,
 }: TheLookProgressProps) {
   return (
-    <div className="mt-7">
+    <div className="mt-7 items-center justify-center flex">
       <div
-        className="relative h-px w-16 bg-border sm:w-20"
+        className="relative h-px w-40 sm:w-50  bg-border"
         role="progressbar"
         aria-label="The Look product scroll position"
         aria-valuemin={0}
