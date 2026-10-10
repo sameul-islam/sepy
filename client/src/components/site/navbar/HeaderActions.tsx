@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { GrFavorite } from "react-icons/gr";
+import { HiOutlineShoppingBag } from "react-icons/hi";
 
-import { PiHandbagSimpleThin, PiUserLight } from "react-icons/pi";
+import { PiBookmarkSimpleLight, PiUserLight } from "react-icons/pi";
+
 
 export default function HeaderActions() {
   return (
@@ -23,9 +24,9 @@ export default function HeaderActions() {
         aria-label="Wishlist"
         className="hidden sm:flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <GrFavorite
+        <PiBookmarkSimpleLight
           aria-hidden="true"
-          className="h-4 w-4"
+          className="h-4.75 w-4.75"
           strokeWidth={1.35}
         />
       </Link>
@@ -35,7 +36,7 @@ export default function HeaderActions() {
         aria-label="Shopping bag"
         className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <PiHandbagSimpleThin
+        <HiOutlineShoppingBag
           aria-hidden="true"
           className="h-4.75 w-4.75"
           strokeWidth={1.35}

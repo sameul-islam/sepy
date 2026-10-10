@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "seed:categories": "tsx src/scripts/seedCategories.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",
