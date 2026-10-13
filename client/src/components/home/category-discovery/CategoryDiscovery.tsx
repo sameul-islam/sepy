@@ -187,8 +187,8 @@ function CategoryCardViewport({
           ariaHidden
           className={
             direction === "forward"
-              ? "sepy-category-card-exit-left"
-              : "sepy-category-card-exit-right"
+              ? "sepy-card-exit-left"
+              : "sepy-card-exit-right"
           }
         />
       )}
@@ -199,8 +199,8 @@ function CategoryCardViewport({
         className={
           isTransitioning
             ? direction === "forward"
-              ? "sepy-category-card-enter-right"
-              : "sepy-category-card-enter-left"
+              ? "sepy-card-enter-right"
+              : "sepy-card-enter-left"
             : ""
         }
       />

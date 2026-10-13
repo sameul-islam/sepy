@@ -63,3 +63,35 @@ export const createProductSchema = z
   .strict();
 
 export type CreateProductInput = z.infer<typeof createProductSchema>["body"];
+
+export const productListQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1),
+
+    limit: z.coerce.number().int().min(1).max(100).default(12),
+
+    category: z
+      .string()
+      .trim()
+      .min(1)
+      .max(120)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Category must be a valid slug")
+      .optional(),
+  })
+  .strict();
+
+export type ProductListQuery = z.infer<typeof productListQuerySchema>;
+
+export const productSlugParamsSchema = z
+  .object({
+    slug: z
+      .string()
+      .trim()
+      .min(1)
+      .max(180)
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        "Slug must contain lowercase letters, numbers, and single hyphens",
+      ),
+  })
+  .strict();

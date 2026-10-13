@@ -39,7 +39,7 @@ export default function Footer() {
       <div className="mx-auto max-w-420 px-5 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
         {/* Brand + Subscription */}
         <div className="grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
+          <div className="text-center sm:text-left">
             <Link
               href="/"
               aria-label="SEPY home"
@@ -54,12 +54,12 @@ export default function Footer() {
               />
             </Link>
 
-            <p className="mt-5 max-w-xs text-sm leading-6 text-text-secondary">
+            <p className="mt-5 max-w-xs text-sm mx-auto sm:mx-0 leading-6 text-text-secondary">
               Performance, refined.
             </p>
           </div>
 
-          <div className="w-full max-w-md lg:min-w-100">
+          <div className="w-full max-w-md mx-auto sm:mx-0 text-center sm:text-left lg:min-w-100">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-primary">
               Stay in motion
             </p>
@@ -98,7 +98,7 @@ export default function Footer() {
         </div>
 
         {/* Navigation */}
-        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 border-t border-border pt-12 sm:grid-cols-3 lg:mt-20 lg:grid-cols-[1fr_1fr_1fr]">
+        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 border-t border-border pt-12 sm:grid-cols-3 lg:mt-20 lg:grid-cols-[1fr_1fr_1fr] text-center sm:text-left">
           <FooterLinkGroup title="Shop" links={shopLinks} />
           <FooterLinkGroup title="Help" links={helpLinks} />
 
@@ -115,7 +115,7 @@ export default function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4"
+                      className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 font-semibold"
                     >
                       {link.label}
                     </a>
@@ -127,7 +127,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-14 flex flex-col gap-5 border-t border-border pt-6 text-[10px] uppercase tracking-[0.14em] text-text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-5 border-t border-border pt-6 text-[10px] uppercase tracking-[0.14em] text-text-muted sm:flex-row items-center sm:justify-between text-center sm:text-left">
           <p>© {new Date().getFullYear()} SEPY</p>
 
           <nav aria-label="Legal">

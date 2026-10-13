@@ -114,10 +114,10 @@ body {
 
 
 /* ================================
-   Category Discovery — Card Motion
+    — Card Motion —
    ================================ */
 
-@keyframes sepy-category-card-enter-right {
+@keyframes sepy-card-enter-right {
   from {
     transform: translateX(100%);
   }
@@ -127,7 +127,7 @@ body {
   }
 }
 
-@keyframes sepy-category-card-enter-left {
+@keyframes sepy-card-enter-left {
   from {
     transform: translateX(-100%);
   }
@@ -137,7 +137,7 @@ body {
   }
 }
 
-@keyframes sepy-category-card-exit-left {
+@keyframes sepy-card-exit-left {
   from {
     transform: translateX(0);
   }
@@ -147,7 +147,7 @@ body {
   }
 }
 
-@keyframes sepy-category-card-exit-right {
+@keyframes sepy-card-exit-right {
   from {
     transform: translateX(0);
   }
@@ -157,23 +157,23 @@ body {
   }
 }
 
-.sepy-category-card-enter-right {
-  animation: sepy-category-card-enter-right 560ms
+.sepy-card-enter-right {
+  animation: sepy-card-enter-right 560ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.sepy-category-card-enter-left {
-  animation: sepy-category-card-enter-left 560ms
+.sepy-card-enter-left {
+  animation: sepy-card-enter-left 560ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.sepy-category-card-exit-left {
-  animation: sepy-category-card-exit-left 560ms
+.sepy-card-exit-left {
+  animation: sepy-card-exit-left 560ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.sepy-category-card-exit-right {
-  animation: sepy-category-card-exit-right 560ms
+.sepy-card-exit-right {
+  animation: sepy-card-exit-right 560ms
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -187,10 +187,10 @@ body {
     scroll-behavior: auto;
   }
 
-  .sepy-category-card-enter-right,
-  .sepy-category-card-enter-left,
-  .sepy-category-card-exit-left,
-  .sepy-category-card-exit-right {
+  .sepy-card-enter-right,
+  .sepy-card-enter-left,
+  .sepy-card-exit-left,
+  .sepy-card-exit-right {
     animation: none;
     transform: none;
   }

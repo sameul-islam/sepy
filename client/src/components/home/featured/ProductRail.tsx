@@ -300,8 +300,8 @@ function ProductCardViewport({
           ariaHidden
           className={`col-start-1 row-start-1 ${
             direction === "forward"
-              ? "sepy-category-card-exit-left"
-              : "sepy-category-card-exit-right"
+              ? "sepy-card-exit-left"
+              : "sepy-card-exit-right"
           }`}
         />
       ) : null}
@@ -311,8 +311,8 @@ function ProductCardViewport({
         product={currentProduct}
         className={`col-start-1 row-start-1 ${
           direction === "forward"
-            ? "sepy-category-card-enter-right"
-            : "sepy-category-card-enter-left"
+            ? "sepy-card-enter-right"
+            : "sepy-card-enter-left"
         }`}
         onAnimationEnd={onTransitionEnd}
       />
