@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
+import mongoose from "mongoose";
 import AppError from "../utils/AppError.js";
 
 const errorHandler = (
@@ -7,9 +8,9 @@ const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  console.error(error);
-
   if (error instanceof AppError) {
+    console.error(error);
+
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
@@ -20,6 +21,32 @@ const errorHandler = (
 
     return;
   }
+
+  if (
+    error instanceof mongoose.Error.ValidationError ||
+    error instanceof mongoose.Error.CastError
+  ) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid data provided",
+    });
+
+    return;
+  }
+
+  if (
+    error instanceof mongoose.mongo.MongoServerError &&
+    error.code === 11000
+  ) {
+    res.status(409).json({
+      success: false,
+      message: "A product with this slug or SKU already exists",
+    });
+
+    return;
+  }
+
+  console.error(error);
 
   res.status(500).json({
     success: false,

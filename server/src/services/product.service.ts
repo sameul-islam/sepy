@@ -1,6 +1,6 @@
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
-import type { ProductListQuery } from "../schemas/product.schema.js";
+import type { ProductListQuery, CreateProductInput } from "../schemas/product.schema.js";
 import AppError from "../utils/AppError.js";
 
 export const getActiveProducts = async (query: ProductListQuery) => {
@@ -83,6 +83,27 @@ export const getActiveProductBySlug = async (slug: string) => {
   if (!product || !product.category) {
     throw new AppError("Product not found", 404);
   }
+
+  return product;
+};
+
+
+export const createProduct = async (input: CreateProductInput) => {
+  const category = await Category.findOne({
+    _id: input.category,
+    isActive: true,
+  })
+    .select("_id")
+    .lean();
+
+  if (!category) {
+    throw new AppError("Active category not found", 404);
+  }
+
+  const product = await Product.create({
+    ...input,
+    category: category._id,
+  });
 
   return product;
 };

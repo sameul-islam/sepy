@@ -2,6 +2,7 @@
 import type {
   ApiResponse,
   Category,
+  Product,
   ProductListData,
 } from "./api-types";
 
@@ -64,5 +65,14 @@ export async function getProducts(params: {
 
   return fetchApi<ProductListData>(
     `/products?${searchParams.toString()}`,
+  );
+}
+
+
+export async function getProductBySlug(
+  slug: string,
+): Promise<Product> {
+  return fetchApi<Product>(
+    `/products/${encodeURIComponent(slug)}`,
   );
 }

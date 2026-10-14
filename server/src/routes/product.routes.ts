@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { getProducts } from "../controllers/product.controller.js";
 import validate from "../middleware/validate.js";
-import { productListQuerySchema } from "../schemas/product.schema.js";
 import { getProductBySlug } from "../controllers/product-details.controller.js";
-import { productSlugParamsSchema } from "../schemas/product.schema.js";
+import { createProductController } from "../controllers/create-product.controller.js";
+import {
+  productSlugParamsSchema,
+  createProductSchema,
+  productListQuerySchema,
+} from "../schemas/product.schema.js";
 
 import { z } from "zod";
 
@@ -27,5 +31,6 @@ const getProductBySlugSchema = z
 
 router.get("/", validate(listProductsSchema), getProducts);
 router.get("/:slug", validate(getProductBySlugSchema), getProductBySlug);
+router.post("/", validate(createProductSchema), createProductController);
 
 export default router;

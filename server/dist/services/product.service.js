@@ -65,3 +65,19 @@ export const getActiveProductBySlug = async (slug) => {
     }
     return product;
 };
+export const createProduct = async (input) => {
+    const category = await Category.findOne({
+        _id: input.category,
+        isActive: true,
+    })
+        .select("_id")
+        .lean();
+    if (!category) {
+        throw new AppError("Active category not found", 404);
+    }
+    const product = await Product.create({
+        ...input,
+        category: category._id,
+    });
+    return product;
+};
