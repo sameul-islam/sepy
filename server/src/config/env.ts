@@ -17,6 +17,23 @@ const envSchema = z.object({
         value.startsWith("mongodb://") || value.startsWith("mongodb+srv://"),
       "MONGODB_URI must be a valid MongoDB connection URI",
     ),
+
+  JWT_ACCESS_SECRET: z
+    .string()
+    .min(32, "JWT_ACCESS_SECRET must be at least 32 characters"),
+
+  ADMIN_EMAIL: z
+    .string()
+    .trim()
+    .email("ADMIN_EMAIL must be a valid email")
+    .transform((value) => value.toLowerCase()),
+
+  ADMIN_PASSWORD: z
+    .string()
+    .min(12, "ADMIN_PASSWORD must be at least 12 characters"),
+
+  CLIENT_URL: z.string().url(),
+  
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

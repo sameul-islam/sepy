@@ -8,6 +8,7 @@ import {
   createProductSchema,
   productListQuerySchema,
 } from "../schemas/product.schema.js";
+import requireAdmin from "../middleware/requireAdmin.js";
 
 import { z } from "zod";
 
@@ -31,6 +32,11 @@ const getProductBySlugSchema = z
 
 router.get("/", validate(listProductsSchema), getProducts);
 router.get("/:slug", validate(getProductBySlugSchema), getProductBySlug);
-router.post("/", validate(createProductSchema), createProductController);
+router.post(
+  "/",
+  requireAdmin,
+  validate(createProductSchema),
+  createProductController,
+);
 
 export default router;
