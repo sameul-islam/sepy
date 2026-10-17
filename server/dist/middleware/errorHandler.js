@@ -2,13 +2,10 @@ import mongoose from "mongoose";
 import AppError from "../utils/AppError.js";
 const errorHandler = (error, _req, res, _next) => {
     if (error instanceof AppError) {
-        console.error(error);
+        console.error(error.message);
         res.status(error.statusCode).json({
             success: false,
             message: error.message,
-            ...(error.details !== undefined && {
-                details: error.details,
-            }),
         });
         return;
     }
@@ -24,7 +21,7 @@ const errorHandler = (error, _req, res, _next) => {
         error.code === 11000) {
         res.status(409).json({
             success: false,
-            message: "A product with this slug or SKU already exists",
+            message: "A resource with these unique fields already exists",
         });
         return;
     }

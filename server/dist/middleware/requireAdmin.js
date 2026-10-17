@@ -6,9 +6,7 @@ const requireAdmin = async (req, _res, next) => {
     try {
         const authorization = req.headers.authorization;
         const [scheme, token, ...extra] = authorization?.split(" ") ?? [];
-        if (scheme?.toLowerCase() !== "bearer" ||
-            !token ||
-            extra.length > 0) {
+        if (scheme?.toLowerCase() !== "bearer" || !token || extra.length > 0) {
             throw new AppError("Authentication required", 401);
         }
         const payload = jwt.verify(token, env.JWT_ACCESS_SECRET, {
@@ -34,8 +32,7 @@ const requireAdmin = async (req, _res, next) => {
             next(error);
             return;
         }
-        if (error instanceof jwt.JsonWebTokenError ||
-            error instanceof jwt.TokenExpiredError) {
+        if (error instanceof jwt.JsonWebTokenError) {
             next(new AppError("Invalid or expired access token", 401));
             return;
         }

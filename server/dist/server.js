@@ -7,4 +7,7 @@ const startServer = async () => {
         console.log(`SEPY API running on port ${env.PORT}`);
     });
 };
-startServer();
+void startServer().catch((error) => {
+    console.error("SEPY API startup failed.", error);
+    process.exitCode = 1;
+});

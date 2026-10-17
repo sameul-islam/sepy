@@ -3,7 +3,7 @@ import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 export const getActiveProducts = async (query) => {
     const { page, limit, category: categorySlug } = query;
-    let categoryId;
+    let activeCategoryIds;
     if (categorySlug) {
         const category = await Category.findOne({
             slug: categorySlug,
@@ -14,11 +14,19 @@ export const getActiveProducts = async (query) => {
         if (!category) {
             throw new AppError("Category not found", 404);
         }
-        categoryId = category._id;
+        activeCategoryIds = [category._id];
+    }
+    else {
+        const activeCategories = await Category.find({
+            isActive: true,
+        })
+            .select("_id")
+            .lean();
+        activeCategoryIds = activeCategories.map((category) => category._id);
     }
     const filter = {
         status: "active",
-        ...(categoryId ? { category: categoryId } : {}),
+        category: { $in: activeCategoryIds },
     };
     const skip = (page - 1) * limit;
     const [products, total] = await Promise.all([
@@ -35,9 +43,8 @@ export const getActiveProducts = async (query) => {
             .lean(),
         Product.countDocuments(filter),
     ]);
-    const activeCategoryProducts = products.filter((product) => product.category !== null);
     return {
-        products: activeCategoryProducts,
+        products,
         pagination: {
             page,
             limit,
@@ -79,5 +86,11 @@ export const createProduct = async (input) => {
         ...input,
         category: category._id,
     });
-    return product;
+    return Product.findById(product._id)
+        .select("name slug description price compareAtPrice sku category images status createdAt")
+        .populate({
+        path: "category",
+        select: "name slug department",
+    })
+        .lean();
 };

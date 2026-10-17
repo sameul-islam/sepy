@@ -12,8 +12,8 @@ const connectDatabase = async (): Promise<void> => {
       `MongoDB connected successfully to database: ${mongoose.connection.name}`,
     );
   } catch (error) {
-    console.error("MongoDB connection failed:", error);
-    process.exit(1);
+    console.error("MongoDB connection failed.");
+    throw error;
   }
 };
 

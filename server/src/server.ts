@@ -10,4 +10,7 @@ const startServer = async (): Promise<void> => {
   });
 };
 
-startServer();
+void startServer().catch((error: unknown) => {
+  console.error("SEPY API startup failed.", error);
+  process.exitCode = 1;
+});

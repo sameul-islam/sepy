@@ -1,12 +1,15 @@
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
-import type { ProductListQuery, CreateProductInput } from "../schemas/product.schema.js";
+import type {
+  ProductListQuery,
+  CreateProductInput,
+} from "../schemas/product.schema.js";
 import AppError from "../utils/AppError.js";
 
 export const getActiveProducts = async (query: ProductListQuery) => {
   const { page, limit, category: categorySlug } = query;
 
-  let categoryId;
+  let activeCategoryIds;
 
   if (categorySlug) {
     const category = await Category.findOne({
@@ -20,12 +23,20 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       throw new AppError("Category not found", 404);
     }
 
-    categoryId = category._id;
+    activeCategoryIds = [category._id];
+  } else {
+    const activeCategories = await Category.find({
+      isActive: true,
+    })
+      .select("_id")
+      .lean();
+
+    activeCategoryIds = activeCategories.map((category) => category._id);
   }
 
   const filter = {
     status: "active" as const,
-    ...(categoryId ? { category: categoryId } : {}),
+    category: { $in: activeCategoryIds },
   };
 
   const skip = (page - 1) * limit;
@@ -48,12 +59,8 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     Product.countDocuments(filter),
   ]);
 
-  const activeCategoryProducts = products.filter(
-    (product) => product.category !== null,
-  );
-
   return {
-    products: activeCategoryProducts,
+    products,
     pagination: {
       page,
       limit,
@@ -87,7 +94,6 @@ export const getActiveProductBySlug = async (slug: string) => {
   return product;
 };
 
-
 export const createProduct = async (input: CreateProductInput) => {
   const category = await Category.findOne({
     _id: input.category,
@@ -105,5 +111,13 @@ export const createProduct = async (input: CreateProductInput) => {
     category: category._id,
   });
 
-  return product;
+  return Product.findById(product._id)
+    .select(
+      "name slug description price compareAtPrice sku category images status createdAt",
+    )
+    .populate({
+      path: "category",
+      select: "name slug department",
+    })
+    .lean();
 };

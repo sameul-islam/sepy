@@ -6,7 +6,7 @@ const notFound = (
   _res: Response,
   next: NextFunction,
 ): void => {
-  next(new AppError(`Route not found: ${req.method} ${req.originalUrl}`, 404));
+  next(new AppError("Route not found", 404));
 };
 
 export default notFound;

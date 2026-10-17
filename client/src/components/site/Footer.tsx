@@ -50,7 +50,7 @@ export default function Footer() {
                 alt="SEPY"
                 width={240}
                 height={60}
-                className="h-auto w-22 sm:w-26 md:w-28 lg:w-30"
+                className="h-auto w-22 sm:w-26 lg:w-28"
               />
             </Link>
 

@@ -53,11 +53,10 @@ const seedCategories = async (): Promise<void> => {
       updateOne: {
         filter: { slug: category.slug },
         update: {
-          $set: {
-            name: category.name,
-            department: category.department,
-          },
           $setOnInsert: {
+            name: category.name,
+            slug: category.slug,
+            department: category.department,
             isActive: true,
           },
         },
@@ -70,12 +69,17 @@ const seedCategories = async (): Promise<void> => {
     console.log("Category seeding completed successfully.");
     console.log(`Categories in seed list: ${categories.length}`);
     console.log(`New categories created: ${result.upsertedCount}`);
-    console.log(`Existing categories updated: ${result.modifiedCount}`);
+    console.log("Existing categories were preserved.");
   } catch (error) {
     console.error("Category seeding failed:", error);
     process.exitCode = 1;
   } finally {
-    await mongoose.disconnect();
+    try {
+      await mongoose.disconnect();
+    } catch (error) {
+      console.error("MongoDB disconnection failed:", error);
+      process.exitCode = 1;
+    }
   }
 };
 
