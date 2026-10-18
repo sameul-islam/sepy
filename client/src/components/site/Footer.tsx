@@ -46,7 +46,7 @@ export default function Footer() {
               className="inline-block focus-visible:outline-none"
             >
               <Image
-                src="/images/brand/sepy-wordmark.png"
+                src="/images/brand/sepy.png"
                 alt="SEPY"
                 width={240}
                 height={60}

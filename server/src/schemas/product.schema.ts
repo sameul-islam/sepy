@@ -78,7 +78,7 @@ export const productListQuerySchema = z
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Category must be a valid slug")
       .optional(),
 
-      department: z.enum(["women", "men"]).optional(),
+      department: z.enum(["women", "men", "unisex"]).optional(),
   })
   .strict();
 

@@ -20,7 +20,7 @@ const categorySchema = new mongoose.Schema(
     department: {
       type: String,
       required: true,
-      enum: ["women", "men"],
+      enum: ["women", "men", "unisex"],
     },
 
     isActive: {

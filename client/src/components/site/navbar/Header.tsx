@@ -53,7 +53,7 @@ export default function Header() {
             className="absolute left-1/2 z-20 -translate-x-1/2"
           >
             <Image
-              src="/images/brand/sepy-wordmark.png"
+              src="/images/brand/sepy.png"
               alt="SEPY"
               width={240}
               height={60}

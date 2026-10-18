@@ -9,8 +9,8 @@ type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-const getCachedProductBySlug = cache(
-  async (slug: string) => getProductBySlug(slug),
+const getCachedProductBySlug = cache(async (slug: string) =>
+  getProductBySlug(slug),
 );
 
 export async function generateMetadata({
@@ -36,38 +36,39 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
-        return {
-          title: "Product Not Found | SEPY",
-          description: "The requested product could not be found.",
-          robots: {
-            index: false,
-            follow: false,
-          },
-        };
-      }
-
+    if (error instanceof ApiError && error.status === 404) {
       return {
-        title: "SEPY Products",
+        title: "Product Not Found | SEPY",
+        description: "The requested product could not be found.",
         robots: {
           index: false,
           follow: false,
         },
       };
+    }
+
+    return {
+      title: "SEPY Products",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
 }
 
-export default async function ProductPage({
-  params,
-}: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
   let product;
 
   try {
     product = await getCachedProductBySlug(slug);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      notFound();
+    }
+    throw error;
   }
 
   const hasDiscount =
@@ -107,10 +108,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:gap-16">
-        <ProductGallery
-          images={product.images}
-          productName={product.name}
-        />
+        <ProductGallery images={product.images} productName={product.name} />
 
         <section className="lg:sticky lg:top-8 lg:self-start">
           <p className="text-xs uppercase tracking-[0.16em] text-[#85857e]">
@@ -135,7 +133,8 @@ export default async function ProductPage({
                 <span className="text-xs text-[#5f5f5a]">
                   {Math.round(
                     (1 - product.price / product.compareAtPrice!) * 100,
-                  )}% off
+                  )}
+                  % off
                 </span>
               </>
             )}
