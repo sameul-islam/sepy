@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import ProductGallery from "@/components/products/ProductGallery";
-import { getProductBySlug } from "@/lib/api";
+import { ApiError, getProductBySlug } from "@/lib/api";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
+
+const getCachedProductBySlug = cache(
+  async (slug: string) => getProductBySlug(slug),
+);
 
 export async function generateMetadata({
   params,
@@ -14,7 +19,7 @@ export async function generateMetadata({
   const { slug } = await params;
 
   try {
-    const product = await getProductBySlug(slug);
+    const product = await getCachedProductBySlug(slug);
 
     return {
       title: `${product.name} | SEPY`,
@@ -30,14 +35,25 @@ export async function generateMetadata({
           : [],
       },
     };
-  } catch {
-    return {
-      title: "Product | SEPY",
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
+  } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return {
+          title: "Product Not Found | SEPY",
+          description: "The requested product could not be found.",
+          robots: {
+            index: false,
+            follow: false,
+          },
+        };
+      }
+
+      return {
+        title: "SEPY Products",
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
   }
 }
 
@@ -49,7 +65,7 @@ export default async function ProductPage({
   let product;
 
   try {
-    product = await getProductBySlug(slug);
+    product = await getCachedProductBySlug(slug);
   } catch {
     notFound();
   }

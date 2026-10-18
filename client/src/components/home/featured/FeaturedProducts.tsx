@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import { getProducts } from "@/lib/api";
+import type { Product as ApiProduct } from "@/lib/api-types";
 
 import ProductRail from "./ProductRail";
-import {
-  featuredProducts,
-  type Product,
-} from "./featured-products-data";
+import type { Product } from "./featured-products-data";
 
 type Gender = "women" | "men";
 
@@ -20,7 +20,68 @@ export default function FeaturedProducts() {
   const [direction, setDirection] = useState<Direction>("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const products = featuredProducts.filter(
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      setIsLoading(true);
+      setLoadError(false);
+
+      try {
+        const [womenResult, menResult] = await Promise.all([
+          getProducts({
+            page: 1,
+            limit: 8,
+            department: "women",
+          }),
+          getProducts({
+            page: 1,
+            limit: 8,
+            department: "men",
+          }),
+        ]);
+
+        if (cancelled) return;
+
+        const mapProducts = (products: ApiProduct[]): Product[] =>
+          products
+            .filter((product) => product.category && product.images.length > 0)
+            .map((product) => ({
+              id: product._id,
+              title: product.name,
+              slug: product.slug,
+              gender: product.category.department,
+              image: product.images[0].url,
+            }));
+
+        setAllProducts([
+          ...mapProducts(womenResult.products),
+          ...mapProducts(menResult.products),
+        ]);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load featured products:", error);
+          setLoadError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const products = allProducts.filter(
     (product) => product.gender === activeGender,
   );
 
@@ -29,14 +90,12 @@ export default function FeaturedProducts() {
       return;
     }
 
-    const currentProducts = featuredProducts.filter(
+    const currentProducts = allProducts.filter(
       (product) => product.gender === activeGender,
     );
 
     const nextDirection: Direction =
-      activeGender === "women" && nextGender === "men"
-        ? "forward"
-        : "backward";
+      activeGender === "women" && nextGender === "men" ? "forward" : "backward";
 
     setPreviousProducts(currentProducts);
     setDirection(nextDirection);
@@ -93,16 +152,36 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="mt-12 lg:mt-16">
-          <ProductRail
-            products={products}
-            previousProducts={previousProducts}
-            direction={direction}
-            isTransitioning={isTransitioning}
-            onTransitionEnd={() => {
-              setPreviousProducts(null);
-              setIsTransitioning(false);
-            }}
-          />
+          {isLoading ? (
+            <p
+              className="py-8 text-center text-xs text-text-muted"
+              role="status"
+            >
+              Loading products...
+            </p>
+          ) : loadError ? (
+            <p
+              className="py-8 text-center text-xs text-text-muted"
+              role="alert"
+            >
+              Products could not be loaded. Please try again later.
+            </p>
+          ) : products.length === 0 ? (
+            <p className="py-8 text-center text-xs text-text-muted">
+              No products available.
+            </p>
+          ) : (
+            <ProductRail
+              products={products}
+              previousProducts={previousProducts}
+              direction={direction}
+              isTransitioning={isTransitioning}
+              onTransitionEnd={() => {
+                setPreviousProducts(null);
+                setIsTransitioning(false);
+              }}
+            />
+          )}
         </div>
       </div>
     </section>

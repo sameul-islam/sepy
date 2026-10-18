@@ -7,7 +7,7 @@ import type {
 import AppError from "../utils/AppError.js";
 
 export const getActiveProducts = async (query: ProductListQuery) => {
-  const { page, limit, category: categorySlug } = query;
+  const { page, limit, category: categorySlug, department, } = query;
 
   let activeCategoryIds;
 
@@ -15,6 +15,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     const category = await Category.findOne({
       slug: categorySlug,
       isActive: true,
+      ...(department ? { department } : {}),
     })
       .select("_id")
       .lean();
@@ -27,6 +28,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
   } else {
     const activeCategories = await Category.find({
       isActive: true,
+      ...(department ? { department } : {}),
     })
       .select("_id")
       .lean();

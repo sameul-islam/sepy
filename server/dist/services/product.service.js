@@ -2,12 +2,13 @@ import Category from "../models/Category.js";
 import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 export const getActiveProducts = async (query) => {
-    const { page, limit, category: categorySlug } = query;
+    const { page, limit, category: categorySlug, department, } = query;
     let activeCategoryIds;
     if (categorySlug) {
         const category = await Category.findOne({
             slug: categorySlug,
             isActive: true,
+            ...(department ? { department } : {}),
         })
             .select("_id")
             .lean();
@@ -19,6 +20,7 @@ export const getActiveProducts = async (query) => {
     else {
         const activeCategories = await Category.find({
             isActive: true,
+            ...(department ? { department } : {}),
         })
             .select("_id")
             .lean();
