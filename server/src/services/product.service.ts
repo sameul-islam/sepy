@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import type { PipelineStage } from "mongoose";
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
 import type {
@@ -5,9 +7,10 @@ import type {
   CreateProductInput,
 } from "../schemas/product.schema.js";
 import AppError from "../utils/AppError.js";
+import Variant from "../models/Variant.js";
 
 export const getActiveProducts = async (query: ProductListQuery) => {
-  const { page, limit, category: categorySlug, department, } = query;
+  const { page, limit, category: categorySlug, department } = query;
 
   let activeCategoryIds;
 
@@ -36,30 +39,85 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     activeCategoryIds = activeCategories.map((category) => category._id);
   }
 
-  const filter = {
-    status: "active" as const,
-    category: { $in: activeCategoryIds },
-  };
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        status: "active",
+        category: { $in: activeCategoryIds },
+      },
+    },
+    {
+      $lookup: {
+        from: "variants",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$product", "$$productId"] },
+              isActive: true,
+            },
+          },
+          { $sort: { price: 1, _id: 1 } },
+        ],
+        as: "variants",
+      },
+    },
+    {
+      $match: {
+        "variants.0": { $exists: true },
+      },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    { $unwind: "$categoryDetails" },
+    {
+      $match: {
+        "categoryDetails.isActive": true,
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$variants.price", 0] },
+        compareAtPrice: {
+          $arrayElemAt: ["$variants.compareAtPrice", 0],
+        },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        slug: 1,
+        description: 1,
+        price: 1,
+        compareAtPrice: 1,
+        category: {
+          _id: "$categoryDetails._id",
+          name: "$categoryDetails.name",
+          slug: "$categoryDetails.slug",
+          department: "$categoryDetails.department",
+        },
+        images: 1,
+        status: 1,
+        createdAt: 1,
+      },
+    },
+    { $sort: { createdAt: -1, _id: 1 } },
+  ];
 
   const skip = (page - 1) * limit;
 
-  const [products, total] = await Promise.all([
-    Product.find(filter)
-      .select(
-        "name slug description price compareAtPrice sku category images status createdAt",
-      )
-      .populate({
-        path: "category",
-        select: "name slug department",
-        match: { isActive: true },
-      })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-
-    Product.countDocuments(filter),
+  const [products, countResult] = await Promise.all([
+    Product.aggregate([...pipeline, { $skip: skip }, { $limit: limit }]),
+    Product.aggregate([...pipeline, { $count: "total" }]),
   ]);
+
+  const total = countResult[0]?.total ?? 0;
 
   return {
     products,
@@ -79,9 +137,6 @@ export const getActiveProductBySlug = async (slug: string) => {
     slug,
     status: "active",
   })
-    .select(
-      "name slug description price compareAtPrice sku category images status createdAt",
-    )
     .populate({
       path: "category",
       select: "name slug department",
@@ -93,33 +148,102 @@ export const getActiveProductBySlug = async (slug: string) => {
     throw new AppError("Product not found", 404);
   }
 
-  return product;
+  const variants = await Variant.find({
+    product: product._id,
+    isActive: true,
+  })
+    .select("sku size color price compareAtPrice stock isActive")
+    .sort({ price: 1, _id: 1 })
+    .lean();
+
+  if (variants.length === 0) {
+    throw new AppError("Product not found", 404);
+  }
+
+  return {
+    ...product,
+    price: variants[0].price,
+    ...(variants[0].compareAtPrice !== undefined
+      ? { compareAtPrice: variants[0].compareAtPrice }
+      : {}),
+    variants,
+  };
 };
 
 export const createProduct = async (input: CreateProductInput) => {
-  const category = await Category.findOne({
-    _id: input.category,
-    isActive: true,
-  })
-    .select("_id")
-    .lean();
+  const session = await Product.startSession();
 
-  if (!category) {
-    throw new AppError("Active category not found", 404);
-  }
+  try {
+    let createdProductId: mongoose.Types.ObjectId | undefined;
 
-  const product = await Product.create({
-    ...input,
-    category: category._id,
-  });
+    await session.withTransaction(async () => {
+      const category = await Category.findOne({
+        _id: input.category,
+        isActive: true,
+      })
+        .select("_id")
+        .session(session)
+        .lean();
 
-  return Product.findById(product._id)
-    .select(
-      "name slug description price compareAtPrice sku category images status createdAt",
-    )
-    .populate({
-      path: "category",
-      select: "name slug department",
+      if (!category) {
+        throw new AppError("Active category not found", 404);
+      }
+
+      const [product] = await Product.create(
+        [
+          {
+            name: input.name,
+            slug: input.slug,
+            description: input.description,
+            category: category._id,
+            images: input.images,
+            status: input.status,
+          },
+        ],
+        { session },
+      );
+
+      await Variant.insertMany(
+        input.variants.map((variant) => ({
+          ...variant,
+          product: product._id,
+          isActive: true,
+        })),
+        { session },
+      );
+
+      createdProductId = product._id;
+    });
+
+    if (!createdProductId) {
+      throw new AppError("Product creation failed", 500);
+    }
+
+    const product = await Product.findById(createdProductId)
+      .populate({
+        path: "category",
+        select: "name slug department",
+        match: { isActive: true },
+      })
+      .lean();
+
+    if (!product || !product.category) {
+      throw new AppError("Product could not be retrieved", 500);
+    }
+
+    const variants = await Variant.find({
+      product: createdProductId,
+      isActive: true,
     })
-    .lean();
+      .select("sku size color price compareAtPrice stock isActive createdAt")
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return {
+      ...product,
+      variants,
+    };
+  } finally {
+    await session.endSession();
+  }
 };

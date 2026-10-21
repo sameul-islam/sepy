@@ -1,3 +1,4 @@
+
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 const productImageSchema = new mongoose.Schema(
@@ -44,48 +45,6 @@ const productSchema = new mongoose.Schema(
       maxlength: 10000,
     },
 
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-      validate: {
-        validator: (value: number) => Number.isFinite(value) && value > 0,
-        message: "Price must be a finite positive number",
-      },
-    },
-
-    compareAtPrice: {
-      type: Number,
-      min: 0,
-      validate: [
-        {
-          validator: (value: number | undefined) =>
-            value === undefined || (Number.isFinite(value) && value > 0),
-          message: "Compare-at price must be a finite positive number",
-        },
-        {
-          validator: function (
-            this: { price?: number },
-            value: number | undefined,
-          ) {
-            return (
-              value === undefined ||
-              (this.price !== undefined && value > this.price)
-            );
-          },
-          message: "Compare-at price must be greater than the selling price",
-        },
-      ],
-    },
-
-    sku: {
-      type: String,
-      required: true,
-      trim: true,
-      uppercase: true,
-      maxlength: 64,
-    },
-
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
@@ -116,7 +75,6 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ slug: 1 }, { unique: true });
-productSchema.index({ sku: 1 }, { unique: true });
 productSchema.index({ category: 1, status: 1 });
 productSchema.index({ status: 1, createdAt: -1 });
 
