@@ -1,3 +1,4 @@
+
 export type Category = {
   _id: string;
   name: string;
@@ -10,6 +11,17 @@ export type ProductImage = {
   alt: string;
 };
 
+export type ProductVariant = {
+  _id: string;
+  sku: string;
+  size?: string;
+  color?: string;
+  price: number;
+  compareAtPrice?: number;
+  stock: number;
+  isActive: boolean;
+};
+
 export type Product = {
   _id: string;
   name: string;
@@ -17,11 +29,14 @@ export type Product = {
   description: string;
   price: number;
   compareAtPrice?: number;
-  sku: string;
   category: Category;
   images: ProductImage[];
   status: "draft" | "active" | "archived";
   createdAt: string;
+};
+
+export type ProductDetail = Product & {
+  variants: ProductVariant[];
 };
 
 export type Pagination = {

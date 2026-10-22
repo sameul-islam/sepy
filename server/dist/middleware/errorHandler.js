@@ -19,6 +19,11 @@ const errorHandler = (error, _req, res, _next) => {
     }
     if (error instanceof mongoose.mongo.MongoServerError &&
         error.code === 11000) {
+        console.error("Duplicate key error:", {
+            message: error.message,
+            keyPattern: error.keyPattern,
+            keyValue: error.keyValue,
+        });
         res.status(409).json({
             success: false,
             message: "A resource with these unique fields already exists",

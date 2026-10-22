@@ -1,4 +1,3 @@
-
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
 const productImageSchema = new mongoose.Schema(

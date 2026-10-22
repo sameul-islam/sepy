@@ -4,6 +4,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import ProductGallery from "@/components/products/ProductGallery";
 import { ApiError, getProductBySlug } from "@/lib/api";
+import ProductVariantSelector from "@/components/products/ProductVariantSelector";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -71,10 +72,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
     throw error;
   }
 
-  const hasDiscount =
-    typeof product.compareAtPrice === "number" &&
-    product.compareAtPrice > product.price;
-
   return (
     <main className="mx-auto w-full max-w-360 px-5 pb-20 pt-6 sm:px-8 sm:pt-10 lg:px-12">
       <nav
@@ -119,26 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.name}
           </h1>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <p className="text-base text-[#171717]">
-              ৳{product.price.toLocaleString("en-BD")}
-            </p>
-
-            {hasDiscount && (
-              <>
-                <p className="text-sm text-[#85857e] line-through">
-                  ৳{product.compareAtPrice!.toLocaleString("en-BD")}
-                </p>
-
-                <span className="text-xs text-[#5f5f5a]">
-                  {Math.round(
-                    (1 - product.price / product.compareAtPrice!) * 100,
-                  )}
-                  % off
-                </span>
-              </>
-            )}
-          </div>
+          <ProductVariantSelector variants={product.variants} />
 
           <div className="mt-7 border-t border-[#e5e5e0] pt-6">
             <h2 className="text-sm font-medium text-[#171717]">
@@ -151,10 +129,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
 
           <div className="mt-7 border-t border-[#e5e5e0] pt-5">
-            <p className="text-xs text-[#85857e]">
-              Product code: {product.sku}
-            </p>
-
             <Link
               href={`/products?category=${encodeURIComponent(product.category.slug)}`}
               className="mt-4 inline-block text-sm text-[#171717] underline underline-offset-4"

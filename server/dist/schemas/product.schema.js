@@ -13,8 +13,20 @@ const variantInputSchema = z
         .min(1)
         .max(64)
         .transform((value) => value.toUpperCase()),
-    size: z.string().trim().min(1).max(40).optional(),
-    color: z.string().trim().min(1).max(60).optional(),
+    size: z
+        .string()
+        .trim()
+        .min(1)
+        .max(40)
+        .transform((value) => value.toUpperCase())
+        .optional(),
+    color: z
+        .string()
+        .trim()
+        .min(1)
+        .max(60)
+        .transform((value) => value.toLowerCase())
+        .optional(),
     price: z.number().finite().positive(),
     compareAtPrice: z.number().finite().positive().optional(),
     stock: z.number().int().min(0).default(0),

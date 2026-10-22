@@ -19,9 +19,21 @@ const variantInputSchema = z
       .max(64)
       .transform((value) => value.toUpperCase()),
 
-    size: z.string().trim().min(1).max(40).optional(),
+    size: z
+      .string()
+      .trim()
+      .min(1)
+      .max(40)
+      .transform((value) => value.toUpperCase())
+      .optional(),
 
-    color: z.string().trim().min(1).max(60).optional(),
+    color: z
+      .string()
+      .trim()
+      .min(1)
+      .max(60)
+      .transform((value) => value.toLowerCase())
+      .optional(),
 
     price: z.number().finite().positive(),
 

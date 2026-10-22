@@ -46,7 +46,7 @@ export default function ProductCard({
           </h2>
 
           <p className="mt-1 text-sm text-[#5f5f5a]">
-            ৳{product.price.toLocaleString("en-BD")}
+            TK{product.price.toLocaleString("en-BD")}
           </p>
         </div>
       </Link>

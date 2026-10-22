@@ -20,12 +20,14 @@ const variantSchema = new mongoose.Schema(
     size: {
       type: String,
       trim: true,
+      uppercase: true,
       maxlength: 40,
     },
 
     color: {
       type: String,
       trim: true,
+      lowercase: true,
       maxlength: 60,
     },
 
