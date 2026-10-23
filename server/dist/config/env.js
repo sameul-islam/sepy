@@ -5,18 +5,12 @@ const envSchema = z
     NODE_ENV: z
         .enum(["development", "production", "test"])
         .default("development"),
-    PORT: z.coerce
-        .number()
-        .int()
-        .min(1)
-        .max(65535)
-        .default(5000),
+    PORT: z.coerce.number().int().min(1).max(65535).default(5000),
     MONGODB_URI: z
         .string()
         .trim()
         .min(1, "MONGODB_URI is required")
-        .refine((value) => value.startsWith("mongodb://") ||
-        value.startsWith("mongodb+srv://"), "MONGODB_URI must be a valid MongoDB connection URI"),
+        .refine((value) => value.startsWith("mongodb://") || value.startsWith("mongodb+srv://"), "MONGODB_URI must be a valid MongoDB connection URI"),
     JWT_ACCESS_SECRET: z
         .string()
         .min(32, "JWT_ACCESS_SECRET must be at least 32 characters"),
@@ -28,9 +22,7 @@ const envSchema = z
     ADMIN_PASSWORD: z
         .string()
         .min(12, "ADMIN_PASSWORD must be at least 12 characters"),
-    CLIENT_URL: z
-        .string()
-        .url("CLIENT_URL must be a valid URL"),
+    CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
 })
     .superRefine((data, ctx) => {
     if (data.NODE_ENV !== "production") {

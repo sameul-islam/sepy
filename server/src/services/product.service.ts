@@ -103,6 +103,11 @@ export const getActiveProducts = async (query: ProductListQuery) => {
           department: "$categoryDetails.department",
         },
         images: 1,
+        isFeatured: 1,
+        featuredOrder: 1,
+        highlights: 1,
+        details: 1,
+        seo: 1,
         status: 1,
         createdAt: 1,
       },
@@ -130,6 +135,92 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       hasPreviousPage: page > 1,
     },
   };
+};
+
+export const getFeaturedProducts = async () => {
+  const products = await Product.aggregate([
+    {
+      $match: {
+        status: "active",
+        isFeatured: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "variants",
+        let: { productId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$product", "$$productId"] },
+              isActive: true,
+            },
+          },
+          { $sort: { price: 1, _id: 1 } },
+        ],
+        as: "variants",
+      },
+    },
+    {
+      $match: {
+        "variants.0": { $exists: true },
+      },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    { $unwind: "$categoryDetails" },
+    {
+      $match: {
+        "categoryDetails.isActive": true,
+      },
+    },
+    {
+      $addFields: {
+        price: { $arrayElemAt: ["$variants.price", 0] },
+        compareAtPrice: {
+          $arrayElemAt: ["$variants.compareAtPrice", 0],
+        },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        slug: 1,
+        description: 1,
+        price: 1,
+        compareAtPrice: 1,
+        category: {
+          _id: "$categoryDetails._id",
+          name: "$categoryDetails.name",
+          slug: "$categoryDetails.slug",
+          department: "$categoryDetails.department",
+        },
+        images: 1,
+        isFeatured: 1,
+        featuredOrder: 1,
+        highlights: 1,
+        details: 1,
+        seo: 1,
+        createdAt: 1,
+      },
+    },
+    {
+      $sort: {
+        featuredOrder: 1,
+        createdAt: -1,
+        _id: 1,
+      },
+    },
+    { $limit: 8 },
+  ]);
+
+  return products;
 };
 
 export const getActiveProductBySlug = async (slug: string) => {
@@ -197,6 +288,11 @@ export const createProduct = async (input: CreateProductInput) => {
             description: input.description,
             category: category._id,
             images: input.images,
+            isFeatured: input.isFeatured,
+            featuredOrder: input.featuredOrder,
+            highlights: input.highlights,
+            details: input.details,
+            seo: input.seo,
             status: input.status,
           },
         ],

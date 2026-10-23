@@ -48,15 +48,27 @@ export default function FeaturedProducts() {
         if (cancelled) return;
 
         const mapProducts = (products: ApiProduct[]): Product[] =>
-          products
-            .filter((product) => product.category && product.images.length > 0)
-            .map((product) => ({
-              id: product._id,
-              title: product.name,
-              slug: product.slug,
-              gender: product.category.department,
-              image: product.images[0].url,
-            }));
+          products.flatMap((product): Product[] => {
+            if (!product.category || product.images.length === 0) {
+              return [];
+            }
+
+            const gender = product.category.department;
+
+            if (gender !== "women" && gender !== "men") {
+              return [];
+            }
+
+            return [
+              {
+                id: product._id,
+                title: product.name,
+                slug: product.slug,
+                gender,
+                image: product.images[0].url,
+              },
+            ];
+          });
 
         setAllProducts([
           ...mapProducts(womenResult.products),

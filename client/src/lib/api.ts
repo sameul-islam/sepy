@@ -64,7 +64,7 @@ export async function getProducts(params: {
   page: number;
   limit?: number;
   category?: string;
-  department?: "women" | "men";
+  department?: "women" | "men" | "unisex";
 }): Promise<ProductListData> {
   const searchParams = new URLSearchParams({
     page: String(params.page),

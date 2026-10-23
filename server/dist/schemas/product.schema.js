@@ -51,10 +51,56 @@ export const createProductSchema = z
             .object({
             url: z.string().trim().url(),
             alt: z.string().trim().min(1).max(200),
+            publicId: z.string().trim().max(255).optional(),
+            width: z
+                .number()
+                .int()
+                .min(1)
+                .max(Number.MAX_SAFE_INTEGER)
+                .optional(),
+            height: z
+                .number()
+                .int()
+                .min(1)
+                .max(Number.MAX_SAFE_INTEGER)
+                .optional(),
         })
             .strict())
             .min(1)
             .max(12),
+        isFeatured: z.boolean().default(false),
+        featuredOrder: z
+            .number()
+            .int()
+            .min(0)
+            .max(Number.MAX_SAFE_INTEGER)
+            .default(0),
+        highlights: z
+            .array(z.string().trim().min(1).max(180))
+            .max(8)
+            .default([]),
+        details: z
+            .object({
+            material: z.string().trim().min(1).max(160).optional(),
+            fit: z.string().trim().min(1).max(120).optional(),
+            careInstructions: z
+                .array(z.string().trim().min(1).max(240))
+                .max(12)
+                .default([]),
+            activity: z
+                .array(z.string().trim().min(1).max(50))
+                .max(12)
+                .default([]),
+        })
+            .strict()
+            .optional(),
+        seo: z
+            .object({
+            title: z.string().trim().min(1).max(70).optional(),
+            description: z.string().trim().min(1).max(170).optional(),
+        })
+            .strict()
+            .optional(),
         variants: z.array(variantInputSchema).min(1).max(100),
         status: z.enum(["draft", "active", "archived"]).default("draft"),
     })
