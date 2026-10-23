@@ -18,18 +18,6 @@ export default function HeaderActions() {
           strokeWidth={1.35}
         />
       </Link>
-      
-      <Link
-        href="/wishlist"
-        aria-label="Wishlist"
-        className="hidden sm:flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
-      >
-        <PiBookmarkSimpleLight
-          aria-hidden="true"
-          className="h-4.75 w-4.75"
-          strokeWidth={1.35}
-        />
-      </Link>
 
       <Link
         href="/cart"

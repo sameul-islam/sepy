@@ -7,12 +7,7 @@ const envSchema = z
       .enum(["development", "production", "test"])
       .default("development"),
 
-    PORT: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(65535)
-      .default(5000),
+    PORT: z.coerce.number().int().min(1).max(65535).default(5000),
 
     MONGODB_URI: z
       .string()
@@ -20,8 +15,7 @@ const envSchema = z
       .min(1, "MONGODB_URI is required")
       .refine(
         (value) =>
-          value.startsWith("mongodb://") ||
-          value.startsWith("mongodb+srv://"),
+          value.startsWith("mongodb://") || value.startsWith("mongodb+srv://"),
         "MONGODB_URI must be a valid MongoDB connection URI",
       ),
 
@@ -39,9 +33,7 @@ const envSchema = z
       .string()
       .min(12, "ADMIN_PASSWORD must be at least 12 characters"),
 
-    CLIENT_URL: z
-      .string()
-      .url("CLIENT_URL must be a valid URL"),
+    CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV !== "production") {
@@ -56,9 +48,7 @@ const envSchema = z
     ];
 
     if (
-      placeholderSecrets.includes(
-        data.JWT_ACCESS_SECRET.trim().toLowerCase(),
-      )
+      placeholderSecrets.includes(data.JWT_ACCESS_SECRET.trim().toLowerCase())
     ) {
       ctx.addIssue({
         code: "custom",
@@ -78,11 +68,7 @@ const envSchema = z
       });
     }
 
-    if (
-      ["localhost", "127.0.0.1", "::1"].includes(
-        clientUrl.hostname,
-      )
-    ) {
+    if (["localhost", "127.0.0.1", "::1"].includes(clientUrl.hostname)) {
       ctx.addIssue({
         code: "custom",
         path: ["CLIENT_URL"],
@@ -101,3 +87,5 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
+
+

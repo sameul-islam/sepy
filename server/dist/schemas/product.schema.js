@@ -29,7 +29,7 @@ const variantInputSchema = z
         .optional(),
     price: z.number().finite().positive(),
     compareAtPrice: z.number().finite().positive().optional(),
-    stock: z.number().int().min(0).default(0),
+    stock: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).default(0),
 })
     .strict()
     .refine((data) => data.compareAtPrice === undefined || data.compareAtPrice > data.price, {
@@ -85,7 +85,12 @@ export const createProductSchema = z
     .strict();
 export const productListQuerySchema = z
     .object({
-    page: z.coerce.number().int().min(1).default(1),
+    page: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(Math.floor(Number.MAX_SAFE_INTEGER / 100))
+        .default(1),
     limit: z.coerce.number().int().min(1).max(100).default(12),
     category: z
         .string()

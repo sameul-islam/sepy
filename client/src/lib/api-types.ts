@@ -3,7 +3,7 @@ export type Category = {
   _id: string;
   name: string;
   slug: string;
-  department: "women" | "men";
+  department: "women" | "men" | "unisex";
 };
 
 export type ProductImage = {

@@ -64,10 +64,6 @@ export const primaryNavigation: NavigationItem[] = [
 
 export const secondaryNavigation: NavigationItem[] = [
   {
-    label: "Wishlist",
-    href: "/wishlist",
-  },
-  {
     label: "Account",
     href: "/account",
   },
