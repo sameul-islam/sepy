@@ -1,17 +1,15 @@
-
 import type {
   ApiResponse,
   Category,
-  Product,
+  FeaturedProductsData,
   ProductDetail,
   ProductListData,
 } from "./api-types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://localhost:5000/api/v1";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000/api/v1";
 
-  export class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
@@ -79,16 +77,14 @@ export async function getProducts(params: {
     searchParams.set("department", params.department);
   }
 
-  return fetchApi<ProductListData>(
-    `/products?${searchParams.toString()}`,
-  );
+  return fetchApi<ProductListData>(`/products?${searchParams.toString()}`);
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductDetail> {
+  return fetchApi<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
 }
 
 
-export async function getProductBySlug(
-  slug: string,
-): Promise<ProductDetail> {
-  return fetchApi<ProductDetail>(
-    `/products/${encodeURIComponent(slug)}`,
-  );
+export async function getFeaturedProducts(): Promise<FeaturedProductsData> {
+  return fetchApi<FeaturedProductsData>("/products/featured");
 }

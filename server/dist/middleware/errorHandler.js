@@ -6,6 +6,7 @@ const errorHandler = (error, _req, res, _next) => {
         res.status(error.statusCode).json({
             success: false,
             message: error.message,
+            ...(error.details !== undefined ? { details: error.details } : {}),
         });
         return;
     }

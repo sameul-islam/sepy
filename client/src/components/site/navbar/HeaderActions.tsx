@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HiOutlineShoppingBag } from "react-icons/hi";
 
-import { PiBookmarkSimpleLight, PiUserLight } from "react-icons/pi";
+import { PiUserLight } from "react-icons/pi";
 
 
 export default function HeaderActions() {

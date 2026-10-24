@@ -9,6 +9,21 @@ export type Category = {
 export type ProductImage = {
   url: string;
   alt: string;
+  publicId?: string;
+  width?: number;
+  height?: number;
+};
+
+export type ProductDetailsInfo = {
+  material?: string;
+  fit?: string;
+  careInstructions: string[];
+  activity: string[];
+};
+
+export type ProductSEO = {
+  title?: string;
+  description?: string;
 };
 
 export type ProductVariant = {
@@ -31,6 +46,11 @@ export type Product = {
   compareAtPrice?: number;
   category: Category;
   images: ProductImage[];
+  isFeatured: boolean;
+  featuredOrder: number;
+  highlights: string[];
+  details: ProductDetailsInfo;
+  seo: ProductSEO;
   status: "draft" | "active" | "archived";
   createdAt: string;
 };
@@ -57,4 +77,8 @@ export type ApiResponse<T> = {
 export type ProductListData = {
   products: Product[];
   pagination: Pagination;
+};
+
+export type FeaturedProductsData = {
+  products: Product[];
 };

@@ -153,3 +153,87 @@ export const productSlugParamsSchema = z
     slug: slugSchema,
 })
     .strict();
+export const productIdParamsSchema = z
+    .object({
+    id: z
+        .string()
+        .regex(/^[a-f\d]{24}$/i, "Product ID must be a valid MongoDB ObjectId"),
+})
+    .strict();
+export const updateProductSchema = z
+    .object({
+    body: z
+        .object({
+        name: z.string().trim().min(1).max(160).optional(),
+        slug: slugSchema.optional(),
+        description: z.string().trim().min(1).max(10000).optional(),
+        category: z
+            .string()
+            .regex(/^[a-f\d]{24}$/i, "Category must be a valid MongoDB ObjectId")
+            .optional(),
+        images: z
+            .array(z
+            .object({
+            url: z.string().trim().url(),
+            alt: z.string().trim().min(1).max(200),
+            publicId: z.string().trim().max(255).optional(),
+            width: z
+                .number()
+                .int()
+                .min(1)
+                .max(Number.MAX_SAFE_INTEGER)
+                .optional(),
+            height: z
+                .number()
+                .int()
+                .min(1)
+                .max(Number.MAX_SAFE_INTEGER)
+                .optional(),
+        })
+            .strict())
+            .min(1)
+            .max(12)
+            .optional(),
+        isFeatured: z.boolean().optional(),
+        featuredOrder: z
+            .number()
+            .int()
+            .min(0)
+            .max(Number.MAX_SAFE_INTEGER)
+            .optional(),
+        highlights: z
+            .array(z.string().trim().min(1).max(180))
+            .max(8)
+            .optional(),
+        details: z
+            .object({
+            material: z.string().trim().min(1).max(160).optional(),
+            fit: z.string().trim().min(1).max(120).optional(),
+            careInstructions: z
+                .array(z.string().trim().min(1).max(240))
+                .max(12)
+                .optional(),
+            activity: z
+                .array(z.string().trim().min(1).max(50))
+                .max(12)
+                .optional(),
+        })
+            .strict()
+            .optional(),
+        seo: z
+            .object({
+            title: z.string().trim().min(1).max(70).optional(),
+            description: z.string().trim().min(1).max(170).optional(),
+        })
+            .strict()
+            .optional(),
+        status: z.enum(["draft", "active", "archived"]).optional(),
+    })
+        .strict()
+        .refine((data) => Object.keys(data).length > 0, {
+        message: "At least one field must be provided for update",
+    }),
+    params: productIdParamsSchema,
+    query: z.object({}).strict(),
+})
+    .strict();

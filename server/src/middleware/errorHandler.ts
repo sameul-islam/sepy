@@ -14,6 +14,7 @@ const errorHandler = (
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
+      ...(error.details !== undefined ? { details: error.details } : {}),
     });
 
     return;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import { getProducts } from "@/lib/api";
+import { getFeaturedProducts } from "@/lib/api";
 import type { Product as ApiProduct } from "@/lib/api-types";
 
 import ProductRail from "./ProductRail";
@@ -32,18 +32,7 @@ export default function FeaturedProducts() {
       setLoadError(false);
 
       try {
-        const [womenResult, menResult] = await Promise.all([
-          getProducts({
-            page: 1,
-            limit: 8,
-            department: "women",
-          }),
-          getProducts({
-            page: 1,
-            limit: 8,
-            department: "men",
-          }),
-        ]);
+        const result = await getFeaturedProducts();
 
         if (cancelled) return;
 
@@ -70,10 +59,7 @@ export default function FeaturedProducts() {
             ];
           });
 
-        setAllProducts([
-          ...mapProducts(womenResult.products),
-          ...mapProducts(menResult.products),
-        ]);
+        setAllProducts(mapProducts(result.products));
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to load featured products:", error);
@@ -92,6 +78,30 @@ export default function FeaturedProducts() {
       cancelled = true;
     };
   }, []);
+
+
+  useEffect(() => {
+  if (!isTransitioning) {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  const timeout = window.setTimeout(
+    () => {
+      setPreviousProducts(null);
+      setIsTransitioning(false);
+    },
+    prefersReducedMotion ? 0 : 560,
+  );
+
+  return () => {
+    window.clearTimeout(timeout);
+  };
+}, [isTransitioning]);
+
 
   const products = allProducts.filter(
     (product) => product.gender === activeGender,

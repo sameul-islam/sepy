@@ -303,3 +303,62 @@ export const createProduct = async (input) => {
         await session.endSession();
     }
 };
+export const updateProduct = async (productId, input) => {
+    const updates = { ...input };
+    const existingProduct = await Product.exists({
+        _id: productId,
+    });
+    if (!existingProduct) {
+        throw new AppError("Product not found", 404);
+    }
+    if (input.status === "active") {
+        const activeVariant = await Variant.exists({
+            product: productId,
+            isActive: true,
+        });
+        if (!activeVariant) {
+            throw new AppError("A product must have at least one active variant before it can be activated", 400);
+        }
+    }
+    if (input.details !== undefined) {
+        delete updates.details;
+        for (const [key, value] of Object.entries(input.details)) {
+            updates[`details.${key}`] = value;
+        }
+    }
+    if (input.seo !== undefined) {
+        delete updates.seo;
+        for (const [key, value] of Object.entries(input.seo)) {
+            updates[`seo.${key}`] = value;
+        }
+    }
+    if (input.category !== undefined) {
+        const category = await Category.findOne({
+            _id: input.category,
+            isActive: true,
+        })
+            .select("_id")
+            .lean();
+        if (!category) {
+            throw new AppError("Active category not found", 404);
+        }
+        updates.category = category._id;
+    }
+    const product = await Product.findByIdAndUpdate(productId, { $set: updates }, {
+        new: true,
+        runValidators: true,
+    })
+        .populate({
+        path: "category",
+        select: "name slug department",
+        match: { isActive: true },
+    })
+        .lean();
+    if (!product) {
+        throw new AppError("Product not found", 404);
+    }
+    if (!product.category) {
+        throw new AppError("Active category not found", 404);
+    }
+    return product;
+};
