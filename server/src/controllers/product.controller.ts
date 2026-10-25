@@ -1,5 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
-import { getActiveProducts, getFeaturedProducts } from "../services/product.service.js";
+import {
+  getActiveProducts,
+  getFeaturedProducts,
+} from "../services/product.service.js";
 import type { ProductListQuery } from "../schemas/product.schema.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
@@ -18,7 +21,6 @@ export const getProducts = async (
     next(error);
   }
 };
-
 
 export const getFeaturedProductsController = async (
   _req: Request,

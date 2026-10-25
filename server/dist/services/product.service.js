@@ -75,6 +75,20 @@ export const getActiveProducts = async (query) => {
                 compareAtPrice: {
                     $arrayElemAt: ["$variants.compareAtPrice", 0],
                 },
+                inStock: {
+                    $gt: [
+                        {
+                            $size: {
+                                $filter: {
+                                    input: "$variants",
+                                    as: "variant",
+                                    cond: { $gt: ["$$variant.stock", 0] },
+                                },
+                            },
+                        },
+                        0,
+                    ],
+                },
             },
         },
         {
@@ -84,6 +98,7 @@ export const getActiveProducts = async (query) => {
                 description: 1,
                 price: 1,
                 compareAtPrice: 1,
+                inStock: 1,
                 category: {
                     _id: "$categoryDetails._id",
                     name: "$categoryDetails.name",
@@ -234,6 +249,7 @@ export const getActiveProductBySlug = async (slug) => {
         ...(variants[0].compareAtPrice !== undefined
             ? { compareAtPrice: variants[0].compareAtPrice }
             : {}),
+        inStock: variants.some((variant) => variant.stock > 0),
         variants,
     };
 };

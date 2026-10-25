@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ProductVariant } from "@/lib/api-types";
 
 type ProductVariantSelectorProps = {
@@ -55,6 +55,33 @@ export default function ProductVariantSelector({
   const [selectedColor, setSelectedColor] = useState(
     () => variants[0]?.color ?? "",
   );
+  useEffect(() => {
+    const nextVariant =
+      variants.find((variant) => variant._id === selectedVariantId) ??
+      variants[0];
+
+    if (!nextVariant) {
+      if (selectedVariantId !== "") setSelectedVariantId("");
+      if (selectedSize !== "") setSelectedSize("");
+      if (selectedColor !== "") setSelectedColor("");
+      return;
+    }
+
+    if (selectedVariantId !== nextVariant._id) {
+      setSelectedVariantId(nextVariant._id);
+    }
+
+    const nextSize = nextVariant.size ?? "";
+    const nextColor = nextVariant.color ?? "";
+
+    if (selectedSize !== nextSize) {
+      setSelectedSize(nextSize);
+    }
+
+    if (selectedColor !== nextColor) {
+      setSelectedColor(nextColor);
+    }
+  }, [variants, selectedVariantId, selectedSize, selectedColor]);
 
   if (!selectedVariant) {
     return (
@@ -72,8 +99,15 @@ export default function ProductVariantSelector({
 
   const currentVariant =
     matchingVariants.find((variant) => variant._id === selectedVariantId) ??
-    matchingVariants[0] ??
-    selectedVariant;
+    matchingVariants[0];
+
+  if (!currentVariant) {
+    return (
+      <p className="mt-5 text-sm text-[#5f5f5a]" role="status">
+        This size and color combination is unavailable.
+      </p>
+    );
+  }
 
   const hasDiscount =
     typeof currentVariant.compareAtPrice === "number" &&
@@ -96,12 +130,20 @@ export default function ProductVariantSelector({
       matching.find((variant) => variant._id === selectedVariantId) ??
       matching[0];
 
-    setSelectedSize(size);
+    if (!nextVariant) {
+      const fallbackVariant = variants.find((variant) => variant.size === size);
 
-    if (nextVariant) {
-      setSelectedVariantId(nextVariant._id);
-      setSelectedColor(nextVariant.color ?? "");
+      if (!fallbackVariant) return;
+
+      setSelectedVariantId(fallbackVariant._id);
+      setSelectedSize(fallbackVariant.size ?? "");
+      setSelectedColor(fallbackVariant.color ?? "");
+      return;
     }
+
+    setSelectedVariantId(nextVariant._id);
+    setSelectedSize(nextVariant.size ?? "");
+    setSelectedColor(nextVariant.color ?? "");
   }
 
   function selectColor(color: string) {
@@ -115,12 +157,22 @@ export default function ProductVariantSelector({
       matching.find((variant) => variant._id === selectedVariantId) ??
       matching[0];
 
-    setSelectedColor(color);
+    if (!nextVariant) {
+      const fallbackVariant = variants.find(
+        (variant) => variant.color === color,
+      );
 
-    if (nextVariant) {
-      setSelectedVariantId(nextVariant._id);
-      setSelectedSize(nextVariant.size ?? "");
+      if (!fallbackVariant) return;
+
+      setSelectedVariantId(fallbackVariant._id);
+      setSelectedSize(fallbackVariant.size ?? "");
+      setSelectedColor(fallbackVariant.color ?? "");
+      return;
     }
+
+    setSelectedVariantId(nextVariant._id);
+    setSelectedSize(nextVariant.size ?? "");
+    setSelectedColor(nextVariant.color ?? "");
   }
 
   return (
@@ -161,6 +213,13 @@ export default function ProductVariantSelector({
                   (!selectedColor || variant.color === selectedColor),
               );
 
+              const inStock = variants.some(
+                (variant) =>
+                  variant.size === size &&
+                  (!selectedColor || variant.color === selectedColor) &&
+                  variant.stock > 0,
+              );
+
               return (
                 <button
                   key={size}
@@ -168,10 +227,13 @@ export default function ProductVariantSelector({
                   disabled={!available}
                   aria-pressed={selectedSize === size}
                   onClick={() => selectSize(size)}
+                  aria-label={`${size}${available && !inStock ? ", out of stock" : ""}`}
                   className={`min-w-11 border px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] disabled:cursor-not-allowed disabled:opacity-30 ${
                     selectedSize === size
                       ? "border-[#171717] bg-[#171717] text-white"
-                      : "border-[#e5e5e0] text-[#171717] hover:border-[#85857e]"
+                      : `border-[#e5e5e0] text-[#171717] hover:border-[#85857e] ${
+                          available && !inStock ? "line-through opacity-60" : ""
+                        }`
                   }`}
                 >
                   {size}
@@ -196,17 +258,27 @@ export default function ProductVariantSelector({
                   (!selectedSize || variant.size === selectedSize),
               );
 
+              const inStock = variants.some(
+                (variant) =>
+                  variant.color === color &&
+                  (!selectedSize || variant.size === selectedSize) &&
+                  variant.stock > 0,
+              );
+
               return (
                 <button
                   key={color}
                   type="button"
                   disabled={!available}
                   aria-pressed={selectedColor === color}
+                  aria-label={`${color}${available && !inStock ? ", out of stock" : ""}`}
                   onClick={() => selectColor(color)}
                   className={`border px-3 py-2 text-sm capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] disabled:cursor-not-allowed disabled:opacity-30 ${
                     selectedColor === color
                       ? "border-[#171717] text-[#171717]"
-                      : "border-[#e5e5e0] text-[#5f5f5a] hover:border-[#85857e]"
+                      : `border-[#e5e5e0] text-[#5f5f5a] hover:border-[#85857e] ${
+                          available && !inStock ? "line-through opacity-60" : ""
+                        }`
                   }`}
                 >
                   {color}

@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { updateVariantController } from "../controllers/update-variant.controller.js";
+import requireAdmin from "../middleware/requireAdmin.js";
+import validate from "../middleware/validate.js";
+import { createVariantController } from "../controllers/create-variant.controller.js";
+import { updateVariantSchema, createVariantSchema, } from "../schemas/variant.schema.js";
+const router = Router();
+router.post("/", requireAdmin, validate(createVariantSchema), createVariantController);
+router.patch("/:id", requireAdmin, validate(updateVariantSchema), updateVariantController);
+export default router;

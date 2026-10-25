@@ -1,4 +1,3 @@
-
 import type { Request, Response, NextFunction } from "express";
 import { updateProduct } from "../services/product.service.js";
 import type { UpdateProductRequestInput } from "../schemas/product.schema.js";
