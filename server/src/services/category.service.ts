@@ -13,7 +13,7 @@ const CATEGORY_ORDER = [
 
 export const getActiveCategories = async () => {
   const categories = await Category.find({ isActive: true })
-    .select("_id name slug department")
+    .select("_id name slug department image")
     .lean();
 
   const order = new Map<string, number>(

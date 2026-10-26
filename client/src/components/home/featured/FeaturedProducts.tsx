@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 
+import Image from "next/image";
+
 import { getFeaturedProducts } from "@/lib/api";
 import type { Product as ApiProduct } from "@/lib/api-types";
 
@@ -79,29 +81,27 @@ export default function FeaturedProducts() {
     };
   }, []);
 
-
   useEffect(() => {
-  if (!isTransitioning) {
-    return;
-  }
+    if (!isTransitioning) {
+      return;
+    }
 
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-  const timeout = window.setTimeout(
-    () => {
-      setPreviousProducts(null);
-      setIsTransitioning(false);
-    },
-    prefersReducedMotion ? 0 : 560,
-  );
+    const timeout = window.setTimeout(
+      () => {
+        setPreviousProducts(null);
+        setIsTransitioning(false);
+      },
+      prefersReducedMotion ? 0 : 560,
+    );
 
-  return () => {
-    window.clearTimeout(timeout);
-  };
-}, [isTransitioning]);
-
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isTransitioning]);
 
   const products = allProducts.filter(
     (product) => product.gender === activeGender,
@@ -175,12 +175,37 @@ export default function FeaturedProducts() {
 
         <div className="mt-12 lg:mt-16">
           {isLoading ? (
-            <p
-              className="py-8 text-center text-xs text-text-muted"
+            <div
+              className="flex gap-2 overflow-hidden"
               role="status"
+              aria-label="Loading featured products"
+              aria-busy="true"
             >
-              Loading products...
-            </p>
+              <span className="sr-only">Loading products...</span>
+
+              {Array.from({ length: 4 }, (_, index) => (
+                <div
+                  key={index}
+                  aria-hidden="true"
+                  className="w-[calc((100vw-2rem)/2)] shrink-0 sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]"
+                >
+                  <div className="relative aspect-3/4 overflow-hidden bg-surface">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Image
+                        src="/images/brand/sepy-logo.svg"
+                        alt=""
+                        width={85}
+                        height={85}
+                        aria-hidden="true"
+                        className="h-85 w-auto max-w-[85%] object-contain opacity-25 "
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mx-auto mt-4 h-3 w-3/5 bg-surface-muted" />
+                </div>
+              ))}
+            </div>
           ) : loadError ? (
             <p
               className="py-8 text-center text-xs text-text-muted"

@@ -42,6 +42,11 @@ const categories = [
         slug: "mens-activewear",
         department: "men",
     },
+    {
+        name: "Unisex Activewear",
+        slug: "unisex-activewear",
+        department: "unisex",
+    },
 ];
 const seedCategories = async () => {
     try {

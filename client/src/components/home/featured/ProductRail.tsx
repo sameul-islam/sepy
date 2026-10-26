@@ -202,7 +202,9 @@ export default function ProductRail({
             onClick={() => scrollByAmount("left")}
             className="flex size-9 cursor-pointer items-center justify-center border border-border text-sm text-text-primary transition-colors duration-300 hover:bg-surface focus-visible:outline-none"
           >
-            <span aria-hidden="true"><IoIosArrowBack/></span>
+            <span aria-hidden="true">
+              <IoIosArrowBack />
+            </span>
           </button>
 
           <button
@@ -211,7 +213,9 @@ export default function ProductRail({
             onClick={() => scrollByAmount("right")}
             className="flex size-9 cursor-pointer items-center justify-center border border-border text-sm text-text-primary transition-colors duration-300 hover:bg-surface focus-visible:outline-none"
           >
-            <span aria-hidden="true"><IoIosArrowForward/></span>
+            <span aria-hidden="true">
+              <IoIosArrowForward />
+            </span>
           </button>
         </div>
       </div>

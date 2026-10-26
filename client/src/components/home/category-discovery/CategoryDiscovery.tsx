@@ -4,18 +4,82 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { categoryGroups, type CategoryGroup } from "./category-data";
+import { getCategories } from "@/lib/api";
 
 type GroupKey = "women" | "men";
 type Direction = "forward" | "backward";
 
+type CategoryItem = {
+  title: string;
+  href: string;
+  image: string;
+};
+
+type CategoryGroup = {
+  key: GroupKey;
+  label: string;
+  items: CategoryItem[];
+};
+
+const GROUPS: { key: GroupKey; label: string }[] = [
+  { key: "women", label: "Women" },
+  { key: "men", label: "Men" },
+];
+
 export default function CategoryDiscovery() {
   const [activeGroup, setActiveGroup] = useState<GroupKey>("women");
+  const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [previousGroup, setPreviousGroup] = useState<CategoryGroup | null>(
     null,
   );
   const [direction, setDirection] = useState<Direction>("forward");
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        const categories = await getCategories();
+
+        if (cancelled) return;
+
+        const groups: CategoryGroup[] = GROUPS.map((group) => ({
+          ...group,
+          items: categories
+            .filter(
+              (category) =>
+                category.department === group.key &&
+                typeof category.image === "string" &&
+                category.image.trim().length > 0,
+            )
+            .slice(0, 4)
+            .map((category) => ({
+              title: category.name,
+              image: category.image!,
+              href: `/products?${new URLSearchParams({
+                category: category.slug,
+                department: group.key,
+              }).toString()}`,
+            })),
+        }));
+
+        setCategoryGroups(groups);
+      } catch {
+        if (!cancelled) setHasError(true);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    void loadCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isTransitioning) {
@@ -41,10 +105,6 @@ export default function CategoryDiscovery() {
 
   const currentGroup =
     categoryGroups.find((group) => group.key === activeGroup) ?? null;
-
-  if (!currentGroup) {
-    return null;
-  }
 
   const handleGroupChange = (nextGroup: GroupKey) => {
     if (nextGroup === activeGroup || isTransitioning) {
@@ -74,8 +134,10 @@ export default function CategoryDiscovery() {
       <div className="mx-auto max-w-full">
         {/* Intro */}
         <div className="mx-auto max-w-xl text-center">
-          <h2  id="category-discovery-title"
-            className="text-lg sm:text-2xl text-black font-bold py-2">
+          <h2
+            id="category-discovery-title"
+            className="text-lg sm:text-2xl text-black font-bold py-2"
+          >
             Our Categories
           </h2>
           <p
@@ -89,7 +151,7 @@ export default function CategoryDiscovery() {
             className="mt-7 flex items-center justify-center gap-6"
             aria-label="Shop categories by gender"
           >
-            {categoryGroups.map((group) => {
+            {GROUPS.map((group) => {
               const isActive = group.key === activeGroup;
 
               return (
@@ -121,12 +183,53 @@ export default function CategoryDiscovery() {
 
         {/* Category grid */}
         <div className="mt-12 lg:mt-16">
-          <CategoryGrid
-            currentGroup={currentGroup}
-            previousGroup={previousGroup}
-            direction={direction}
-            isTransitioning={isTransitioning}
-          />
+          {isLoading ? (
+            <div
+              className="grid grid-cols-2 gap-x-1.5 gap-y-10 sm:gap-x-2 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-2.5"
+              role="status"
+              aria-label="Loading categories"
+              aria-busy="true"
+            >
+              <span className="sr-only">Loading categories...</span>
+
+              {Array.from({ length: 4 }, (_, index) => (
+                <div key={index} aria-hidden="true">
+                  <div className="relative aspect-3/4 overflow-hidden bg-surface">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Image
+                        src="/images/brand/sepy-logo.svg"
+                        alt=""
+                        width={85}
+                        height={85}
+                        aria-hidden="true"
+                        className="h-auto w-85 max-w-[85%] object-contain opacity-25"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mx-auto mt-4 h-3 w-3/5 bg-surface-muted" />
+                </div>
+              ))}
+            </div>
+          ) : hasError ? (
+            <p
+              role="alert"
+              className="py-12 text-center text-sm text-text-muted"
+            >
+              Categories could not be loaded. Please try again later.
+            </p>
+          ) : currentGroup && currentGroup.items.length > 0 ? (
+            <CategoryGrid
+              currentGroup={currentGroup}
+              previousGroup={previousGroup}
+              direction={direction}
+              isTransitioning={isTransitioning}
+            />
+          ) : (
+            <p className="py-12 text-center text-sm text-text-muted">
+              No categories available.
+            </p>
+          )}
         </div>
       </div>
     </section>

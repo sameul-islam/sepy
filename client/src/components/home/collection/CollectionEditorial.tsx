@@ -23,16 +23,13 @@ export default function CollectionEditorial() {
           />
         </picture>
 
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-black/20"
-        />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/20" />
 
         <div className="relative z-10 flex min-h-[75svh] items-end px-6 py-10 sm:px-10 sm:py-12 lg:min-h-[85svh] lg:px-16 lg:py-16">
           <div className="max-w-sm text-white">
-            <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.24em] sm:text-xs">
+            <h3 className="mb-3 text-[10px] font-medium uppercase tracking-[0.24em] sm:text-xs">
               The Movement Collection
-            </p>
+            </h3>
 
             <h2
               id="collection-editorial-title"
@@ -41,14 +38,11 @@ export default function CollectionEditorial() {
               Designed to move.
             </h2>
 
-            <Link
-              href="/collections/movement"
-              className="mt-6 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] transition-opacity duration-300 hover:opacity-65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/20"
-            >
-              <span>Explore Collection</span>
-              <span aria-hidden="true">
-                ──
-              </span>
+            <Link href="/products">
+              <button className="mt-3 relative overflow-hidden px-4 py-2.5 text-sm font-bold uppercase border hover:border-white bg-white text-black transition-colors duration-300 group cursor-pointer">
+                <span className="relative z-10 group-hover:text-white">SHOP NOW</span>
+                <span className="absolute inset-0 bg-black -translate-x-full -translate-y-full group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></span>
+              </button>
             </Link>
           </div>
         </div>

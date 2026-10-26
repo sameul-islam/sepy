@@ -1,4 +1,4 @@
-import { getActiveProducts, getFeaturedProducts } from "../services/product.service.js";
+import { getActiveProducts, getFeaturedProducts, } from "../services/product.service.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 export const getProducts = async (req, res, next) => {
     try {

@@ -4,6 +4,7 @@ export type Category = {
   name: string;
   slug: string;
   department: "women" | "men" | "unisex";
+  image?: string;
 };
 
 export type ProductImage = {
