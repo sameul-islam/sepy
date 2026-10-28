@@ -11,7 +11,7 @@ const CATEGORY_ORDER = [
 ];
 export const getActiveCategories = async () => {
     const categories = await Category.find({ isActive: true })
-        .select("_id name slug department")
+        .select("_id name slug department image")
         .lean();
     const order = new Map(CATEGORY_ORDER.map((slug, index) => [slug, index]));
     categories.sort((a, b) => (order.get(a.slug) ?? Number.MAX_SAFE_INTEGER) -

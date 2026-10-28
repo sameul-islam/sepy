@@ -18,6 +18,11 @@ const categorySchema = new mongoose.Schema({
         required: true,
         enum: ["women", "men", "unisex"],
     },
+    image: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+    },
     isActive: {
         type: Boolean,
         default: true,

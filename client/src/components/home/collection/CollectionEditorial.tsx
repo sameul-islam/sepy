@@ -25,21 +25,21 @@ export default function CollectionEditorial() {
 
         <div aria-hidden="true" className="absolute inset-0 bg-black/20" />
 
-        <div className="relative z-10 flex min-h-[75svh] items-end px-6 py-10 sm:px-10 sm:py-12 lg:min-h-[85svh] lg:px-16 lg:py-16">
-          <div className="max-w-sm text-white">
-            <h3 className="mb-3 text-[10px] font-medium uppercase tracking-[0.24em] sm:text-xs">
+        <div className="relative z-10 flex min-h-[75svh] items-end md:items-center md:justify-center px-6 py-10 sm:px-10 sm:py-12 lg:min-h-[85svh] lg:px-16 lg:py-16">
+          <div className="max-w-sm md:max-w-xl text-white md:text-center">
+            <h3 className="mb-3 text-[10px] font-medium md:font-semibold uppercase tracking-[0.24em] sm:text-xs">
               The Movement Collection
             </h3>
 
             <h2
               id="collection-editorial-title"
-              className="text-3xl font-medium tracking-[-0.035em] sm:text-4xl lg:text-5xl"
+              className="text-3xl font-medium md:font-semibold tracking-[-0.035em] sm:text-4xl lg:text-5xl"
             >
               Designed to move.
             </h2>
 
             <Link href="/products">
-              <button className="mt-3 relative overflow-hidden px-4 py-2.5 text-sm font-bold uppercase border hover:border-white bg-white text-black transition-colors duration-300 group cursor-pointer">
+              <button className="mt-3 md:mt-5 relative overflow-hidden px-4 py-2.5 md:px-8 md:py-5 text-sm font-bold uppercase border hover:border-white bg-white text-black transition-colors duration-300 group cursor-pointer">
                 <span className="relative z-10 group-hover:text-white">SHOP NOW</span>
                 <span className="absolute inset-0 bg-black -translate-x-full -translate-y-full group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></span>
               </button>

@@ -209,13 +209,45 @@ export const getFeaturedProducts = async () => {
             },
         },
         {
+            $facet: {
+                women: [
+                    { $match: { "category.department": "women" } },
+                    {
+                        $sort: {
+                            featuredOrder: 1,
+                            createdAt: -1,
+                            _id: 1,
+                        },
+                    },
+                    { $limit: 6 },
+                ],
+                men: [
+                    { $match: { "category.department": "men" } },
+                    {
+                        $sort: {
+                            featuredOrder: 1,
+                            createdAt: -1,
+                            _id: 1,
+                        },
+                    },
+                    { $limit: 6 },
+                ],
+            },
+        },
+        {
+            $project: {
+                products: { $concatArrays: ["$women", "$men"] },
+            },
+        },
+        { $unwind: "$products" },
+        { $replaceRoot: { newRoot: "$products" } },
+        {
             $sort: {
                 featuredOrder: 1,
                 createdAt: -1,
                 _id: 1,
             },
         },
-        { $limit: 8 },
     ]);
     return products;
 };

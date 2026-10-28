@@ -4,6 +4,7 @@ import type {
   FeaturedProductsData,
   ProductDetail,
   ProductListData,
+  LookDetail,
 } from "./api-types";
 
 const API_BASE_URL =
@@ -84,7 +85,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail> {
   return fetchApi<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
 }
 
-
 export async function getFeaturedProducts(): Promise<FeaturedProductsData> {
   return fetchApi<FeaturedProductsData>("/products/featured");
+}
+
+export async function getLookBySlug(slug: string): Promise<LookDetail> {
+  return fetchApi<LookDetail>(`/looks/${encodeURIComponent(slug)}`);
 }

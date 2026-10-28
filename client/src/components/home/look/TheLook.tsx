@@ -10,12 +10,57 @@ import {
   type PointerEvent,
 } from "react";
 
-import { theLook } from "./the-look-data";
+import { getLookBySlug } from "@/lib/api";
+import type { LookDetail } from "@/lib/api-types";
+
 
 const PROGRESS_WIDTH = 20;
 
+
 export default function TheLook() {
   const [progress, setProgress] = useState(0);
+  const [look, setLook] = useState<LookDetail | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLook() {
+      try {
+        const data = await getLookBySlug("navy-blue-essentials");
+
+        if (!cancelled) {
+          setLook(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load The Look:", error);
+        }
+      }
+    }
+
+    void loadLook();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!look) {
+    return null;
+  }
+
+  const products = look.products
+    .filter((item) => item.product.images.length > 0)
+    .map((item) => ({
+      id: item.product._id,
+      title: item.product.name,
+      slug: item.product.slug,
+      image: item.product.images[0].url,
+    }));
+
+  if (products.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -26,8 +71,8 @@ export default function TheLook() {
         {/* Model */}
         <div className="relative min-h-[72svh] overflow-hidden xl:min-h-[78svh]">
           <Image
-            src={theLook.modelImage}
-            alt="SEPY women's movement look"
+            src={look.image.url}
+            alt={look.image.alt}
             fill
             sizes="(max-width: 1023px) 100vw, 58vw"
             className="object-cover object-center"
@@ -38,34 +83,43 @@ export default function TheLook() {
         <div className="flex w-full min-w-0 flex-col justify-center px-2 py-14 md:px-0 lg:pl-10 xl:pl-14">
           <div className="mb-9">
             <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-text-muted sm:text-xs text-center lg:text-start">
-              {theLook.eyebrow}
+              {look.eyebrow}
             </p>
 
             <h2
               id="the-look-title"
               className="mt-3 max-w-xs font-display text-3xl leading-[0.98] tracking-[-0.035em] text-text-primary sm:text-4xl w-full mx-auto text-center lg:text-start lg:mx-0"
             >
-              {theLook.title}
+              {look.title}
             </h2>
           </div>
+
           <TheLookProductRail
+            products={products}
             onProgressChange={setProgress}
           />
 
           <TheLookProgress progress={progress} />
-
-
         </div>
       </div>
     </section>
   );
 }
 
+type TheLookProduct = {
+  id: string;
+  title: string;
+  slug: string;
+  image: string;
+};
+
 type TheLookProductRailProps = {
+  products: TheLookProduct[];
   onProgressChange: (progress: number) => void;
 };
 
 function TheLookProductRail({
+  products,
   onProgressChange,
 }: TheLookProductRailProps) {
   const railRef = useRef<HTMLDivElement>(null);
@@ -283,7 +337,7 @@ function TheLookProductRail({
       }`}
     >
       <div className="flex w-max gap-1 sm:gap-2">
-        {theLook.products.map((product) => (
+        {products.map((product) => (
           <TheLookProductCard
             key={product.id}
             product={product}

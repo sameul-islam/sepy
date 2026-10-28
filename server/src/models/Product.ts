@@ -15,6 +15,13 @@ const productImageSchema = new mongoose.Schema(
       maxlength: 200,
     },
 
+    color: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 60,
+    },
+
     publicId: {
       type: String,
       trim: true,

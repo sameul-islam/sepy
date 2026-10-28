@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProductVariant } from "@/lib/api-types";
 
 type ProductVariantSelectorProps = {
@@ -49,39 +49,8 @@ export default function ProductVariantSelector({
     [variants],
   );
 
-  const [selectedSize, setSelectedSize] = useState(
-    () => variants[0]?.size ?? "",
-  );
-  const [selectedColor, setSelectedColor] = useState(
-    () => variants[0]?.color ?? "",
-  );
-  useEffect(() => {
-    const nextVariant =
-      variants.find((variant) => variant._id === selectedVariantId) ??
-      variants[0];
-
-    if (!nextVariant) {
-      if (selectedVariantId !== "") setSelectedVariantId("");
-      if (selectedSize !== "") setSelectedSize("");
-      if (selectedColor !== "") setSelectedColor("");
-      return;
-    }
-
-    if (selectedVariantId !== nextVariant._id) {
-      setSelectedVariantId(nextVariant._id);
-    }
-
-    const nextSize = nextVariant.size ?? "";
-    const nextColor = nextVariant.color ?? "";
-
-    if (selectedSize !== nextSize) {
-      setSelectedSize(nextSize);
-    }
-
-    if (selectedColor !== nextColor) {
-      setSelectedColor(nextColor);
-    }
-  }, [variants, selectedVariantId, selectedSize, selectedColor]);
+const selectedSize = selectedVariant?.size ?? "";
+const selectedColor = selectedVariant?.color ?? "";
 
   if (!selectedVariant) {
     return (
@@ -113,67 +82,40 @@ export default function ProductVariantSelector({
     typeof currentVariant.compareAtPrice === "number" &&
     currentVariant.compareAtPrice > currentVariant.price;
 
-  function selectVariant(variant: ProductVariant) {
-    setSelectedVariantId(variant._id);
-    setSelectedSize(variant.size ?? "");
-    setSelectedColor(variant.color ?? "");
-  }
+function selectSize(size: string) {
+  const matching = variants.filter(
+    (variant) =>
+      variant.size === size &&
+      (!selectedColor || variant.color === selectedColor),
+  );
 
-  function selectSize(size: string) {
-    const matching = variants.filter(
-      (variant) =>
-        variant.size === size &&
-        (!selectedColor || variant.color === selectedColor),
-    );
+  const nextVariant =
+    matching.find((variant) => variant._id === selectedVariantId) ??
+    matching[0] ??
+    variants.find((variant) => variant.size === size);
 
-    const nextVariant =
-      matching.find((variant) => variant._id === selectedVariantId) ??
-      matching[0];
+  if (!nextVariant) return;
 
-    if (!nextVariant) {
-      const fallbackVariant = variants.find((variant) => variant.size === size);
+  setSelectedVariantId(nextVariant._id);
+}
+ 
 
-      if (!fallbackVariant) return;
+function selectColor(color: string) {
+  const matching = variants.filter(
+    (variant) =>
+      variant.color === color &&
+      (!selectedSize || variant.size === selectedSize),
+  );
 
-      setSelectedVariantId(fallbackVariant._id);
-      setSelectedSize(fallbackVariant.size ?? "");
-      setSelectedColor(fallbackVariant.color ?? "");
-      return;
-    }
+  const nextVariant =
+    matching.find((variant) => variant._id === selectedVariantId) ??
+    matching[0] ??
+    variants.find((variant) => variant.color === color);
 
-    setSelectedVariantId(nextVariant._id);
-    setSelectedSize(nextVariant.size ?? "");
-    setSelectedColor(nextVariant.color ?? "");
-  }
+  if (!nextVariant) return;
 
-  function selectColor(color: string) {
-    const matching = variants.filter(
-      (variant) =>
-        variant.color === color &&
-        (!selectedSize || variant.size === selectedSize),
-    );
-
-    const nextVariant =
-      matching.find((variant) => variant._id === selectedVariantId) ??
-      matching[0];
-
-    if (!nextVariant) {
-      const fallbackVariant = variants.find(
-        (variant) => variant.color === color,
-      );
-
-      if (!fallbackVariant) return;
-
-      setSelectedVariantId(fallbackVariant._id);
-      setSelectedSize(fallbackVariant.size ?? "");
-      setSelectedColor(fallbackVariant.color ?? "");
-      return;
-    }
-
-    setSelectedVariantId(nextVariant._id);
-    setSelectedSize(nextVariant.size ?? "");
-    setSelectedColor(nextVariant.color ?? "");
-  }
+  setSelectedVariantId(nextVariant._id);
+}
 
   return (
     <div className="mt-5">
