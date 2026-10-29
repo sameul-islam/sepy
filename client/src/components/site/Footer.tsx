@@ -35,7 +35,7 @@ const legalLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border  bg-surface lg:mt-10">
+    <footer className="border-t border-border  bg-surface">
       <div className="mx-auto max-w-420 px-5 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
         {/* Brand + Subscription */}
         <div className="grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">

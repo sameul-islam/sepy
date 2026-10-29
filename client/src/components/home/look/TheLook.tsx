@@ -7,15 +7,13 @@ import {
   useEffect,
   useRef,
   useState,
-  type PointerEvent,
+  type MouseEvent,
 } from "react";
 
 import { getLookBySlug } from "@/lib/api";
 import type { LookDetail } from "@/lib/api-types";
 
-
 const PROGRESS_WIDTH = 20;
-
 
 export default function TheLook() {
   const [progress, setProgress] = useState(0);
@@ -65,7 +63,7 @@ export default function TheLook() {
   return (
     <section
       aria-labelledby="the-look-title"
-      className="overflow-hidden sm:px-5 md:px-6 xl:px-10"
+      className="overflow-hidden sm:px-5 md:px-6 xl:px-10 sm:py-10"
     >
       <div className="mx-auto grid min-h-[78svh] xl:min-h-[85svh] max-w-450 lg:grid-cols-[1.45fr_1fr] xl:grid-cols-[1fr_1.30fr]">
         {/* Model */}
@@ -80,7 +78,7 @@ export default function TheLook() {
         </div>
 
         {/* Products */}
-        <div className="flex w-full min-w-0 flex-col justify-center px-2 py-14 md:px-0 lg:pl-10 xl:pl-14">
+        <div className="flex w-full min-w-0 flex-col justify-center px-2 py-10 md:px-0 lg:pl-10 xl:pl-14">
           <div className="mb-9">
             <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-text-muted sm:text-xs text-center lg:text-start">
               {look.eyebrow}
@@ -100,6 +98,16 @@ export default function TheLook() {
           />
 
           <TheLookProgress progress={progress} />
+
+          <Link href={"/looks"} className="relative pt-5 mx-auto">
+            <button className="sm:hidden font-bold text-xs py-2.5 px-4.5 bg-black  text-white">
+              Explore All Looks
+            </button>
+            <button className="hidden sm:flex font-bold text-sm text-center group cursor-pointer gap-0">
+              <span>Explore All Looks</span>
+              <span className="absolute left-0 -bottom-px h-px w-full bg-[#2f3542] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left" />
+            </button>
+          </Link>
         </div>
       </div>
     </section>
@@ -128,12 +136,9 @@ function TheLookProductRail({
 
   const dragState = useRef({
     active: false,
-    pointerId: -1,
     startX: 0,
     startScrollLeft: 0,
     moved: false,
-    currentX: 0,
-    frame: 0,
   });
 
   const updateProgress = useCallback(() => {
@@ -143,20 +148,14 @@ function TheLookProductRail({
       return;
     }
 
-    const maxScroll =
-      rail.scrollWidth - rail.clientWidth;
+    const maxScroll = rail.scrollWidth - rail.clientWidth;
 
     if (maxScroll <= 0) {
       onProgressChange(0);
       return;
     }
 
-    onProgressChange(
-      Math.min(
-        Math.max(rail.scrollLeft / maxScroll, 0),
-        1,
-      ),
-    );
+    onProgressChange(Math.min(Math.max(rail.scrollLeft / maxScroll, 0), 1));
   }, [onProgressChange]);
 
   useEffect(() => {
@@ -172,146 +171,56 @@ function TheLookProductRail({
       passive: true,
     });
 
-    const resizeObserver = new ResizeObserver(
-      updateProgress,
-    );
+    const resizeObserver = new ResizeObserver(updateProgress);
 
     resizeObserver.observe(rail);
 
     return () => {
-      rail.removeEventListener(
-        "scroll",
-        updateProgress,
-      );
+      rail.removeEventListener("scroll", updateProgress);
 
       resizeObserver.disconnect();
-
-      if (dragState.current.frame) {
-        cancelAnimationFrame(
-          dragState.current.frame,
-        );
-      }
     };
   }, [updateProgress]);
 
-  const updateDragPosition = () => {
-    const rail = railRef.current;
-
-    if (!rail || !dragState.current.active) {
-      return;
-    }
-
-    const distance =
-      dragState.current.currentX -
-      dragState.current.startX;
-
-    rail.scrollLeft =
-      dragState.current.startScrollLeft - distance;
-
-    dragState.current.frame = 0;
-  };
-
-  const handlePointerDown = (
-    event: PointerEvent<HTMLDivElement>,
-  ) => {
-    if (event.pointerType !== "mouse") {
-      return;
-    }
-
-    if (event.button !== 0) {
-      return;
-    }
+  const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
 
     const rail = railRef.current;
-
-    if (!rail) {
-      return;
-    }
-
-    event.preventDefault();
+    if (!rail) return;
 
     dragState.current = {
       active: true,
-      pointerId: event.pointerId,
       startX: event.clientX,
       startScrollLeft: rail.scrollLeft,
       moved: false,
-      currentX: event.clientX,
-      frame: 0,
     };
 
     setIsDragging(true);
-
-    rail.setPointerCapture(event.pointerId);
   };
 
-  const handlePointerMove = (
-    event: PointerEvent<HTMLDivElement>,
-  ) => {
-    if (
-      !dragState.current.active ||
-      event.pointerId !==
-        dragState.current.pointerId
-    ) {
-      return;
-    }
+  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    const rail = railRef.current;
+    if (!rail || !dragState.current.active) return;
 
-    const distance =
-      event.clientX -
-      dragState.current.startX;
+    const distance = event.clientX - dragState.current.startX;
 
-    if (Math.abs(distance) > 4) {
+    if (Math.abs(distance) > 5) {
       dragState.current.moved = true;
     }
 
-    dragState.current.currentX = event.clientX;
-
-    if (!dragState.current.frame) {
-      dragState.current.frame =
-        requestAnimationFrame(
-          updateDragPosition,
-        );
+    if (dragState.current.moved) {
+      rail.scrollLeft = dragState.current.startScrollLeft - distance;
     }
   };
 
-  const endPointerDrag = (
-    event: PointerEvent<HTMLDivElement>,
-  ) => {
-    if (
-      !dragState.current.active ||
-      event.pointerId !==
-        dragState.current.pointerId
-    ) {
-      return;
-    }
-
-    const rail = railRef.current;
+  const endDrag = () => {
+    if (!dragState.current.active) return;
 
     dragState.current.active = false;
-
     setIsDragging(false);
-
-    if (dragState.current.frame) {
-      cancelAnimationFrame(
-        dragState.current.frame,
-      );
-
-      dragState.current.frame = 0;
-    }
-
-    if (
-      rail &&
-      rail.hasPointerCapture(event.pointerId)
-    ) {
-      rail.releasePointerCapture(
-        event.pointerId,
-      );
-    }
   };
 
-  const handleClickCapture = (
-    event: PointerEvent<HTMLDivElement>,
-  ) => {
+  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
     if (!dragState.current.moved) {
       return;
     }
@@ -325,23 +234,18 @@ function TheLookProductRail({
   return (
     <div
       ref={railRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={endPointerDrag}
-      onPointerCancel={endPointerDrag}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={endDrag}
+      onMouseLeave={endDrag}
       onClickCapture={handleClickCapture}
       className={`overflow-x-auto overscroll-x-contain select-none scrollbar-none [&::-webkit-scrollbar]:hidden ${
-        isDragging
-          ? "cursor-grabbing"
-          : "cursor-grab"
+        isDragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
       <div className="flex w-max gap-1 sm:gap-2">
         {products.map((product) => (
-          <TheLookProductCard
-            key={product.id}
-            product={product}
-          />
+          <TheLookProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>
@@ -356,9 +260,7 @@ type TheLookProductCardProps = {
   };
 };
 
-function TheLookProductCard({
-  product,
-}: TheLookProductCardProps) {
+function TheLookProductCard({ product }: TheLookProductCardProps) {
   return (
     <article className="w-[calc((100vw-3rem)/2)] shrink-0 sm:w-[calc((100vw-5rem)/2)] lg:w-[calc((100%-0.75rem)/2)]">
       <Link
@@ -389,9 +291,7 @@ type TheLookProgressProps = {
   progress: number;
 };
 
-function TheLookProgress({
-  progress,
-}: TheLookProgressProps) {
+function TheLookProgress({ progress }: TheLookProgressProps) {
   return (
     <div className="mt-7 items-center justify-center flex">
       <div
@@ -400,9 +300,7 @@ function TheLookProgress({
         aria-label="The Look product scroll position"
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={Math.round(
-          progress * 100,
-        )}
+        aria-valuenow={Math.round(progress * 100)}
       >
         <span
           aria-hidden="true"
