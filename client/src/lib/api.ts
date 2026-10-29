@@ -89,6 +89,10 @@ export async function getFeaturedProducts(): Promise<FeaturedProductsData> {
   return fetchApi<FeaturedProductsData>("/products/featured");
 }
 
+export async function getLooks(): Promise<LookDetail[]> {
+  return fetchApi<LookDetail[]>("/looks");
+}
+
 export async function getLookBySlug(slug: string): Promise<LookDetail> {
   return fetchApi<LookDetail>(`/looks/${encodeURIComponent(slug)}`);
 }

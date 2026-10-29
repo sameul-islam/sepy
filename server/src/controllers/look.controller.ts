@@ -4,6 +4,8 @@ import {
   getActiveLookBySlug,
   createLook,
   updateLook,
+  getFeaturedLooks,
+  getAllLooksForAdmin,
 } from "../services/look.service.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 import type {
@@ -16,6 +18,18 @@ export const listLooks = async (_req: Request, res: Response) => {
   const looks = await getActiveLooks();
 
   return sendSuccess(res, 200, "Looks retrieved successfully", looks);
+};
+
+export const listFeaturedLooks = async (_req: Request, res: Response) => {
+  const looks = await getFeaturedLooks();
+
+  return sendSuccess(res, 200, "Featured Looks retrieved successfully", looks);
+};
+
+export const listAllLooksForAdmin = async (_req: Request, res: Response) => {
+  const looks = await getAllLooksForAdmin();
+
+  return sendSuccess(res, 200, "All Looks retrieved successfully", looks);
 };
 
 export const getLookBySlug = async (req: Request, res: Response) => {

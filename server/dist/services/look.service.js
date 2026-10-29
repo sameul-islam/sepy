@@ -32,9 +32,10 @@ const getPublicLook = async (look) => {
         if (variants.length === 0) {
             continue;
         }
-        const images = item.color
+        const matchingImages = item.color
             ? product.images.filter((image) => image.color === item.color)
             : product.images;
+        const images = matchingImages.length > 0 ? matchingImages : product.images;
         if (images.length === 0) {
             continue;
         }
@@ -69,6 +70,25 @@ export const getActiveLooks = async () => {
         }
     }
     return results;
+};
+export const getFeaturedLooks = async () => {
+    const looks = await Look.find({
+        isActive: true,
+        isFeatured: true,
+    })
+        .sort({ sortOrder: 1, _id: 1 })
+        .lean();
+    const results = [];
+    for (const look of looks) {
+        const publicLook = await getPublicLook(look);
+        if (publicLook.products.length > 0) {
+            results.push(publicLook);
+        }
+    }
+    return results;
+};
+export const getAllLooksForAdmin = async () => {
+    return Look.find({}).sort({ sortOrder: 1, _id: 1 }).lean();
 };
 export const getActiveLookBySlug = async (slug) => {
     const look = await Look.findOne({

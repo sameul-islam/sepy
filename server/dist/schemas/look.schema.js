@@ -19,6 +19,7 @@ export const createLookSchema = z.object({
     image: lookImageSchema,
     products: z.array(lookProductSchema).min(1).max(8),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     sortOrder: z.number().int().min(0).optional(),
 });
 export const updateLookSchema = createLookSchema

@@ -29,6 +29,8 @@ export const createLookSchema = z.object({
 
   isActive: z.boolean().optional(),
 
+  isFeatured: z.boolean().optional(),
+
   sortOrder: z.number().int().min(0).optional(),
 });
 

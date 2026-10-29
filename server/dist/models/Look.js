@@ -76,6 +76,11 @@ const lookSchema = new mongoose.Schema({
         default: false,
         required: true,
     },
+    isFeatured: {
+        type: Boolean,
+        default: false,
+        required: true,
+    },
     sortOrder: {
         type: Number,
         default: 0,

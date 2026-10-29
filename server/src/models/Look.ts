@@ -93,6 +93,12 @@ const lookSchema = new mongoose.Schema(
       required: true,
     },
 
+    isFeatured: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+
     sortOrder: {
       type: Number,
       default: 0,
