@@ -2,27 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-} from "react";
+import { useEffect, useState } from "react";
 
 import { getLookBySlug } from "@/lib/api";
 import type { LookDetail } from "@/lib/api-types";
 
-const PROGRESS_WIDTH = 20;
+import TheLookProductRail from "./TheLookProductRail";
+import TheLookProgress from "./TheLookProgress";
+import TheLookSkeleton from "./TheLookSkeleton";
 
 export default function TheLook() {
   const [progress, setProgress] = useState(0);
   const [look, setLook] = useState<LookDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadLook() {
+      setIsLoading(true);
+      setLoadError(false);
+
       try {
         const data = await getLookBySlug("navy-blue-essentials");
 
@@ -32,6 +33,11 @@ export default function TheLook() {
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to load The Look:", error);
+          setLoadError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
         }
       }
     }
@@ -42,6 +48,23 @@ export default function TheLook() {
       cancelled = true;
     };
   }, []);
+
+  if (isLoading) {
+    return <TheLookSkeleton />;
+  }
+
+  if (loadError) {
+    return (
+      <section
+        aria-label="The Look"
+        className="overflow-hidden sm:px-5 md:px-6 xl:px-10 sm:py-10"
+      >
+        <p className="py-12 text-center text-xs text-text-muted" role="alert">
+          The Look could not be loaded. Please try again later.
+        </p>
+      </section>
+    );
+  }
 
   if (!look) {
     return null;
@@ -99,218 +122,18 @@ export default function TheLook() {
 
           <TheLookProgress progress={progress} />
 
-          <Link href={"/looks"} className="relative pt-5 mx-auto">
-            <button className="sm:hidden font-bold text-xs py-2.5 px-4.5 bg-black  text-white">
+          <Link href="/looks" className="relative mx-auto pt-5">
+            <span className="bg-black px-4.5 py-2.5 text-xs font-bold text-white sm:hidden">
               Explore All Looks
-            </button>
-            <button className="hidden sm:flex font-bold text-sm text-center group cursor-pointer gap-0">
+            </span>
+
+            <span className="group relative hidden cursor-pointer gap-0 text-center text-sm font-bold sm:flex">
               <span>Explore All Looks</span>
-              <span className="absolute left-0 -bottom-px h-px w-full bg-[#2f3542] scale-x-0 origin-right transition-transform duration-300 ease-out group-hover:scale-x-100 group-hover:origin-left" />
-            </button>
+              <span className="absolute left-0 -bottom-px h-px w-full origin-right scale-x-0 bg-[#2f3542] transition-transform duration-300 ease-out group-hover:origin-left group-hover:scale-x-100" />
+            </span>
           </Link>
         </div>
       </div>
     </section>
-  );
-}
-
-type TheLookProduct = {
-  id: string;
-  title: string;
-  slug: string;
-  image: string;
-};
-
-type TheLookProductRailProps = {
-  products: TheLookProduct[];
-  onProgressChange: (progress: number) => void;
-};
-
-function TheLookProductRail({
-  products,
-  onProgressChange,
-}: TheLookProductRailProps) {
-  const railRef = useRef<HTMLDivElement>(null);
-
-  const [isDragging, setIsDragging] = useState(false);
-
-  const dragState = useRef({
-    active: false,
-    startX: 0,
-    startScrollLeft: 0,
-    moved: false,
-  });
-
-  const updateProgress = useCallback(() => {
-    const rail = railRef.current;
-
-    if (!rail) {
-      return;
-    }
-
-    const maxScroll = rail.scrollWidth - rail.clientWidth;
-
-    if (maxScroll <= 0) {
-      onProgressChange(0);
-      return;
-    }
-
-    onProgressChange(Math.min(Math.max(rail.scrollLeft / maxScroll, 0), 1));
-  }, [onProgressChange]);
-
-  useEffect(() => {
-    const rail = railRef.current;
-
-    if (!rail) {
-      return;
-    }
-
-    updateProgress();
-
-    rail.addEventListener("scroll", updateProgress, {
-      passive: true,
-    });
-
-    const resizeObserver = new ResizeObserver(updateProgress);
-
-    resizeObserver.observe(rail);
-
-    return () => {
-      rail.removeEventListener("scroll", updateProgress);
-
-      resizeObserver.disconnect();
-    };
-  }, [updateProgress]);
-
-  const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-
-    const rail = railRef.current;
-    if (!rail) return;
-
-    dragState.current = {
-      active: true,
-      startX: event.clientX,
-      startScrollLeft: rail.scrollLeft,
-      moved: false,
-    };
-
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
-    const rail = railRef.current;
-    if (!rail || !dragState.current.active) return;
-
-    const distance = event.clientX - dragState.current.startX;
-
-    if (Math.abs(distance) > 5) {
-      dragState.current.moved = true;
-    }
-
-    if (dragState.current.moved) {
-      rail.scrollLeft = dragState.current.startScrollLeft - distance;
-    }
-  };
-
-  const endDrag = () => {
-    if (!dragState.current.active) return;
-
-    dragState.current.active = false;
-    setIsDragging(false);
-  };
-
-  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
-    if (!dragState.current.moved) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    dragState.current.moved = false;
-  };
-
-  return (
-    <div
-      ref={railRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={endDrag}
-      onMouseLeave={endDrag}
-      onClickCapture={handleClickCapture}
-      className={`overflow-x-auto overscroll-x-contain select-none scrollbar-none [&::-webkit-scrollbar]:hidden ${
-        isDragging ? "cursor-grabbing" : "cursor-grab"
-      }`}
-    >
-      <div className="flex w-max gap-1 sm:gap-2">
-        {products.map((product) => (
-          <TheLookProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-type TheLookProductCardProps = {
-  product: {
-    title: string;
-    slug: string;
-    image: string;
-  };
-};
-
-function TheLookProductCard({ product }: TheLookProductCardProps) {
-  return (
-    <article className="w-[calc((100vw-3rem)/2)] shrink-0 sm:w-[calc((100vw-5rem)/2)] lg:w-[calc((100%-0.75rem)/2)]">
-      <Link
-        href={`/products/${product.slug}`}
-        draggable={false}
-        className="group block cursor-pointer focus-visible:outline-none"
-      >
-        <div className="relative aspect-3/4 overflow-hidden bg-background">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            draggable={false}
-            sizes="(max-width: 639px) 46vw, (max-width: 1023px) 40vw, 20vw"
-            className="pointer-events-none object-cover transition-transform duration-700 ease-out motion-reduce:transition-none"
-          />
-        </div>
-
-        <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-primary sm:text-xs">
-          {product.title}
-        </p>
-      </Link>
-    </article>
-  );
-}
-
-type TheLookProgressProps = {
-  progress: number;
-};
-
-function TheLookProgress({ progress }: TheLookProgressProps) {
-  return (
-    <div className="mt-7 items-center justify-center flex">
-      <div
-        className="relative h-px w-40 sm:w-50  bg-border"
-        role="progressbar"
-        aria-label="The Look product scroll position"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(progress * 100)}
-      >
-        <span
-          aria-hidden="true"
-          className="absolute inset-y-0 bg-foreground motion-reduce:transition-none"
-          style={{
-            left: `${progress * (100 - PROGRESS_WIDTH)}%`,
-            width: `${PROGRESS_WIDTH}%`,
-          }}
-        />
-      </div>
-    </div>
   );
 }
