@@ -1,10 +1,13 @@
-
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import ProductCard from "@/components/products/ProductCard";
 import { getCategories, getProducts } from "@/lib/api";
 import type { Category, ProductListData } from "@/lib/api-types";
+import {
+  MdOutlineKeyboardDoubleArrowLeft,
+  MdOutlineKeyboardDoubleArrowRight,
+} from "react-icons/md";
 
 export const metadata: Metadata = {
   title: "All Products | SEPY",
@@ -62,9 +65,7 @@ export default async function ProductsPage({
 }: ProductsPageProps) {
   const params = await searchParams;
 
-  const requestedPage = getPageNumber(
-    getSingleValue(params.page),
-  );
+  const requestedPage = getPageNumber(getSingleValue(params.page));
 
   const categorySlug = getSingleValue(params.category);
 
@@ -102,8 +103,7 @@ export default async function ProductsPage({
         </h1>
 
         <p className="mt-5 max-w-md text-sm leading-6 text-[#5f5f5a]">
-          Products could not be loaded right now. Please try again
-          shortly.
+          Products could not be loaded right now. Please try again shortly.
         </p>
       </main>
     );
@@ -152,106 +152,24 @@ export default async function ProductsPage({
   );
 
   return (
-    <main className="mx-auto w-full max-w-360 px-5 pb-20 pt-10 sm:px-8 sm:pt-14 lg:px-12 lg:pb-28">
+    <main className="mx-auto w-full px-2.5 pb-20 pt-10 sm:px-8 sm:pt-20 lg:px-12 lg:pb-28">
       <header className="mb-8 sm:mb-10">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#85857e]">
-          SEPY / Shop
-        </p>
-
-        <div className="mt-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <h1 className="text-3xl font-medium tracking-tight text-[#171717] sm:text-5xl">
+        <div className="mt-4 flex flex-col text-center gap-4">
+          <div className="">
+            <h1 className="text-3xl font-extrabold font-display tracking-tight text-[#171717] sm:text-5xl">
               {selectedTitle}
             </h1>
 
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[#5f5f5a] sm:text-base">
-              Performance essentials, designed for movement and
-              everyday life.
+            <p className="mt-3 max-w-xl mx-auto font-semibold text-xs sm:text-sm text-black">
+              Performance essentials, designed for movement and everyday life.
             </p>
           </div>
 
-          <p
-            className="text-sm text-[#5f5f5a]"
-            aria-live="polite"
-          >
-            {pagination.total}{" "}
-            {pagination.total === 1 ? "product" : "products"}
+          <p className="text-sm text-accent font-medium" aria-live="polite">
+            {pagination.total} {pagination.total === 1 ? "product" : "products"}
           </p>
         </div>
       </header>
-
-      <nav
-        aria-label="Shop departments"
-        className="mb-6 flex gap-6 overflow-x-auto border-b border-[#e5e5e0]"
-      >
-        {[
-          { label: "All", value: undefined },
-          { label: "Women", value: "women" },
-          { label: "Men", value: "men" },
-        ].map((item) => {
-          const active = item.value
-            ? department === item.value
-            : !department && !categorySlug;
-
-          return (
-            <Link
-              key={item.label}
-              href={departmentHref(item.value)}
-              aria-current={active ? "page" : undefined}
-              className={`shrink-0 border-b pb-3 text-sm transition-colors ${
-                active
-                  ? "border-[#171717] text-[#171717]"
-                  : "border-transparent text-[#85857e] hover:text-[#171717]"
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {categories.length > 0 && (
-        <nav
-          aria-label="Product categories"
-          className="mb-9 flex gap-x-5 gap-y-3 overflow-x-auto pb-2"
-        >
-          <Link
-            href={departmentHref(department)}
-            aria-current={!categorySlug ? "page" : undefined}
-            className={`shrink-0 text-sm ${
-              !categorySlug
-                ? "text-[#171717] underline underline-offset-4"
-                : "text-[#85857e] hover:text-[#171717]"
-            }`}
-          >
-            All categories
-          </Link>
-
-          {categories
-            .filter(
-              (category) =>
-                !department ||
-                category.department === department ||
-                category.department === "unisex",
-            )
-            .map((category) => (
-              <Link
-                key={category._id}
-                href={categoryHref(category.slug)}
-                aria-current={
-                  category.slug === categorySlug ? "page" : undefined
-                }
-                className={`shrink-0 text-sm ${
-                  category.slug === categorySlug
-                    ? "text-[#171717] underline underline-offset-4"
-                    : "text-[#85857e] hover:text-[#171717]"
-                }`}
-              >
-                {category.name}
-              </Link>
-            ))}
-        </nav>
-      )}
 
       {products.length === 0 ? (
         <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">
@@ -260,8 +178,8 @@ export default async function ProductsPage({
           </h2>
 
           <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#5f5f5a]">
-            There are no products to display in this selection.
-            Explore the full collection instead.
+            There are no products to display in this selection. Explore the full
+            collection instead.
           </p>
 
           <Link
@@ -275,7 +193,7 @@ export default async function ProductsPage({
         <>
           <section
             aria-label="Product results"
-            className="grid grid-cols-2 gap-x-3 gap-y-9 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-6"
+            className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
           >
             {products.map((product) => (
               <ProductCard key={product._id} product={product} />
@@ -285,7 +203,7 @@ export default async function ProductsPage({
           {pagination.totalPages > 1 && (
             <nav
               aria-label="Product pages"
-              className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-[#e5e5e0] pt-7"
+              className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-border pt-7"
             >
               {pagination.hasPreviousPage ? (
                 <Link
@@ -294,10 +212,12 @@ export default async function ProductsPage({
                   className="text-sm text-[#171717] hover:underline"
                 >
                   Previous
+                  <MdOutlineKeyboardDoubleArrowLeft size={22} />
                 </Link>
               ) : (
                 <span className="text-sm text-[#cfcfc8]">
                   Previous
+                  <MdOutlineKeyboardDoubleArrowLeft size={22} />
                 </span>
               )}
 
@@ -343,9 +263,12 @@ export default async function ProductsPage({
                   className="text-sm text-[#171717] hover:underline"
                 >
                   Next
+                  <MdOutlineKeyboardDoubleArrowRight size={22} />
                 </Link>
               ) : (
-                <span className="text-sm text-[#cfcfc8]">Next</span>
+                <span className="text-sm text-[#cfcfc8]">
+                  Next <MdOutlineKeyboardDoubleArrowRight size={22} />
+                </span>
               )}
             </nav>
           )}
