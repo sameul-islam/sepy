@@ -71,6 +71,13 @@ export const createProductSchema = z
               .object({
                 url: z.string().trim().url(),
                 alt: z.string().trim().min(1).max(200),
+                color: z
+                  .string()
+                  .trim()
+                  .min(1)
+                  .max(60)
+                  .toLowerCase()
+                  .optional(),
                 publicId: z.string().trim().max(255).optional(),
                 width: z
                   .number()
@@ -236,6 +243,13 @@ export const updateProductSchema = z
               .object({
                 url: z.string().trim().url(),
                 alt: z.string().trim().min(1).max(200),
+                color: z
+                  .string()
+                  .trim()
+                  .min(1)
+                  .max(60)
+                  .toLowerCase()
+                  .optional(),
                 publicId: z.string().trim().max(255).optional(),
                 width: z
                   .number()

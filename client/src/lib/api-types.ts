@@ -9,6 +9,7 @@ export type Category = {
 export type ProductImage = {
   url: string;
   alt: string;
+  color?: string;
   publicId?: string;
   width?: number;
   height?: number;
@@ -46,6 +47,7 @@ export type Product = {
   compareAtPrice?: number;
   category: Category;
   images: ProductImage[];
+  availableColors: string[];
   isFeatured: boolean;
   featuredOrder: number;
   highlights: string[];

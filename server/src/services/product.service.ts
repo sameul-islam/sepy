@@ -102,6 +102,30 @@ export const getActiveProducts = async (query: ProductListQuery) => {
             0,
           ],
         },
+        availableColors: {
+          $setUnion: [
+            {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$variants",
+                    as: "variant",
+                    cond: {
+                      $and: [
+                        { $gt: ["$$variant.stock", 0] },
+                        { $eq: [{ $type: "$$variant.color" }, "string"] },
+                        { $ne: ["$$variant.color", ""] },
+                      ],
+                    },
+                  },
+                },
+                as: "variant",
+                in: "$$variant.color",
+              },
+            },
+            [],
+          ],
+        },
       },
     },
 
@@ -120,6 +144,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
           department: "$categoryDetails.department",
         },
         images: 1,
+        availableColors: 1,
         isFeatured: 1,
         featuredOrder: 1,
         highlights: 1,
@@ -203,6 +228,30 @@ export const getFeaturedProducts = async () => {
         compareAtPrice: {
           $arrayElemAt: ["$variants.compareAtPrice", 0],
         },
+        availableColors: {
+          $setUnion: [
+            {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$variants",
+                    as: "variant",
+                    cond: {
+                      $and: [
+                        { $gt: ["$$variant.stock", 0] },
+                        { $eq: [{ $type: "$$variant.color" }, "string"] },
+                        { $ne: ["$$variant.color", ""] },
+                      ],
+                    },
+                  },
+                },
+                as: "variant",
+                in: "$$variant.color",
+              },
+            },
+            [],
+          ],
+        },
       },
     },
     {
@@ -219,6 +268,7 @@ export const getFeaturedProducts = async () => {
           department: "$categoryDetails.department",
         },
         images: 1,
+        availableColors: 1,
         isFeatured: 1,
         featuredOrder: 1,
         highlights: 1,
