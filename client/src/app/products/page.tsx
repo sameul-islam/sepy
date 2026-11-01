@@ -125,15 +125,6 @@ export default async function ProductsPage({
           ? "Unisex"
           : "All Products");
 
-  const departmentHref = (value?: string) =>
-    buildProductsUrl({ department: value });
-
-  const categoryHref = (slug?: string) =>
-    buildProductsUrl({
-      category: slug,
-      department,
-    });
-
   const pageHref = (page: number) =>
     buildProductsUrl({
       page,
@@ -152,7 +143,7 @@ export default async function ProductsPage({
   );
 
   return (
-    <main className="mx-auto w-full px-2.5 pb-20 pt-10 sm:px-8 sm:pt-20 lg:px-12 lg:pb-28">
+    <main className="mx-auto w-full px-2.5 pb-20 pt-10 sm:px-8 sm:pt-20 lg:px-14 lg:pb-28">
       <header className="mb-8 sm:mb-10">
         <div className="mt-4 flex flex-col text-center gap-4">
           <div className="">
@@ -209,16 +200,16 @@ export default async function ProductsPage({
                 <Link
                   href={pageHref(pagination.page - 1)}
                   rel="prev"
-                  className="text-sm text-[#171717] hover:underline"
+                  className="flex items-center gap-1 text-xs sm:text-sm text-[#171717] font-semibold hover:underline"
                 >
-                  Previous
                   <MdOutlineKeyboardDoubleArrowLeft size={22} />
+                  <span>Previous</span>
                 </Link>
               ) : (
-                <span className="text-sm text-[#cfcfc8]">
-                  Previous
+                <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#cfcfc8]">
                   <MdOutlineKeyboardDoubleArrowLeft size={22} />
-                </span>
+                  <span>Previous</span>
+                </div>
               )}
 
               <div className="flex items-center gap-2">
@@ -260,15 +251,16 @@ export default async function ProductsPage({
                 <Link
                   href={pageHref(pagination.page + 1)}
                   rel="next"
-                  className="text-sm text-[#171717] hover:underline"
+                  className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#171717] hover:underline"
                 >
-                  Next
+                  <span>Next</span>
                   <MdOutlineKeyboardDoubleArrowRight size={22} />
                 </Link>
               ) : (
-                <span className="text-sm text-[#cfcfc8]">
-                  Next <MdOutlineKeyboardDoubleArrowRight size={22} />
-                </span>
+                <div className="flex text-xs sm:text-sm font-semibold text-[#cfcfc8] items-center gap-1">
+                  <span>Next</span>{" "}
+                  <MdOutlineKeyboardDoubleArrowRight size={22} />
+                </div>
               )}
             </nav>
           )}
