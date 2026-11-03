@@ -49,11 +49,10 @@ function ArrowButton({ direction, disabled, onClick }: ArrowButtonProps) {
         isPrevious ? "Show previous product image" : "Show next product image"
       }
       className={`
-        absolute top-1/2 z-10 hidden size-9 -translate-y-1/2
-        items-center justify-center rounded-sm border border-gray-300
-        bg-white/70 text-[#171717] 
-        opacity-0 transition-opacity duration-200
-        hover:bg-white
+        absolute top-1/2 z-10 hidden -translate-y-1/2
+        items-center justify-center 
+        text-black
+        opacity-0 transition-opacity 
         focus-visible:opacity-100
         focus-visible:outline-2 focus-visible:outline-offset-2
         focus-visible:outline-[#171717]
@@ -68,7 +67,7 @@ function ArrowButton({ direction, disabled, onClick }: ArrowButtonProps) {
         aria-hidden="true"
         viewBox="0 0 24 24"
         fill="none"
-        className="size-5"
+        className="size-7"
       >
         <path
           d={isPrevious ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"}
@@ -413,35 +412,50 @@ export default function ProductGallery({
         )}
       </div>
 
-      {/* Image indicators */}
+      {/* Image progress indicators */}
       {galleryImages.length > 1 && (
         <div
-          className="flex items-center justify-center pt-1"
+          className="
+            relative flex w-full items-center
+            [@media(hover:hover)_and_(pointer:fine)]:hidden
+          "
           role="group"
           aria-label="Product image navigation"
         >
           {galleryImages.map((image, imageIndex) => (
             <button
-              key={`${image.url}-${imageIndex}-dot`}
+              key={`${image.url}-${imageIndex}-indicator`}
               type="button"
               onClick={() => goTo(imageIndex)}
               disabled={isDragging}
               aria-label={`Show product image ${imageIndex + 1}`}
               aria-current={imageIndex === activeIndex ? "true" : undefined}
-              className="group/dot flex h-2 sm:h-4 items-center px-1"
+              className="
+                flex min-w-0 flex-1 items-center
+                disabled:cursor-not-allowed
+              "
             >
-              <span
-                className={`
-                  block h-px sm:h-0.5 rounded-full transition-all duration-200
-                  ${
-                    imageIndex === activeIndex
-                      ? " w-4 sm:w-8 bg-[#171717]"
-                      : "w-2 sm:w-5 bg-[#cfcfc8] group-hover/dot:bg-[#85857e]"
-                  }
-                `}
-              />
+              <span className="block h-0.5 w-full rounded-full bg-[#cfcfc8]" />
             </button>
           ))}
+
+          {/* Sliding active indicator */}
+          {/* Sliding active indicator */}
+          <span
+            aria-hidden="true"
+            className="
+    pointer-events-none absolute left-0 top-1/2
+    h-0.5 -translate-y-1/2
+    rounded-full bg-[#171717]
+    transition-transform duration-300
+    ease-[cubic-bezier(0.22,1,0.36,1)]
+    motion-reduce:transition-none
+  "
+            style={{
+              width: `${100 / galleryImages.length}%`,
+              transform: `translateX(${activeIndex * 100}%)`,
+            }}
+          />
         </div>
       )}
     </div>

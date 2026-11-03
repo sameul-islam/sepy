@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -10,32 +10,12 @@ import NavigationDrawer from "./NavigationDrawer";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
-    };
-
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-          isScrolled || isMenuOpen
-            ? "bg-white"
-            : "bg-transparent hover:bg-white"
-        }`}
+        className="fixed inset-x-0 top-0 z-50 transition-colors duration-500 bg-white"
       >
         <div className="relative mx-auto flex h-12 w-full items-center px-4 sm:h-15 lg:h-18 sm:px-6 lg:px-10">
           {/* Menu */}

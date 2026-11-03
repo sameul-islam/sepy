@@ -115,7 +115,7 @@ export default function NavigationDrawer({
         tabIndex={-1}
         aria-label="Main navigation"
         aria-hidden={!isOpen}
-        className={`fixed inset-y-0 left-0 z-40 w-full overflow-hidden bg-white transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-105 md:w-115 xl:w-150 ${
+        className={`fixed inset-y-0 left-0 z-40 w-full overflow-hidden bg-white transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] sm:w-105 md:w-115 xl:w-150 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -126,7 +126,7 @@ export default function NavigationDrawer({
                 MAIN NAVIGATION
                 ================================ */}
             <div
-              className={`absolute inset-0 overflow-y-auto px-6 pb-10 pt-8 transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-8 lg:px-10 ${
+              className={`absolute inset-0 overflow-y-auto px-6 pb-10 pt-8 transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-8 lg:px-10 ${
                 activeSubmenu ? "-translate-x-full" : "translate-x-0"
               }`}
             >
@@ -146,7 +146,7 @@ export default function NavigationDrawer({
 
                           <MdArrowForwardIos
                             aria-hidden="true"
-                            className="h-4 w-4 -translate-x-1 opacity-60 transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100"
+                            className="h-4 w-4 -translate-x-1 opacity-60 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100"
                           />
                         </button>
                       ) : (
@@ -209,7 +209,7 @@ export default function NavigationDrawer({
                 SUB NAVIGATION
                 ================================ */}
             <div
-              className={`absolute inset-0 overflow-y-auto px-6 pb-10 pt-8 transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-8 lg:px-10 ${
+              className={`absolute inset-0 overflow-y-auto px-6 pb-10 pt-8 transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-8 lg:px-10 ${
                 activeSubmenu ? "translate-x-0" : "translate-x-full"
               }`}
             >
@@ -244,7 +244,7 @@ export default function NavigationDrawer({
 
                               <FiArrowRight
                                 aria-hidden="true"
-                                className="h-4 w-4 -translate-x-1 opacity-60 transition-all duration-400 group-hover:translate-x-0 group-hover:opacity-100"
+                                className="h-4 w-4 -translate-x-1 opacity-60 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
                               />
                             </button>
                           ) : (

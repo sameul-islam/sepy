@@ -29,19 +29,19 @@ export default function MenuButton({
 
           <span className="relative block h-4 w-5">
             <span
-              className={`absolute left-0 top-0 block h-px w-8 origin-center bg-current transition-transform duration-900 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
+              className={`absolute left-0 top-0 block h-px w-8 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
                 isOpen ? "translate-y-1.75 rotate-45" : ""
               }`}
             />
 
             <span
-              className={`absolute left-0 top-1.75 block h-px w-7 bg-current transition-opacity duration-500 md:w-8 ${
+              className={`absolute left-0 top-1.75 block h-px w-7 bg-current transition-opacity duration-300 md:w-8 ${
                 isOpen ? "opacity-0" : "opacity-100"
               }`}
             />
 
             <span
-              className={`absolute left-0 top-3.5 block h-px w-8 origin-center bg-current transition-transform duration-900 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
+              className={`absolute left-0 top-3.5 block h-px w-8 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
                 isOpen ? "-translate-y-1.75 -rotate-45" : ""
               }`}
             />
