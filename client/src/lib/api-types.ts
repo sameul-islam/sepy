@@ -44,7 +44,8 @@ export type Product = {
   slug: string;
   description: string;
   price: number;
-  compareAtPrice?: number;
+  compareAtPrice?: number | null;
+  inStock: boolean;
   category: Category;
   images: ProductImage[];
   availableColors: string[];
@@ -76,9 +77,19 @@ export type ApiResponse<T> = {
   data: T;
 };
 
+export type ProductFilterOptions = {
+  sizes: string[];
+  colors: string[];
+  priceRange: {
+    min: number | null;
+    max: number | null;
+  };
+};
+
 export type ProductListData = {
   products: Product[];
   pagination: Pagination;
+  filters: ProductFilterOptions;
 };
 
 export type FeaturedProductsData = {

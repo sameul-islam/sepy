@@ -54,24 +54,33 @@ export default function Footer() {
               />
             </Link>
 
-            <p className="mt-5 max-w-xs text-sm mx-auto sm:mx-0 leading-6 text-text-secondary">
+            <p className="mt-5 max-w-xs text-sm font-semibold mx-auto sm:mx-0">
               Performance, refined.
             </p>
           </div>
 
           <div className="w-full max-w-md mx-auto sm:mx-0 text-center sm:text-left lg:min-w-100">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-primary">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-primary">
               Stay in motion
             </p>
 
-            <p className="mt-2 text-sm leading-6 text-text-secondary">
+            <p className="mt-2 text-sm font-semibold">
               New releases, collections and updates.
             </p>
 
             <form
               action="/api/subscribe"
               method="post"
-              className="mt-5 flex border-b border-border-strong"
+              className="
+    mt-5 flex h-12 w-full items-stretch
+    overflow-hidden
+    border border-border-strong bg-white
+    transition-colors duration-200
+    hover:border-foreground
+    focus-within:border-foreground
+    focus-within:ring-1
+    focus-within:ring-foreground
+  "
             >
               <label htmlFor="footer-email" className="sr-only">
                 Email address
@@ -81,15 +90,43 @@ export default function Footer() {
                 id="footer-email"
                 name="email"
                 type="email"
+                inputMode="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
                 placeholder="Your email address"
-                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
+                className="
+      min-w-0 flex-1 h-full
+      appearance-none border-0
+      rounded-none bg-transparent
+      px-4 py-0
+      text-sm font-bold text-foreground
+      placeholder:font-normal
+      placeholder:text-foreground/45
+      outline-none ring-0
+      focus:border-0 focus:outline-none
+      focus:ring-0
+    "
               />
 
               <button
                 type="submit"
-                className="shrink-0 py-3 pl-5 text-[10px] font-semibold uppercase tracking-[0.18em] text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4"
+                className="
+      flex h-full shrink-0 items-center justify-center
+      self-stretch
+      border-0 rounded-none
+      bg-black px-4 sm:px-6
+      text-xs font-bold uppercase
+      tracking-[0.16em] text-white
+      transition-colors duration-200
+      hover:bg-foreground/80
+      active:bg-foreground/70
+      focus-visible:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-inset
+      focus-visible:ring-white
+    "
               >
                 Subscribe
               </button>
@@ -98,7 +135,7 @@ export default function Footer() {
         </div>
 
         {/* Navigation */}
-        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 border-t border-border pt-12 sm:grid-cols-3 lg:mt-20 lg:grid-cols-[1fr_1fr_1fr] text-center sm:text-left">
+        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 border-t border-border pt-12 sm:grid-cols-3 lg:mt-20 lg:grid-cols-[1fr_1fr_1fr] text-center sm:text-left font-semibold">
           <FooterLinkGroup title="Shop" links={shopLinks} />
           <FooterLinkGroup title="Help" links={helpLinks} />
 
@@ -115,7 +152,7 @@ export default function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 font-semibold"
+                      className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 font-bold"
                     >
                       {link.label}
                     </a>
@@ -158,13 +195,10 @@ type FooterLinkGroupProps = {
   }[];
 };
 
-function FooterLinkGroup({
-  title,
-  links,
-}: FooterLinkGroupProps) {
+function FooterLinkGroup({ title, links }: FooterLinkGroupProps) {
   return (
     <div>
-      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
         {title}
       </p>
 

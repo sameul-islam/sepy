@@ -153,8 +153,45 @@ export const productListQuerySchema = z
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Category must be a valid slug")
         .optional(),
     department: z.enum(["women", "men", "unisex"]).optional(),
+    size: z
+        .string()
+        .trim()
+        .min(1)
+        .max(40)
+        .transform((value) => value.toUpperCase())
+        .optional(),
+    color: z
+        .string()
+        .trim()
+        .min(1)
+        .max(60)
+        .transform((value) => value.toLowerCase())
+        .optional(),
+    minPrice: z.coerce
+        .number()
+        .finite()
+        .min(0)
+        .max(Number.MAX_SAFE_INTEGER)
+        .optional(),
+    maxPrice: z.coerce
+        .number()
+        .finite()
+        .min(0)
+        .max(Number.MAX_SAFE_INTEGER)
+        .optional(),
+    inStock: z
+        .enum(["true", "false"])
+        .transform((value) => value === "true")
+        .optional(),
+    sort: z.enum(["newest", "price-asc", "price-desc"]).default("newest"),
 })
-    .strict();
+    .strict()
+    .refine((data) => data.minPrice === undefined ||
+    data.maxPrice === undefined ||
+    data.minPrice <= data.maxPrice, {
+    message: "Minimum price cannot be greater than maximum price",
+    path: ["maxPrice"],
+});
 export const productSlugParamsSchema = z
     .object({
     slug: slugSchema,

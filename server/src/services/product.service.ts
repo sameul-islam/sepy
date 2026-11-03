@@ -10,7 +10,18 @@ import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
 
 export const getActiveProducts = async (query: ProductListQuery) => {
-  const { page, limit, category: categorySlug, department } = query;
+  const {
+    page,
+    limit,
+    category: categorySlug,
+    department,
+    size,
+    color,
+    minPrice,
+    maxPrice,
+    inStock,
+    sort = "newest",
+  } = query;
 
   let activeCategoryIds;
 
@@ -39,7 +50,46 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     activeCategoryIds = activeCategories.map((category) => category._id);
   }
 
-  const pipeline: PipelineStage[] = [
+  // Build conditions for the SAME variant document.
+  const variantConditions: Record<string, unknown>[] = [];
+
+  if (size) {
+    variantConditions.push({
+      $eq: ["$$variant.size", size],
+    });
+  }
+
+  if (color) {
+    variantConditions.push({
+      $eq: ["$$variant.color", color],
+    });
+  }
+
+  if (minPrice !== undefined) {
+    variantConditions.push({
+      $gte: ["$$variant.price", minPrice],
+    });
+  }
+
+  if (maxPrice !== undefined) {
+    variantConditions.push({
+      $lte: ["$$variant.price", maxPrice],
+    });
+  }
+
+  if (inStock === true) {
+    variantConditions.push({
+      $gt: ["$$variant.stock", 0],
+    });
+  }
+
+  const variantCondition =
+    variantConditions.length > 0
+      ? { $and: variantConditions }
+      : true;
+
+  // Base pipeline: active products with active variants and categories.
+  const basePipeline: PipelineStage[] = [
     {
       $match: {
         status: "active",
@@ -81,39 +131,85 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         "categoryDetails.isActive": true,
       },
     },
+  ];
 
+  // Apply all selected filters to one matching variant array.
+  const variantFilterStages: PipelineStage[] = [
     {
       $addFields: {
-        price: { $arrayElemAt: ["$variants.price", 0] },
-        compareAtPrice: {
-          $arrayElemAt: ["$variants.compareAtPrice", 0],
+        matchingVariants: {
+          $filter: {
+            input: "$variants",
+            as: "variant",
+            cond: variantCondition,
+          },
         },
+      },
+    },
+    {
+      $match: {
+        "matchingVariants.0": { $exists: true },
+      },
+    },
+  ];
+
+  // Determine product sorting.
+  const sortStage: Record<string, 1 | -1> =
+    sort === "price-asc"
+      ? { price: 1, createdAt: -1, _id: 1 }
+      : sort === "price-desc"
+        ? { price: -1, createdAt: -1, _id: 1 }
+        : { createdAt: -1, _id: 1 };
+
+  const skip = (page - 1) * limit;
+
+  // Product listing pipeline.
+  const productStages: PipelineStage[] = [
+    ...variantFilterStages,
+    {
+      $addFields: {
+        price: {
+          $arrayElemAt: ["$matchingVariants.price", 0],
+        },
+
+        compareAtPrice: {
+          $arrayElemAt: ["$matchingVariants.compareAtPrice", 0],
+        },
+
         inStock: {
           $gt: [
             {
               $size: {
                 $filter: {
-                  input: "$variants",
+                  input: "$matchingVariants",
                   as: "variant",
-                  cond: { $gt: ["$$variant.stock", 0] },
+                  cond: {
+                    $gt: ["$$variant.stock", 0],
+                  },
                 },
               },
             },
             0,
           ],
         },
+
         availableColors: {
           $setUnion: [
             {
               $map: {
                 input: {
                   $filter: {
-                    input: "$variants",
+                    input: "$matchingVariants",
                     as: "variant",
                     cond: {
                       $and: [
                         { $gt: ["$$variant.stock", 0] },
-                        { $eq: [{ $type: "$$variant.color" }, "string"] },
+                        {
+                          $eq: [
+                            { $type: "$$variant.color" },
+                            "string",
+                          ],
+                        },
                         { $ne: ["$$variant.color", ""] },
                       ],
                     },
@@ -128,7 +224,11 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         },
       },
     },
-
+    {
+      $sort: sortStage,
+    },
+    { $skip: skip },
+    { $limit: limit },
     {
       $project: {
         name: 1,
@@ -137,12 +237,14 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         price: 1,
         compareAtPrice: 1,
         inStock: 1,
+
         category: {
           _id: "$categoryDetails._id",
           name: "$categoryDetails.name",
           slug: "$categoryDetails.slug",
           department: "$categoryDetails.department",
         },
+
         images: 1,
         availableColors: 1,
         isFeatured: 1,
@@ -154,20 +256,166 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         createdAt: 1,
       },
     },
-    { $sort: { createdAt: -1, _id: 1 } },
   ];
 
-  const skip = (page - 1) * limit;
+  // Count only products matching the selected filters.
+  const countStages: PipelineStage[] = [
+    ...variantFilterStages,
+    {
+      $count: "total",
+    },
+  ];
 
-  const [products, countResult] = await Promise.all([
-    Product.aggregate([...pipeline, { $skip: skip }, { $limit: limit }]),
-    Product.aggregate([...pipeline, { $count: "total" }]),
+  // Generate dynamic filter options from available variants.
+  const filterOptionStages: PipelineStage[] = [
+    {
+      $unwind: "$variants",
+    },
+    {
+      $match: {
+        "variants.stock": { $gt: 0 },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+
+        sizes: {
+          $addToSet: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      { $type: "$variants.size" },
+                      "string",
+                    ],
+                  },
+                  { $ne: ["$variants.size", ""] },
+                ],
+              },
+              "$variants.size",
+              null,
+            ],
+          },
+        },
+
+        colors: {
+          $addToSet: {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $eq: [
+                      { $type: "$variants.color" },
+                      "string",
+                    ],
+                  },
+                  { $ne: ["$variants.color", ""] },
+                ],
+              },
+              "$variants.color",
+              null,
+            ],
+          },
+        },
+
+        minPrice: {
+          $min: "$variants.price",
+        },
+
+        maxPrice: {
+          $max: "$variants.price",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+
+        sizes: {
+          $filter: {
+            input: "$sizes",
+            as: "value",
+            cond: { $ne: ["$$value", null] },
+          },
+        },
+
+        colors: {
+          $filter: {
+            input: "$colors",
+            as: "value",
+            cond: { $ne: ["$$value", null] },
+          },
+        },
+
+        priceRange: {
+          min: "$minPrice",
+          max: "$maxPrice",
+        },
+      },
+    },
+  ];
+
+  // Execute listing, count and filter options in one aggregation.
+  const [result] = await Product.aggregate([
+    ...basePipeline,
+    {
+      $facet: {
+        products: productStages,
+        count: countStages,
+        filters: filterOptionStages,
+      },
+    } as unknown as PipelineStage,
   ]);
 
-  const total = countResult[0]?.total ?? 0;
+  const products = result?.products ?? [];
+  const total = result?.count?.[0]?.total ?? 0;
+
+  const rawFilters = result?.filters?.[0] ?? {
+    sizes: [],
+    colors: [],
+    priceRange: {
+      min: null,
+      max: null,
+    },
+  };
+
+  // Sort clothing sizes in a natural clothing-size order.
+  const clothingSizeOrder: Record<string, number> = {
+    XXXS: 0,
+    XXS: 1,
+    XS: 2,
+    S: 3,
+    M: 4,
+    L: 5,
+    XL: 6,
+    XXL: 7,
+    XXXL: 8,
+    XXXXL: 9,
+  };
+
+  const sizes = [...rawFilters.sizes].sort((a: string, b: string) => {
+    const aRank = clothingSizeOrder[a];
+    const bRank = clothingSizeOrder[b];
+
+    if (aRank !== undefined || bRank !== undefined) {
+      return (aRank ?? 100) - (bRank ?? 100);
+    }
+
+    return a.localeCompare(b, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  });
+
+  const colors = [...rawFilters.colors].sort((a: string, b: string) =>
+    a.localeCompare(b),
+  );
 
   return {
     products,
+
     pagination: {
       page,
       limit,
@@ -175,6 +423,12 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       totalPages: Math.ceil(total / limit),
       hasNextPage: page * limit < total,
       hasPreviousPage: page > 1,
+    },
+
+    filters: {
+      sizes,
+      colors,
+      priceRange: rawFilters.priceRange,
     },
   };
 };

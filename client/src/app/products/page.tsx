@@ -4,6 +4,7 @@ import Link from "next/link";
 import ProductCard from "@/components/products/ProductCard";
 import { getCategories, getProducts } from "@/lib/api";
 import type { Category, ProductListData } from "@/lib/api-types";
+import ProductFilters from "@/components/products/ProductFilters";
 import {
   MdOutlineKeyboardDoubleArrowLeft,
   MdOutlineKeyboardDoubleArrowRight,
@@ -20,6 +21,12 @@ type ProductsPageProps = {
     page?: string | string[];
     category?: string | string[];
     department?: string | string[];
+    size?: string | string[];
+    color?: string | string[];
+    minPrice?: string | string[];
+    maxPrice?: string | string[];
+    inStock?: string | string[];
+    sort?: string | string[];
   }>;
 };
 
@@ -41,6 +48,12 @@ function buildProductsUrl(options: {
   page?: number;
   category?: string;
   department?: string;
+  size?: string;
+  color?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: "newest" | "price-asc" | "price-desc";
 }) {
   const params = new URLSearchParams();
 
@@ -52,11 +65,36 @@ function buildProductsUrl(options: {
     params.set("department", options.department);
   }
 
+  if (options.size) {
+    params.set("size", options.size);
+  }
+
+  if (options.color) {
+    params.set("color", options.color);
+  }
+
+  if (options.minPrice !== undefined) {
+    params.set("minPrice", String(options.minPrice));
+  }
+
+  if (options.maxPrice !== undefined) {
+    params.set("maxPrice", String(options.maxPrice));
+  }
+
+  if (options.inStock) {
+    params.set("inStock", "true");
+  }
+
+  if (options.sort && options.sort !== "newest") {
+    params.set("sort", options.sort);
+  }
+
   if (options.page && options.page > 1) {
     params.set("page", String(options.page));
   }
 
   const query = params.toString();
+
   return query ? `/products?${query}` : "/products";
 }
 
@@ -66,6 +104,42 @@ export default async function ProductsPage({
   const params = await searchParams;
 
   const requestedPage = getPageNumber(getSingleValue(params.page));
+
+  const size = getSingleValue(params.size)?.trim().toUpperCase();
+
+  const color = getSingleValue(params.color)?.trim().toLowerCase();
+
+  const rawMinPrice = getSingleValue(params.minPrice);
+  const rawMaxPrice = getSingleValue(params.maxPrice);
+
+  const parsedMinPrice =
+    rawMinPrice !== undefined && /^\d+$/.test(rawMinPrice)
+      ? Number(rawMinPrice)
+      : undefined;
+
+  const parsedMaxPrice =
+    rawMaxPrice !== undefined && /^\d+$/.test(rawMaxPrice)
+      ? Number(rawMaxPrice)
+      : undefined;
+
+  const minPrice =
+    parsedMinPrice !== undefined && Number.isSafeInteger(parsedMinPrice)
+      ? parsedMinPrice
+      : undefined;
+
+  const maxPrice =
+    parsedMaxPrice !== undefined && Number.isSafeInteger(parsedMaxPrice)
+      ? parsedMaxPrice
+      : undefined;
+
+  const inStock = getSingleValue(params.inStock) === "true";
+
+  const requestedSort = getSingleValue(params.sort);
+
+  const sort =
+    requestedSort === "price-asc" || requestedSort === "price-desc"
+      ? requestedSort
+      : "newest";
 
   const categorySlug = getSingleValue(params.category);
 
@@ -78,6 +152,18 @@ export default async function ProductsPage({
       ? requestedDepartment
       : undefined;
 
+  const currentQueryParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    const normalizedValue = Array.isArray(value) ? value[0] : value;
+
+    if (normalizedValue) {
+      currentQueryParams.set(key, normalizedValue);
+    }
+  }
+
+  const currentQuery = currentQueryParams.toString();
+
   let categories: Category[];
   let listing: ProductListData;
 
@@ -89,6 +175,12 @@ export default async function ProductsPage({
         limit: 12,
         ...(categorySlug ? { category: categorySlug } : {}),
         ...(department ? { department } : {}),
+        ...(size ? { size } : {}),
+        ...(color ? { color } : {}),
+        ...(minPrice !== undefined ? { minPrice } : {}),
+        ...(maxPrice !== undefined ? { maxPrice } : {}),
+        ...(inStock ? { inStock: true } : {}),
+        sort,
       }),
     ]);
   } catch {
@@ -109,7 +201,7 @@ export default async function ProductsPage({
     );
   }
 
-  const { products, pagination } = listing;
+  const { products, pagination, filters } = listing;
 
   const selectedCategory = categories.find(
     (item) => item.slug === categorySlug,
@@ -130,6 +222,12 @@ export default async function ProductsPage({
       page,
       category: categorySlug,
       department,
+      size,
+      color,
+      minPrice,
+      maxPrice,
+      inStock,
+      sort,
     });
 
   const pageNumbers = Array.from(
@@ -161,6 +259,21 @@ export default async function ProductsPage({
           </p>
         </div>
       </header>
+
+      <ProductFilters
+        key={currentQuery}
+        categories={categories}
+        filterOptions={filters}
+        currentQuery={currentQuery}
+        department={department}
+        category={categorySlug}
+        size={size}
+        color={color}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        inStock={inStock}
+        sort={sort}
+      />
 
       {products.length === 0 ? (
         <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">

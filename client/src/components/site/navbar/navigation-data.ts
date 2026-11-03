@@ -4,21 +4,30 @@ export type NavigationItem = {
   children?: NavigationItem[];
 };
 
+
 export const primaryNavigation: NavigationItem[] = [
   {
     label: "Women",
     children: [
       {
-        label: "Clothing",
-        href: "/shop/women/clothing",
+        label: "Shop All Women",
+        href: "/products?department=women",
       },
       {
-        label: "Shoes",
-        href: "/shop/women/shoes",
+        label: "Tops",
+        href: "/products?department=women&category=womens-tops",
       },
       {
-        label: "Accessories",
-        href: "/shop/women/accessories",
+        label: "Bottoms",
+        href: "/products?department=women&category=womens-bottoms",
+      },
+      {
+        label: "Hoodies",
+        href: "/products?department=women&category=womens-hoodies",
+      },
+      {
+        label: "Activewear",
+        href: "/products?department=women&category=womens-activewear",
       },
     ],
   },
@@ -26,16 +35,24 @@ export const primaryNavigation: NavigationItem[] = [
     label: "Men",
     children: [
       {
-        label: "Clothing",
-        href: "/shop/men/clothing",
+        label: "Shop All Men",
+        href: "/products?department=men",
       },
       {
-        label: "Shoes",
-        href: "/shop/men/shoes",
+        label: "Tops",
+        href: "/products?department=men&category=mens-tops",
       },
       {
-        label: "Accessories",
-        href: "/shop/men/accessories",
+        label: "Bottoms",
+        href: "/products?department=men&category=mens-bottoms",
+      },
+      {
+        label: "Hoodies",
+        href: "/products?department=men&category=mens-hoodies",
+      },
+      {
+        label: "Activewear",
+        href: "/products?department=men&category=mens-activewear",
       },
     ],
   },
@@ -61,6 +78,7 @@ export const primaryNavigation: NavigationItem[] = [
     href: "/sale",
   },
 ];
+
 
 export const secondaryNavigation: NavigationItem[] = [
   {

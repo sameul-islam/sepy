@@ -10,8 +10,8 @@ import {
   supportNavigation,
   type NavigationItem,
 } from "./navigation-data";
-import { MdArrowForwardIos, MdOutlinePhone } from "react-icons/md";
-import { BsArrowLeft } from "react-icons/bs";
+import { MdArrowBackIos, MdArrowForwardIos, MdOutlinePhone } from "react-icons/md";
+
 
 type NavigationDrawerProps = {
   isOpen: boolean;
@@ -140,7 +140,7 @@ export default function NavigationDrawer({
                           onClick={() => handleItemClick(item)}
                           className="group flex min-h-12 w-full items-center justify-between text-left"
                         >
-                          <span className="font-display text-[1.15rem] tracking-[-0.015em] text-text-primary transition-opacity duration-300 group-hover:opacity-60 sm:text-[1.25rem]">
+                          <span className="font-semibold transition-opacity duration-200 group-hover:opacity-60 ">
                             {item.label}
                           </span>
 
@@ -155,7 +155,7 @@ export default function NavigationDrawer({
                           onClick={handleClose}
                           className="group flex min-h-12 items-center text-left"
                         >
-                          <span className="font-display text-[1.15rem] tracking-[-0.015em] text-text-primary transition-opacity duration-300 group-hover:opacity-60 sm:text-[1.25rem]">
+                          <span className="font-semibold transition-opacity duration-200 group-hover:opacity-60">
                             {item.label}
                           </span>
                         </Link>
@@ -174,7 +174,7 @@ export default function NavigationDrawer({
                         <Link
                           href={item.href ?? "#"}
                           onClick={handleClose}
-                          className="group flex min-h-10 items-center text-sm text-text-secondary transition-opacity duration-300 hover:opacity-60"
+                          className="group flex min-h-10 items-center text-sm font-semibold transition-opacity duration-200 hover:opacity-60"
                         >
                           {item.label}
                         </Link>
@@ -193,7 +193,7 @@ export default function NavigationDrawer({
                         <Link
                           href={item.href ?? "#"}
                           onClick={handleClose}
-                          className="group flex min-h-10 items-center text-sm text-text-secondary transition-opacity duration-300 hover:opacity-60 underline gap-2"
+                          className="group flex min-h-10 items-center text-sm font-semibold transition-opacity duration-200 hover:opacity-60 underline gap-2"
                         >
                         <MdOutlinePhone size={20}/>
                           {item.label}
@@ -218,11 +218,11 @@ export default function NavigationDrawer({
                   <button
                     type="button"
                     onClick={() => setActiveSubmenu(null)}
-                    className="group mb-8 flex items-center gap-3 text-sm text-text-secondary transition-opacity duration-300 hover:opacity-60"
+                    className="group mb-8 flex items-center text-sm font-bold transition-opacity duration-200 hover:opacity-60"
                   >
-                    <BsArrowLeft
+                    <MdArrowBackIos
                       aria-hidden="true"
-                      className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1"
+                      className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1"
                     />
 
                     <span className="underline">{activeSubmenu.label}</span>
@@ -238,7 +238,7 @@ export default function NavigationDrawer({
                               onClick={() => handleItemClick(item)}
                               className="group flex min-h-12 w-full items-center justify-between text-left"
                             >
-                              <span className="font-display text-[1.15rem] tracking-[-0.015em] text-text-primary transition-opacity duration-300 group-hover:opacity-60 sm:text-[1.25rem]">
+                              <span className="font-semibold transition-opacity duration-200 group-hover:opacity-60">
                                 {item.label}
                               </span>
 
@@ -253,7 +253,7 @@ export default function NavigationDrawer({
                               onClick={handleClose}
                               className="group flex min-h-12 items-center text-left"
                             >
-                              <span className="font-display text-[1.15rem] tracking-[-0.015em] text-text-primary transition-opacity duration-300 group-hover:opacity-60 sm:text-[1.25rem]">
+                              <span className="font-semibold transition-opacity duration-300 group-hover:opacity-60">
                                 {item.label}
                               </span>
                             </Link>

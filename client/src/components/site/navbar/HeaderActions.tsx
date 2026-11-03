@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { HiOutlineShoppingBag } from "react-icons/hi";
+import { AiOutlineShopping } from "react-icons/ai";
 
-import { PiUserLight } from "react-icons/pi";
-
+import { PiUser } from "react-icons/pi";
 
 export default function HeaderActions() {
   return (
@@ -12,7 +11,7 @@ export default function HeaderActions() {
         aria-label="Account"
         className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <PiUserLight
+        <PiUser
           aria-hidden="true"
           className="h-4.75 w-4.75"
           strokeWidth={1.35}
@@ -24,13 +23,12 @@ export default function HeaderActions() {
         aria-label="Shopping bag"
         className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <HiOutlineShoppingBag
+        <AiOutlineShopping
           aria-hidden="true"
-          className="h-4.75 w-4.75"
+          className="h-5 w-5"
           strokeWidth={1.35}
         />
       </Link>
-
     </div>
   );
 }

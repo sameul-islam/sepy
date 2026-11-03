@@ -64,6 +64,12 @@ export async function getProducts(params: {
   limit?: number;
   category?: string;
   department?: "women" | "men" | "unisex";
+  size?: string;
+  color?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: "newest" | "price-asc" | "price-desc";
 }): Promise<ProductListData> {
   const searchParams = new URLSearchParams({
     page: String(params.page),
@@ -76,6 +82,30 @@ export async function getProducts(params: {
 
   if (params.department) {
     searchParams.set("department", params.department);
+  }
+
+  if (params.size) {
+    searchParams.set("size", params.size);
+  }
+
+  if (params.color) {
+    searchParams.set("color", params.color);
+  }
+
+  if (params.minPrice !== undefined) {
+    searchParams.set("minPrice", String(params.minPrice));
+  }
+
+  if (params.maxPrice !== undefined) {
+    searchParams.set("maxPrice", String(params.maxPrice));
+  }
+
+  if (params.inStock === true) {
+    searchParams.set("inStock", "true");
+  }
+
+  if (params.sort) {
+    searchParams.set("sort", params.sort);
   }
 
   return fetchApi<ProductListData>(`/products?${searchParams.toString()}`);

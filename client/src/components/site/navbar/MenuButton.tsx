@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FiSearch } from "react-icons/fi";
+import { PiMagnifyingGlass } from "react-icons/pi";
 
 type MenuButtonProps = {
   isOpen: boolean;
@@ -29,19 +29,19 @@ export default function MenuButton({
 
           <span className="relative block h-4 w-5">
             <span
-              className={`absolute left-0 top-0 block h-px w-8 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
+              className={`absolute left-0 top-0 block h-0.5 w-7 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
                 isOpen ? "translate-y-1.75 rotate-45" : ""
               }`}
             />
 
             <span
-              className={`absolute left-0 top-1.75 block h-px w-7 bg-current transition-opacity duration-300 md:w-8 ${
+              className={`absolute left-0 top-1.75 block h-0.5 w-6 bg-current transition-opacity duration-300 md:w-8 ${
                 isOpen ? "opacity-0" : "opacity-100"
               }`}
             />
 
             <span
-              className={`absolute left-0 top-3.5 block h-px w-8 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
+              className={`absolute left-0 top-3.5 block h-0.5 w-7 origin-center bg-current transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-9 ${
                 isOpen ? "-translate-y-1.75 -rotate-45" : ""
               }`}
             />
@@ -55,7 +55,7 @@ export default function MenuButton({
           tabIndex={-1}
           className="hidden cursor-pointer md:flex"
         >
-          <span className="">Menu</span>
+          <span className="font-semibold">Menu</span>
         </button>
       </div>
 
@@ -64,14 +64,14 @@ export default function MenuButton({
         aria-label="Search"
         className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <div className="flex gap-x-3">
-          <FiSearch
+        <div className="flex gap-x-1.5">
+          <PiMagnifyingGlass
             aria-hidden="true"
             className="h-4.75 w-4.75"
             strokeWidth={1.35}
           />
 
-          <span className="hidden text-xs font-semibold md:flex">
+          <span className="hidden text-sm font-bold md:flex">
             Search
           </span>
         </div>
