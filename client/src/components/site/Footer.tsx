@@ -115,11 +115,11 @@ export default function Footer() {
                 className="
       flex h-full shrink-0 items-center justify-center
       self-stretch
-      border-0 rounded-none
-      bg-black px-4 sm:px-6
-      text-xs font-bold uppercase
-      tracking-[0.16em] text-white
-      transition-colors duration-200
+      border-l border-border-strong rounded-none
+      bg-gray-100 px-4 sm:px-6
+      text-xs font-extrabold uppercase
+      tracking-[0.12em] text-black hover:text-white
+      transition-colors duration-300
       hover:bg-foreground/80
       active:bg-foreground/70
       focus-visible:outline-none

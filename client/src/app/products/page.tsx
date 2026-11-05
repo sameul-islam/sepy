@@ -261,10 +261,10 @@ export default async function ProductsPage({
       </header>
 
       <ProductFilters
-        key={currentQuery}
         categories={categories}
         filterOptions={filters}
         currentQuery={currentQuery}
+        totalProducts={pagination.total}
         department={department}
         category={categorySlug}
         size={size}
