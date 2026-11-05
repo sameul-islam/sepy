@@ -49,10 +49,14 @@ export const getActiveProducts = async (query) => {
             $lte: ["$$variant.price", maxPrice],
         });
     }
-    if (inStock === true) {
-        variantConditions.push({
-            $gt: ["$$variant.stock", 0],
-        });
+    if (inStock !== undefined) {
+        variantConditions.push(inStock
+            ? {
+                $gt: ["$$variant.stock", 0],
+            }
+            : {
+                $eq: ["$$variant.stock", 0],
+            });
     }
     const variantCondition = variantConditions.length > 0 ? { $and: variantConditions } : true;
     // Base pipeline: active products with active variants and categories.

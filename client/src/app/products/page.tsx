@@ -36,6 +36,21 @@ function getSingleValue(
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getMultiValue(value: string | string[] | undefined): string[] {
+  const rawValues = Array.isArray(value) ? value : value ? [value] : [];
+
+  return [
+    ...new Set(
+      rawValues.flatMap((item) =>
+        item
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    ),
+  ];
+}
+
 function getPageNumber(value: string | undefined): number {
   if (!value || !/^\d+$/.test(value)) return 1;
 
@@ -46,10 +61,10 @@ function getPageNumber(value: string | undefined): number {
 
 function buildProductsUrl(options: {
   page?: number;
-  category?: string;
+  category?: string[];
   department?: string;
-  size?: string;
-  color?: string;
+  size?: string[];
+  color?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
@@ -57,20 +72,20 @@ function buildProductsUrl(options: {
 }) {
   const params = new URLSearchParams();
 
-  if (options.category) {
-    params.set("category", options.category);
+  if (options.category?.length) {
+    params.set("category", options.category.join(","));
   }
 
   if (options.department) {
     params.set("department", options.department);
   }
 
-  if (options.size) {
-    params.set("size", options.size);
+  if (options.size?.length) {
+    params.set("size", options.size.join(","));
   }
 
-  if (options.color) {
-    params.set("color", options.color);
+  if (options.color?.length) {
+    params.set("color", options.color.join(","));
   }
 
   if (options.minPrice !== undefined) {
@@ -105,9 +120,13 @@ export default async function ProductsPage({
 
   const requestedPage = getPageNumber(getSingleValue(params.page));
 
-  const size = getSingleValue(params.size)?.trim().toUpperCase();
+  const categorySlugs = getMultiValue(params.category);
 
-  const color = getSingleValue(params.color)?.trim().toLowerCase();
+  const sizes = getMultiValue(params.size).map((value) => value.toUpperCase());
+
+  const colors = getMultiValue(params.color).map((value) =>
+    value.toLowerCase(),
+  );
 
   const rawMinPrice = getSingleValue(params.minPrice);
   const rawMaxPrice = getSingleValue(params.maxPrice);
@@ -141,7 +160,7 @@ export default async function ProductsPage({
       ? requestedSort
       : "newest";
 
-  const categorySlug = getSingleValue(params.category);
+  const categorySlug = categorySlugs[0];
 
   const requestedDepartment = getSingleValue(params.department);
 
@@ -155,7 +174,9 @@ export default async function ProductsPage({
   const currentQueryParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
-    const normalizedValue = Array.isArray(value) ? value[0] : value;
+    const values = Array.isArray(value) ? value : [value];
+
+    const normalizedValue = values.filter(Boolean).join(",");
 
     if (normalizedValue) {
       currentQueryParams.set(key, normalizedValue);
@@ -173,10 +194,10 @@ export default async function ProductsPage({
       getProducts({
         page: requestedPage,
         limit: 12,
-        ...(categorySlug ? { category: categorySlug } : {}),
+        ...(categorySlugs.length ? { category: categorySlugs } : {}),
         ...(department ? { department } : {}),
-        ...(size ? { size } : {}),
-        ...(color ? { color } : {}),
+        ...(sizes.length ? { size: sizes } : {}),
+        ...(colors.length ? { color: colors } : {}),
         ...(minPrice !== undefined ? { minPrice } : {}),
         ...(maxPrice !== undefined ? { maxPrice } : {}),
         ...(inStock ? { inStock: true } : {}),
@@ -220,10 +241,10 @@ export default async function ProductsPage({
   const pageHref = (page: number) =>
     buildProductsUrl({
       page,
-      category: categorySlug,
+      category: categorySlugs,
       department,
-      size,
-      color,
+      size: sizes,
+      color: colors,
       minPrice,
       maxPrice,
       inStock,
@@ -266,9 +287,9 @@ export default async function ProductsPage({
         currentQuery={currentQuery}
         totalProducts={pagination.total}
         department={department}
-        category={categorySlug}
-        size={size}
-        color={color}
+        category={categorySlugs}
+        size={sizes}
+        color={colors}
         minPrice={minPrice}
         maxPrice={maxPrice}
         inStock={inStock}

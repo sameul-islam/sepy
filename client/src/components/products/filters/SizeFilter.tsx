@@ -1,9 +1,11 @@
 "use client";
 
+import { toggleFilterValue } from "./filter-utils";
+
 type SizeFilterProps = {
   sizes: string[];
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
 };
 
 export default function SizeFilter({
@@ -24,10 +26,10 @@ export default function SizeFilter({
           Size
         </h3>
 
-        {value && (
+        {value.length > 0 && (
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => onChange([])}
             className="text-[11px] font-medium text-[#85857e] underline underline-offset-4 hover:text-[#171717]"
           >
             Clear
@@ -38,7 +40,7 @@ export default function SizeFilter({
       {sizes.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {sizes.map((size) => {
-            const selected = value === size;
+            const selected = value.includes(size);
 
             return (
               <button
@@ -46,7 +48,7 @@ export default function SizeFilter({
                 type="button"
                 aria-pressed={selected}
                 onClick={() =>
-                  onChange(selected ? "" : size)
+                  onChange(toggleFilterValue(value, size))
                 }
                 className={`min-w-12 border px-3.5 py-2.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
                   selected

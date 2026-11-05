@@ -20,9 +20,10 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchApi<T>(path: string): Promise<T> {
+async function fetchApi<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     cache: "no-store",
+    signal,
     headers: {
       Accept: "application/json",
     },
@@ -62,34 +63,35 @@ export async function getCategories(): Promise<Category[]> {
 export async function getProducts(params: {
   page: number;
   limit?: number;
-  category?: string;
+  category?: string[];
   department?: "women" | "men" | "unisex";
-  size?: string;
-  color?: string;
+  size?: string[];
+  color?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
   sort?: "newest" | "price-asc" | "price-desc";
+  signal?: AbortSignal;
 }): Promise<ProductListData> {
   const searchParams = new URLSearchParams({
     page: String(params.page),
     limit: String(params.limit ?? 12),
   });
 
-  if (params.category) {
-    searchParams.set("category", params.category);
+  if (params.category?.length) {
+    searchParams.set("category", params.category.join(","));
   }
 
   if (params.department) {
     searchParams.set("department", params.department);
   }
 
-  if (params.size) {
-    searchParams.set("size", params.size);
+  if (params.size?.length) {
+    searchParams.set("size", params.size.join(","));
   }
 
-  if (params.color) {
-    searchParams.set("color", params.color);
+  if (params.color?.length) {
+    searchParams.set("color", params.color.join(","));
   }
 
   if (params.minPrice !== undefined) {
@@ -100,15 +102,18 @@ export async function getProducts(params: {
     searchParams.set("maxPrice", String(params.maxPrice));
   }
 
-  if (params.inStock === true) {
-    searchParams.set("inStock", "true");
+  if (params.inStock !== undefined) {
+    searchParams.set("inStock", String(params.inStock));
   }
 
   if (params.sort) {
     searchParams.set("sort", params.sort);
   }
 
-  return fetchApi<ProductListData>(`/products?${searchParams.toString()}`);
+  return fetchApi<ProductListData>(
+    `/products?${searchParams.toString()}`,
+    params.signal,
+  );
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail> {

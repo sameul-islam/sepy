@@ -3,45 +3,25 @@
 import { useState } from "react";
 import { MdCheck } from "react-icons/md";
 
+import { toggleFilterValue } from "./filter-utils";
+
 type ColorFilterProps = {
   colors: string[];
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
 };
 
 const COLOR_SWATCHES: Record<string, string> = {
   black: "#171717",
-  white: "#ffffff",
+  white: "#FFFFFF",
   gray: "#808080",
-  grey: "#808080",
-  charcoal: "#364152",
-  navy: "#172554",
+  blue: "#2563EB",
   "navy blue": "#172554",
-  blue: "#2563eb",
-  "sky blue": "#7dd3fc",
-  red: "#dc2626",
-  burgundy: "#722f37",
-  green: "#15803d",
-  olive: "#6b7130",
-  sage: "#87977b",
-  brown: "#795548",
-  beige: "#d6c2a1",
-  cream: "#f5f0dc",
-  pink: "#ec4899",
-  purple: "#9333ea",
-  yellow: "#eab308",
-  orange: "#ea580c",
+  "dark sky": "#448EE4",
+  "chocolate brown": "#4B2E24",
+  "light purple": "#BAAFD9",
+  red: "#DC2626",
 };
-
-function getSwatchColor(color: string) {
-  const normalized = color.trim().toLowerCase();
-
-  if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(normalized)) {
-    return normalized;
-  }
-
-  return COLOR_SWATCHES[normalized] ?? "#a3a3a3";
-}
 
 export default function ColorFilter({
   colors,
@@ -50,15 +30,10 @@ export default function ColorFilter({
 }: ColorFilterProps) {
   const [showAll, setShowAll] = useState(false);
 
-  const visibleColors = showAll
-    ? colors
-    : colors.slice(0, 6);
+  const visibleColors = showAll ? colors : colors.slice(0, 6);
 
   return (
-    <section
-      aria-labelledby="filter-color-heading"
-      className="space-y-3"
-    >
+    <section aria-labelledby="filter-color-heading" className="space-y-3">
       <div className="flex items-center justify-between">
         <h3
           id="filter-color-heading"
@@ -67,10 +42,10 @@ export default function ColorFilter({
           Color
         </h3>
 
-        {value && (
+        {value.length > 0 && (
           <button
             type="button"
-            onClick={() => onChange("")}
+            onClick={() => onChange([])}
             className="text-[11px] font-medium text-[#85857e] underline underline-offset-4 hover:text-[#171717]"
           >
             Clear
@@ -82,29 +57,20 @@ export default function ColorFilter({
         <>
           <div className="grid grid-cols-6 gap-x-2 gap-y-3">
             {visibleColors.map((color) => {
-              const selected = value === color;
-              const swatch = getSwatchColor(color);
+              const selected = value.includes(color);
+              const normalized = color.trim().toLowerCase();
+              const swatch = COLOR_SWATCHES[normalized];
 
-              const isLight = [
-                "white",
-                "cream",
-                "beige",
-                "#fff",
-                "#ffffff",
-              ].includes(color.toLowerCase());
+              const isLight = ["white", "light purple"].includes(normalized);
 
               return (
                 <button
                   key={color}
                   type="button"
-                  aria-label={`${color}${
-                    selected ? ", selected" : ""
-                  }`}
+                  aria-label={`${color}${selected ? ", selected" : ""}`}
                   aria-pressed={selected}
                   title={color}
-                  onClick={() =>
-                    onChange(selected ? "" : color)
-                  }
+                  onClick={() => onChange(toggleFilterValue(value, color))}
                   className="group flex min-w-0 flex-col items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
                 >
                   <span
@@ -116,9 +82,7 @@ export default function ColorFilter({
                   >
                     <span
                       className="size-7 rounded-full border border-black/10"
-                      style={{
-                        backgroundColor: swatch,
-                      }}
+                      style={{ backgroundColor: swatch }}
                     />
 
                     {selected && (
@@ -126,9 +90,7 @@ export default function ColorFilter({
                         size={16}
                         aria-hidden="true"
                         className={`absolute ${
-                          isLight
-                            ? "text-[#171717]"
-                            : "text-white"
+                          isLight ? "text-[#171717]" : "text-white"
                         }`}
                       />
                     )}
@@ -145,15 +107,11 @@ export default function ColorFilter({
           {colors.length > 6 && (
             <button
               type="button"
-              onClick={() =>
-                setShowAll((current) => !current)
-              }
+              onClick={() => setShowAll((current) => !current)}
               aria-expanded={showAll}
               className="text-xs font-semibold text-[#171717] underline decoration-[#b8b8b0] underline-offset-4 transition-colors hover:decoration-[#171717]"
             >
-              {showAll
-                ? "Show less"
-                : `Show more (${colors.length - 6})`}
+              {showAll ? "Show less" : `Show more (${colors.length - 6})`}
             </button>
           )}
         </>

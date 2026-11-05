@@ -1,8 +1,8 @@
 export type ProductFilterDraft = {
   department: string;
-  category: string;
-  size: string;
-  color: string;
+  category: string[];
+  size: string[];
+  color: string[];
   minPrice: string;
   maxPrice: string;
   inStock: boolean;

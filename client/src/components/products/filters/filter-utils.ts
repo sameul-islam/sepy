@@ -2,9 +2,9 @@ import type { ProductFilterDraft } from "./types";
 
 type AppliedFilterValues = {
   department?: string;
-  category?: string;
-  size?: string;
-  color?: string;
+  category?: string[];
+  size?: string[];
+  color?: string[];
   minPrice?: number;
   maxPrice?: number;
   inStock: boolean;
@@ -15,9 +15,9 @@ export function createFilterDraft(
 ): ProductFilterDraft {
   return {
     department: values.department ?? "",
-    category: values.category ?? "",
-    size: values.size ?? "",
-    color: values.color ?? "",
+    category: values.category ?? [],
+    size: values.size ?? [],
+    color: values.color ?? [],
     minPrice:
       values.minPrice === undefined ? "" : String(values.minPrice),
     maxPrice:
@@ -31,12 +31,21 @@ export function countActiveFilters(
 ): number {
   return [
     draft.department,
-    draft.category,
-    draft.size,
-    draft.color,
+    draft.category.length,
+    draft.size.length,
+    draft.color.length,
     draft.minPrice || draft.maxPrice,
     draft.inStock,
   ].filter(Boolean).length;
+}
+
+export function toggleFilterValue(
+  values: string[],
+  value: string,
+): string[] {
+  return values.includes(value)
+    ? values.filter((item) => item !== value)
+    : [...values, value];
 }
 
 export function validatePriceRange(

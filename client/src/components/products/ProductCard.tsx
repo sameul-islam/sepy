@@ -11,98 +11,15 @@ type ProductCardProps = {
 };
 
 const SWATCH_COLORS: Record<string, string> = {
-  // Neutral
   black: "#171717",
   white: "#FFFFFF",
   gray: "#808080",
-  grey: "#808080",
-  charcoal: "#364152",
-  "dark gray": "#4B5563",
-  "light gray": "#D1D5DB",
-  silver: "#C0C0C0",
-  cream: "#F5F0DC",
-  ivory: "#FFFFF0",
-  "off-white": "#F5F5F0",
-  beige: "#D6C2A1",
-  sand: "#D8C8A8",
-  stone: "#A69F91",
-  taupe: "#8B7D6B",
-
-  // Blue
   blue: "#2563EB",
   "navy blue": "#172554",
-  navy: "#172554",
-  "dark blue": "#1E3A8A",
-  "royal blue": "#1D4ED8",
-  "sky blue": "#7DD3FC",
   "dark sky": "#448EE4",
-  "baby blue": "#A7C7E7",
-  "light blue": "#93C5FD",
-  "steel blue": "#4682B4",
-  teal: "#008080",
-  aqua: "#00BFA6",
-  turquoise: "#40E0D0",
-
-  // Brown
-  brown: "#795548",
   "chocolate brown": "#4B2E24",
-  chocolate: "#4B2E24",
-  "dark brown": "#3E2723",
-  "light brown": "#A1887F",
-  camel: "#C19A6B",
-  cocoa: "#6F4E37",
-  mocha: "#967969",
-  tan: "#D2B48C",
-  coffee: "#6F4E37",
-
-  // Green
-  green: "#15803D",
-  "dark green": "#166534",
-  "light green": "#86EFAC",
-  olive: "#6B7130",
-  "olive green": "#6B7130",
-  sage: "#87977B",
-  "sage green": "#87977B",
-  "forest green": "#228B22",
-  mint: "#98FF98",
-  "mint green": "#98FF98",
-  pistachio: "#93C572",
-  emerald: "#50C878",
-  khaki: "#C3B091",
-
-  // Red
-  red: "#DC2626",
-  "dark red": "#991B1B",
-  burgundy: "#722F37",
-  maroon: "#800000",
-  wine: "#722F37",
-  crimson: "#DC143C",
-  scarlet: "#FF2400",
-
-  // Pink
-  pink: "#EC4899",
-  "light pink": "#F9A8D4",
-  "hot pink": "#FF69B4",
-  rose: "#E8A0A8",
-  blush: "#DE98AB",
-  salmon: "#FA8072",
-
-  // Purple
-  purple: "#9333EA",
   "light purple": "#BAAFD9",
-  violet: "#8F00FF",
-  lavender: "#B57EDC",
-  lilac: "#C8A2C8",
-  plum: "#673147",
-
-  // Yellow & Orange
-  yellow: "#EAB308",
-  mustard: "#D4A017",
-  gold: "#D4AF37",
-  orange: "#EA580C",
-  "burnt orange": "#CC5500",
-  rust: "#B7410E",
-  coral: "#FF7F50",
+  red: "#DC2626",
 };
 
 function getSwatchColor(color: string): string | null {

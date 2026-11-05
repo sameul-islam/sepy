@@ -77,10 +77,16 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     });
   }
 
-  if (inStock === true) {
-    variantConditions.push({
-      $gt: ["$$variant.stock", 0],
-    });
+  if (inStock !== undefined) {
+    variantConditions.push(
+      inStock
+        ? {
+            $gt: ["$$variant.stock", 0],
+          }
+        : {
+            $eq: ["$$variant.stock", 0],
+          },
+    );
   }
 
   const variantCondition =
