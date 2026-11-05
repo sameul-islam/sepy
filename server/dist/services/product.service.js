@@ -3,20 +3,20 @@ import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
 export const getActiveProducts = async (query) => {
-    const { page, limit, category: categorySlug, department, size, color, minPrice, maxPrice, inStock, sort = "newest", } = query;
+    const { page, limit, category: categorySlugs, department, size, color, minPrice, maxPrice, inStock, sort = "newest", } = query;
     let activeCategoryIds;
-    if (categorySlug) {
-        const category = await Category.findOne({
-            slug: categorySlug,
+    if (categorySlugs?.length) {
+        const activeCategories = await Category.find({
+            slug: { $in: categorySlugs },
             isActive: true,
             ...(department ? { department } : {}),
         })
             .select("_id")
             .lean();
-        if (!category) {
+        if (activeCategories.length === 0) {
             throw new AppError("Category not found", 404);
         }
-        activeCategoryIds = [category._id];
+        activeCategoryIds = activeCategories.map((category) => category._id);
     }
     else {
         const activeCategories = await Category.find({
@@ -29,14 +29,14 @@ export const getActiveProducts = async (query) => {
     }
     // Build conditions for the SAME variant document.
     const variantConditions = [];
-    if (size) {
+    if (size?.length) {
         variantConditions.push({
-            $eq: ["$$variant.size", size],
+            $in: ["$$variant.size", size],
         });
     }
-    if (color) {
+    if (color?.length) {
         variantConditions.push({
-            $eq: ["$$variant.color", color],
+            $in: ["$$variant.color", color],
         });
     }
     if (minPrice !== undefined) {
@@ -54,9 +54,7 @@ export const getActiveProducts = async (query) => {
             $gt: ["$$variant.stock", 0],
         });
     }
-    const variantCondition = variantConditions.length > 0
-        ? { $and: variantConditions }
-        : true;
+    const variantCondition = variantConditions.length > 0 ? { $and: variantConditions } : true;
     // Base pipeline: active products with active variants and categories.
     const basePipeline = [
         {
@@ -166,10 +164,7 @@ export const getActiveProducts = async (query) => {
                                             $and: [
                                                 { $gt: ["$$variant.stock", 0] },
                                                 {
-                                                    $eq: [
-                                                        { $type: "$$variant.color" },
-                                                        "string",
-                                                    ],
+                                                    $eq: [{ $type: "$$variant.color" }, "string"],
                                                 },
                                                 { $ne: ["$$variant.color", ""] },
                                             ],
@@ -242,10 +237,7 @@ export const getActiveProducts = async (query) => {
                             {
                                 $and: [
                                     {
-                                        $eq: [
-                                            { $type: "$variants.size" },
-                                            "string",
-                                        ],
+                                        $eq: [{ $type: "$variants.size" }, "string"],
                                     },
                                     { $ne: ["$variants.size", ""] },
                                 ],
@@ -261,10 +253,7 @@ export const getActiveProducts = async (query) => {
                             {
                                 $and: [
                                     {
-                                        $eq: [
-                                            { $type: "$variants.color" },
-                                            "string",
-                                        ],
+                                        $eq: [{ $type: "$variants.color" }, "string"],
                                     },
                                     { $ne: ["$variants.color", ""] },
                                 ],

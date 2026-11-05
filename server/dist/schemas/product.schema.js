@@ -136,6 +136,34 @@ export const createProductSchema = z
     query: z.object({}).strict(),
 })
     .strict();
+const categorySlugFilterSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Category must be a valid slug");
+const sizeFilterSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .max(40)
+    .transform((value) => value.toUpperCase());
+const colorFilterSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .max(60)
+    .transform((value) => value.toLowerCase());
+function createMultiValueQuerySchema(itemSchema, maxItems) {
+    return z
+        .string()
+        .trim()
+        .min(1)
+        .max(1200)
+        .transform((value) => value.split(",").map((item) => item.trim()))
+        .pipe(z.array(itemSchema).min(1).max(maxItems))
+        .transform((values) => [...new Set(values)]);
+}
 export const productListQuerySchema = z
     .object({
     page: z.coerce
@@ -145,28 +173,14 @@ export const productListQuerySchema = z
         .max(Math.floor(Number.MAX_SAFE_INTEGER / 100))
         .default(1),
     limit: z.coerce.number().int().min(1).max(100).default(12),
-    category: z
-        .string()
-        .trim()
-        .min(1)
-        .max(120)
-        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Category must be a valid slug")
-        .optional(),
+    // Multiple category slugs: tops,hoodies
+    category: createMultiValueQuerySchema(categorySlugFilterSchema, 10).optional(),
+    // Department intentionally remains single-select.
     department: z.enum(["women", "men", "unisex"]).optional(),
-    size: z
-        .string()
-        .trim()
-        .min(1)
-        .max(40)
-        .transform((value) => value.toUpperCase())
-        .optional(),
-    color: z
-        .string()
-        .trim()
-        .min(1)
-        .max(60)
-        .transform((value) => value.toLowerCase())
-        .optional(),
+    // Multiple sizes: S,M,L
+    size: createMultiValueQuerySchema(sizeFilterSchema, 20).optional(),
+    // Multiple colors: black,sky-blue,chocolate-brown
+    color: createMultiValueQuerySchema(colorFilterSchema, 30).optional(),
     minPrice: z.coerce
         .number()
         .finite()
