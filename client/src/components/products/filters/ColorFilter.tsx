@@ -82,7 +82,7 @@ export default function ColorFilter({
                   >
                     <span
                       className="size-7 rounded-full border border-black/10"
-                      style={{ backgroundColor: swatch }}
+                      style={{ backgroundColor: swatch ?? '#cfcfc8' }}
                     />
 
                     {selected && (

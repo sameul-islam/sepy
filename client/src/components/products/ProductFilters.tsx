@@ -1,10 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { MdTune } from "react-icons/md";
+import { MdKeyboardArrowDown, MdTune } from "react-icons/md";
 
-import { getProducts } from "@/lib/api";
 import type { Category, ProductFilterOptions } from "@/lib/api-types";
 
 import AvailabilityFilter from "./filters/AvailabilityFilter";
@@ -51,6 +57,16 @@ const SORT_OPTIONS = [
   { label: "Price: High to Low", value: "price-desc" },
 ];
 
+const EMPTY_FILTER: ProductFilterDraft = {
+  department: "",
+  category: [],
+  size: [],
+  color: [],
+  minPrice: "",
+  maxPrice: "",
+  inStock: false,
+};
+
 export default function ProductFilters({
   categories,
   filterOptions,
@@ -69,10 +85,8 @@ export default function ProductFilters({
   const pathname = usePathname();
 
   const [isOpen, setIsOpen] = useState(false);
-
-  const closeDrawer = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const appliedDraft = useMemo(
     () =>
@@ -89,124 +103,72 @@ export default function ProductFilters({
   );
 
   const [draft, setDraft] = useState<ProductFilterDraft>(() => appliedDraft);
-
   const [priceError, setPriceError] = useState("");
-  const [liveCount, setLiveCount] = useState<number | null>(totalProducts);
-  const [countError, setCountError] = useState("");
 
-  // Sync the draft when the applied URL changes.
+  const queryRef = useRef(currentQuery);
+  const priceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const priceDraftRef = useRef({
+    minPrice: appliedDraft.minPrice,
+    maxPrice: appliedDraft.maxPrice,
+  });
+
+  const closeDrawer = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  const clearPriceTimer = () => {
+    if (priceTimerRef.current !== null) {
+      clearTimeout(priceTimerRef.current);
+      priceTimerRef.current = null;
+    }
+  };
+
+  // Keep the local filter values synchronized with URL navigation.
   useEffect(() => {
-    setDraft(appliedDraft);
-    setLiveCount(totalProducts);
-    setPriceError("");
-    setCountError("");
-  }, [appliedDraft, totalProducts, currentQuery]);
+    queryRef.current = currentQuery;
 
-  const activeFilterCount = countActiveFilters(appliedDraft);
+    const pendingPrice = priceDraftRef.current;
+    const validationError = validatePriceRange(
+      pendingPrice.minPrice,
+      pendingPrice.maxPrice,
+    );
 
-  const updateDraft = (updates: Partial<ProductFilterDraft>) => {
-    setDraft((current) => ({
-      ...current,
-      ...updates,
-    }));
+    if (validationError) {
+      setDraft({
+        ...appliedDraft,
+        ...pendingPrice,
+      });
+      setPriceError(validationError);
+    } else {
+      priceDraftRef.current = {
+        minPrice: appliedDraft.minPrice,
+        maxPrice: appliedDraft.maxPrice,
+      };
 
-    if ("minPrice" in updates || "maxPrice" in updates) {
+      setDraft(appliedDraft);
       setPriceError("");
     }
+  }, [appliedDraft, currentQuery]);
 
-    setCountError("");
-  };
-
-  // Live result count while the drawer is open.
   useEffect(() => {
-    if (!isOpen) return;
+    return () => clearPriceTimer();
+  }, []);
 
-    const validationError = validatePriceRange(draft.minPrice, draft.maxPrice);
+  const activeFilterCount = countActiveFilters(draft);
 
-    if (validationError) {
-      setLiveCount(null);
-      setCountError(validationError);
-      return;
-    }
-
-    const controller = new AbortController();
-
-    const timer = window.setTimeout(async () => {
-      try {
-        setCountError("");
-
-        const result = await getProducts({
-          page: 1,
-          limit: 1,
-          ...(draft.category.length ? { category: draft.category } : {}),
-          ...(draft.department
-            ? {
-                department: draft.department as "women" | "men" | "unisex",
-              }
-            : {}),
-          ...(draft.size.length ? { size: draft.size } : {}),
-          ...(draft.color.length ? { color: draft.color } : {}),
-          ...(draft.minPrice.trim()
-            ? { minPrice: Number(draft.minPrice) }
-            : {}),
-          ...(draft.maxPrice.trim()
-            ? { maxPrice: Number(draft.maxPrice) }
-            : {}),
-          ...(draft.inStock ? { inStock: true } : {}),
-          sort,
-          signal: controller.signal,
-        });
-
-        setLiveCount(result.pagination.total);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-
-        setCountError(
-          error instanceof Error
-            ? error.message
-            : "Could not calculate results.",
-        );
-      }
-    }, 350);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [isOpen, draft, sort]);
-
-  const clearDraft = () => {
-    setDraft({
-      department: "",
-      category: [],
-      size: [],
-      color: [],
-      minPrice: "",
-      maxPrice: "",
-      inStock: false,
-    });
-
-    setPriceError("");
-    setCountError("");
-  };
-
-  const applyFilters = () => {
-    const validationError = validatePriceRange(draft.minPrice, draft.maxPrice);
-
-    if (validationError) {
-      setPriceError(validationError);
-      return;
-    }
-
-    const params = new URLSearchParams(currentQuery);
+  // Update the URL and let the Server Component fetch the new products.
+  const updateUrl = (
+    nextDraft: ProductFilterDraft,
+    preserveCurrentPrice = false,
+  ) => {
+    const params = new URLSearchParams(queryRef.current);
 
     const values: Record<string, string> = {
-      department: draft.department,
-      category: draft.category.join(","),
-      size: draft.size.join(","),
-      color: draft.color.join(","),
-      minPrice: draft.minPrice.trim(),
-      maxPrice: draft.maxPrice.trim(),
+      department: nextDraft.department,
+      category: nextDraft.category.join(","),
+      size: nextDraft.size.join(","),
+      color: nextDraft.color.join(","),
     };
 
     for (const [key, value] of Object.entries(values)) {
@@ -217,7 +179,24 @@ export default function ProductFilters({
       }
     }
 
-    if (draft.inStock) {
+    if (!preserveCurrentPrice) {
+      const min = nextDraft.minPrice.trim();
+      const max = nextDraft.maxPrice.trim();
+
+      if (min) {
+        params.set("minPrice", min);
+      } else {
+        params.delete("minPrice");
+      }
+
+      if (max) {
+        params.set("maxPrice", max);
+      } else {
+        params.delete("maxPrice");
+      }
+    }
+
+    if (nextDraft.inStock) {
       params.set("inStock", "true");
     } else {
       params.delete("inStock");
@@ -227,15 +206,80 @@ export default function ProductFilters({
 
     const query = params.toString();
 
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
+    if (query === queryRef.current) return;
 
-    closeDrawer();
+    queryRef.current = query;
+
+    startTransition(() => {
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    });
+  };
+
+  const updateDraft = (updates: Partial<ProductFilterDraft>) => {
+    const nextDraft = {
+      ...draft,
+      ...updates,
+    };
+
+    setDraft(nextDraft);
+
+    const isPriceUpdate = "minPrice" in updates || "maxPrice" in updates;
+
+    if (isPriceUpdate) {
+      priceDraftRef.current = {
+        minPrice: nextDraft.minPrice,
+        maxPrice: nextDraft.maxPrice,
+      };
+    }
+
+    const validationError = validatePriceRange(
+      nextDraft.minPrice,
+      nextDraft.maxPrice,
+    );
+
+    setPriceError(validationError ?? "");
+
+    if (isPriceUpdate) {
+      clearPriceTimer();
+
+      if (validationError) return;
+
+      priceTimerRef.current = setTimeout(() => {
+        updateUrl(nextDraft);
+        priceTimerRef.current = null;
+      }, 450);
+
+      return;
+    }
+
+    // Apply non-price filters immediately.
+    clearPriceTimer();
+
+    // Do not send invalid price values to the backend.
+    // Keep the last valid price values already present in the URL.
+    updateUrl(nextDraft, Boolean(validationError));
+  };
+
+  const clearAllFilters = () => {
+    clearPriceTimer();
+
+    priceDraftRef.current = {
+      minPrice: "",
+      maxPrice: "",
+    };
+
+    setDraft(EMPTY_FILTER);
+    setPriceError("");
+
+    updateUrl(EMPTY_FILTER);
   };
 
   const updateSort = (nextSort: string) => {
-    const params = new URLSearchParams(currentQuery);
+    clearPriceTimer();
+
+    const params = new URLSearchParams(queryRef.current);
 
     if (nextSort === "newest") {
       params.delete("sort");
@@ -247,8 +291,14 @@ export default function ProductFilters({
 
     const query = params.toString();
 
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
+    if (query === queryRef.current) return;
+
+    queryRef.current = query;
+
+    startTransition(() => {
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
     });
   };
 
@@ -301,30 +351,40 @@ export default function ProductFilters({
         onClose={closeDrawer}
         footer={
           <div className="space-y-3">
-            {countError && (
+            {priceError && (
               <p role="alert" className="text-xs text-red-700">
-                {countError}
+                {priceError}
               </p>
             )}
 
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={clearDraft}
-                className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-semibold text-[#5f5f5a] transition-colors hover:border-[#171717] hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                onClick={clearAllFilters}
+                disabled={activeFilterCount === 0}
+                className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-semibold text-[#5f5f5a] transition-all hover:border-[#171717] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#deded8] disabled:hover:text-[#5f5f5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
               >
                 Clear all
               </button>
 
               <button
                 type="button"
-                onClick={applyFilters}
-                disabled={Boolean(priceError) || liveCount === null}
-                className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                onClick={closeDrawer}
+                disabled={isPending || Boolean(priceError)}
+                aria-live="polite"
+                className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
               >
-                {liveCount === null
-                  ? "Checking results..."
-                  : `View ${liveCount} Results`}
+                {isPending ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="size-3 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                    />
+                    Updating results...
+                  </span>
+                ) : (
+                  `View ${totalProducts} Results`
+                )}
               </button>
             </div>
           </div>
@@ -355,50 +415,87 @@ export default function ProductFilters({
                 className="space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <h3
-                    id="filter-category-heading"
-                    className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryOpen((previous) => !previous)}
+                    aria-expanded={isCategoryOpen}
+                    aria-controls="product-category-options"
+                    className="flex min-h-8 flex-1 items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                   >
-                    Category
-                  </h3>
+                    <span
+                      id="filter-category-heading"
+                      className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
+                    >
+                      Category
+                      {draft.category.length > 0 && (
+                        <span className="ml-2 text-[#85857e]">
+                          ({draft.category.length})
+                        </span>
+                      )}
+                    </span>
+
+                    <MdKeyboardArrowDown
+                      size={21}
+                      aria-hidden="true"
+                      className={`shrink-0 text-[#5f5f5a] transition-transform duration-300 ${
+                        isCategoryOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
                   {draft.category.length > 0 && (
                     <button
                       type="button"
                       onClick={() => updateDraft({ category: [] })}
-                      className="text-[11px] font-medium text-[#85857e] underline underline-offset-4 hover:text-[#171717]"
+                      className="ml-3 text-[11px] font-medium text-[#85857e] underline underline-offset-4 transition-colors hover:text-[#171717]"
                     >
                       Clear
                     </button>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  {availableCategories.map((item) => {
-                    const checked = draft.category.includes(item.slug);
+                <div
+                  id="product-category-options"
+                  aria-hidden={!isCategoryOpen}
+                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                    isCategoryOpen
+                      ? "grid-rows-[1fr] opacity-100"
+                      : "grid-rows-[0fr] opacity-0"
+                  }`}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div
+                      className="space-y-2 pb-1 pt-1"
+                      inert={!isCategoryOpen}
+                    >
+                      {availableCategories.map((item) => {
+                        const checked = draft.category.includes(item.slug);
 
-                    return (
-                      <label
-                        key={item._id}
-                        className="flex cursor-pointer items-center gap-3 py-1 text-sm text-[#5f5f5a]"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() =>
-                            updateDraft({
-                              category: toggleFilterValue(
-                                draft.category,
-                                item.slug,
-                              ),
-                            })
-                          }
-                          className="size-4 accent-[#171717]"
-                        />
-                        <span>{item.name}</span>
-                      </label>
-                    );
-                  })}
+                        return (
+                          <label
+                            key={item._id}
+                            className="flex cursor-pointer items-center gap-3 py-1 text-sm text-[#5f5f5a]"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                updateDraft({
+                                  category: toggleFilterValue(
+                                    draft.category,
+                                    item.slug,
+                                  ),
+                                })
+                              }
+                              className="size-4 accent-[#171717]"
+                            />
+
+                            <span>{item.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               </section>
             </div>
@@ -442,7 +539,9 @@ export default function ProductFilters({
       </FilterDrawer>
 
       <span className="sr-only" aria-live="polite">
-        {totalProducts} products available
+        {isPending
+          ? "Updating product results"
+          : `${totalProducts} products available`}
       </span>
     </>
   );

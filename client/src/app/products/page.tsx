@@ -160,7 +160,6 @@ export default async function ProductsPage({
       ? requestedSort
       : "newest";
 
-  const categorySlug = categorySlugs[0];
 
   const requestedDepartment = getSingleValue(params.department);
 
@@ -224,19 +223,22 @@ export default async function ProductsPage({
 
   const { products, pagination, filters } = listing;
 
-  const selectedCategory = categories.find(
-    (item) => item.slug === categorySlug,
-  );
+const selectedCategories = categorySlugs
+  .map((slug) => categories.find((item) => item.slug === slug))
+  .filter((item): item is Category => Boolean(item));
 
-  const selectedTitle =
-    selectedCategory?.name ??
-    (department === "women"
-      ? "Women"
-      : department === "men"
-        ? "Men"
-        : department === "unisex"
-          ? "Unisex"
-          : "All Products");
+const selectedTitle =
+  selectedCategories.length > 1
+    ? `${selectedCategories.length} Categories`
+    : selectedCategories.length === 1
+      ? selectedCategories[0].name
+      : department === "women"
+        ? "Women"
+        : department === "men"
+          ? "Men"
+          : department === "unisex"
+            ? "Unisex"
+            : "All Products";
 
   const pageHref = (page: number) =>
     buildProductsUrl({

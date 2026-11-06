@@ -109,10 +109,6 @@ body {
   outline-offset: 3px;
 }
 
-
-
-
-
 /* ================================
     — Card Motion —
    ================================ */
@@ -158,25 +154,20 @@ body {
 }
 
 .sepy-card-enter-right {
-  animation: sepy-card-enter-right 560ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sepy-card-enter-right 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sepy-card-enter-left {
-  animation: sepy-card-enter-left 560ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sepy-card-enter-left 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sepy-card-exit-left {
-  animation: sepy-card-exit-left 560ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sepy-card-exit-left 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sepy-card-exit-right {
-  animation: sepy-card-exit-right 560ms
-    cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sepy-card-exit-right 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-
 
 /* ================================
    Motion Accessibility
@@ -203,4 +194,14 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Hide scrollbar while preserving scrolling */
+.sepy-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sepy-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }

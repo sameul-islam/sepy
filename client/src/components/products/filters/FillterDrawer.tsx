@@ -1,8 +1,12 @@
+
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
+  useState,
+  type AnimationEvent,
   type ReactNode,
 } from "react";
 
@@ -24,6 +28,39 @@ export default function FilterDrawer({
   const drawerRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  const [isClosing, setIsClosing] = useState(false);
+  const [previousIsOpen, setPreviousIsOpen] = useState(isOpen);
+
+  // Reset closing state when the drawer opens again.
+  // This conditional render-phase update avoids setting state in an effect.
+  if (isOpen !== previousIsOpen) {
+    setPreviousIsOpen(isOpen);
+
+    if (isOpen) {
+      setIsClosing(false);
+    }
+  }
+
+  const beginClose = useCallback(() => {
+    setIsClosing((previous) => {
+      if (previous) return previous;
+      return true;
+    });
+  }, []);
+
+  const handleDrawerAnimationEnd = (
+    event: AnimationEvent<HTMLElement>,
+  ) => {
+    if (event.target !== event.currentTarget) return;
+
+    if (
+      event.animationName === "sepy-filter-slide-out" &&
+      isClosing
+    ) {
+      onClose();
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -38,7 +75,7 @@ export default function FilterDrawer({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        beginClose();
         return;
       }
 
@@ -83,7 +120,7 @@ export default function FilterDrawer({
 
       previousActiveElement?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, beginClose]);
 
   if (!isOpen) return null;
 
@@ -94,8 +131,12 @@ export default function FilterDrawer({
         type="button"
         aria-label="Close filters"
         tabIndex={-1}
-        onClick={onClose}
-        className="absolute inset-0 h-full w-full cursor-default bg-black/35 backdrop-blur-[2px] animate-[sepy-filter-fade-in_220ms_ease-out]"
+        onClick={beginClose}
+        className={`sepy-filter-motion absolute inset-0 h-full w-full cursor-default bg-black/35 backdrop-blur-[2px] ${
+          isClosing
+            ? "animate-[sepy-filter-fade-out_320ms_ease-in_forwards]"
+            : "animate-[sepy-filter-fade-in_320ms_ease-out]"
+        }`}
       />
 
       {/* Drawer */}
@@ -105,7 +146,12 @@ export default function FilterDrawer({
         aria-modal="true"
         aria-labelledby="product-filter-title"
         tabIndex={-1}
-        className="absolute inset-y-0 right-0 flex h-dvh w-full max-w-110 flex-col bg-white shadow-2xl animate-[sepy-filter-slide-in_280ms_cubic-bezier(0.22,1,0.36,1)] outline-none"
+        onAnimationEnd={handleDrawerAnimationEnd}
+        className={`sepy-filter-motion absolute inset-y-0 right-0 flex h-dvh w-full max-w-110 flex-col bg-white shadow-2xl outline-none ${
+          isClosing
+            ? "animate-[sepy-filter-slide-out_320ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
+            : "animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"
+        }`}
       >
         {/* Header */}
         <header className="flex shrink-0 items-center justify-between border-b border-[#e8e8e3] px-5 py-5 sm:px-7">
@@ -125,7 +171,7 @@ export default function FilterDrawer({
           <button
             ref={closeButtonRef}
             type="button"
-            onClick={onClose}
+            onClick={beginClose}
             aria-label="Close filter panel"
             className="flex size-10 items-center justify-center rounded-full border border-[#e8e8e3] text-[#171717] transition-colors hover:bg-[#f7f7f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
           >
@@ -134,7 +180,7 @@ export default function FilterDrawer({
         </header>
 
         {/* Scrollable Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7">
+        <div className="sepy-scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7">
           {children}
         </div>
 
@@ -155,6 +201,16 @@ export default function FilterDrawer({
           }
         }
 
+        @keyframes sepy-filter-fade-out {
+          from {
+            opacity: 1;
+          }
+
+          to {
+            opacity: 0;
+          }
+        }
+
         @keyframes sepy-filter-slide-in {
           from {
             transform: translateX(100%);
@@ -165,10 +221,19 @@ export default function FilterDrawer({
           }
         }
 
+        @keyframes sepy-filter-slide-out {
+          from {
+            transform: translateX(0);
+          }
+
+          to {
+            transform: translateX(100%);
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .sepy-filter-motion {
-            animation: none !important;
-            transition: none !important;
+            animation-duration: 1ms !important;
           }
         }
       `}</style>
