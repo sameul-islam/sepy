@@ -205,3 +205,35 @@ body {
 .sepy-scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
+
+
+/* ================================
+   Product Grid Skeleton
+   ================================ */
+
+.sepy-skeleton-block {
+  background: linear-gradient(
+    100deg,
+    #f1f1ee 20%,
+    #f7f7f5 40%,
+    #f1f1ee 60%
+  );
+  background-size: 200% 100%;
+  animation: sepy-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes sepy-skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sepy-skeleton-block {
+    animation: none;
+  }
+}

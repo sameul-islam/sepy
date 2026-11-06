@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import ProductCard from "@/components/products/ProductCard";
 import { getCategories, getProducts } from "@/lib/api";
@@ -160,7 +161,6 @@ export default async function ProductsPage({
       ? requestedSort
       : "newest";
 
-
   const requestedDepartment = getSingleValue(params.department);
 
   const department =
@@ -221,24 +221,42 @@ export default async function ProductsPage({
     );
   }
 
+  const totalPages = listing.pagination.totalPages;
+
+  if (requestedPage > Math.max(totalPages, 1)) {
+    redirect(
+      buildProductsUrl({
+        page: totalPages > 0 ? totalPages : 1,
+        category: categorySlugs,
+        department,
+        size: sizes,
+        color: colors,
+        minPrice,
+        maxPrice,
+        inStock,
+        sort,
+      }),
+    );
+  }
+
   const { products, pagination, filters } = listing;
 
-const selectedCategories = categorySlugs
-  .map((slug) => categories.find((item) => item.slug === slug))
-  .filter((item): item is Category => Boolean(item));
+  const selectedCategories = categorySlugs
+    .map((slug) => categories.find((item) => item.slug === slug))
+    .filter((item): item is Category => Boolean(item));
 
-const selectedTitle =
-  selectedCategories.length > 1
-    ? `${selectedCategories.length} Categories`
-    : selectedCategories.length === 1
-      ? selectedCategories[0].name
-      : department === "women"
-        ? "Women"
-        : department === "men"
-          ? "Men"
-          : department === "unisex"
-            ? "Unisex"
-            : "All Products";
+  const selectedTitle =
+    selectedCategories.length > 1
+      ? `${selectedCategories.length} Categories`
+      : selectedCategories.length === 1
+        ? selectedCategories[0].name
+        : department === "women"
+          ? "Women"
+          : department === "men"
+            ? "Men"
+            : department === "unisex"
+              ? "Unisex"
+              : "All Products";
 
   const pageHref = (page: number) =>
     buildProductsUrl({
@@ -296,7 +314,7 @@ const selectedTitle =
         maxPrice={maxPrice}
         inStock={inStock}
         sort={sort}
-      />
+      >
 
       {products.length === 0 ? (
         <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">
@@ -402,6 +420,7 @@ const selectedTitle =
           )}
         </>
       )}
+      </ProductFilters>
     </main>
   );
 }

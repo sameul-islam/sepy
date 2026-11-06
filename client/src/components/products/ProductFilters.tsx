@@ -8,10 +8,13 @@ import {
   useState,
   useTransition,
 } from "react";
+import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MdKeyboardArrowDown, MdTune } from "react-icons/md";
 
 import type { Category, ProductFilterOptions } from "@/lib/api-types";
+
+import ProductGridSkeleton from "./ProductGridSkeleton";
 
 import AvailabilityFilter from "./filters/AvailabilityFilter";
 import ColorFilter from "./filters/ColorFilter";
@@ -30,6 +33,7 @@ import {
 import type { ProductFilterDraft } from "./filters/types";
 
 type ProductFiltersProps = {
+  children: ReactNode;
   categories: Category[];
   filterOptions: ProductFilterOptions;
   currentQuery: string;
@@ -68,6 +72,7 @@ const EMPTY_FILTER: ProductFilterDraft = {
 };
 
 export default function ProductFilters({
+  children,
   categories,
   filterOptions,
   currentQuery,
@@ -87,6 +92,19 @@ export default function ProductFilters({
   const [isOpen, setIsOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] = useState(false);
+
+  useEffect(() => {
+    if (!isPending) return;
+
+    const timer = setTimeout(() => {
+      setIsSkeletonDelayComplete(true);
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isPending]);
 
   const appliedDraft = useMemo(
     () =>
@@ -280,6 +298,32 @@ export default function ProductFilters({
     clearPriceTimer();
 
     const params = new URLSearchParams(queryRef.current);
+
+    // Preserve valid price values that are still waiting
+    // for the debounce timer to complete.
+    const pendingPrice = priceDraftRef.current;
+
+    const validationError = validatePriceRange(
+      pendingPrice.minPrice,
+      pendingPrice.maxPrice,
+    );
+
+    if (!validationError) {
+      const min = pendingPrice.minPrice.trim();
+      const max = pendingPrice.maxPrice.trim();
+
+      if (min) {
+        params.set("minPrice", min);
+      } else {
+        params.delete("minPrice");
+      }
+
+      if (max) {
+        params.set("maxPrice", max);
+      } else {
+        params.delete("maxPrice");
+      }
+    }
 
     if (nextSort === "newest") {
       params.delete("sort");
@@ -543,6 +587,14 @@ export default function ProductFilters({
           ? "Updating product results"
           : `${totalProducts} products available`}
       </span>
+
+      <div aria-busy={isPending}>
+        {isPending && isSkeletonDelayComplete ? (
+          <ProductGridSkeleton />
+        ) : (
+          children
+        )}
+      </div>
     </>
   );
 }
