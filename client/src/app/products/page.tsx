@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import ProductCard from "@/components/products/ProductCard";
+import ProductGrid from "@/components/products/ProductGrid";
 import { getCategories, getProducts } from "@/lib/api";
 import type { Category, ProductListData } from "@/lib/api-types";
 import ProductFilters from "@/components/products/ProductFilters";
@@ -315,111 +315,108 @@ export default async function ProductsPage({
         inStock={inStock}
         sort={sort}
       >
+        {products.length === 0 ? (
+          <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">
+            <h2 className="text-xl font-medium text-[#171717]">
+              Nothing here just yet
+            </h2>
 
-      {products.length === 0 ? (
-        <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">
-          <h2 className="text-xl font-medium text-[#171717]">
-            Nothing here just yet
-          </h2>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#5f5f5a]">
+              There are no products to display in this selection. Explore the
+              full collection instead.
+            </p>
 
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#5f5f5a]">
-            There are no products to display in this selection. Explore the full
-            collection instead.
-          </p>
-
-          <Link
-            href="/products"
-            className="mt-6 inline-flex border-b border-[#171717] pb-1 text-sm text-[#171717]"
-          >
-            Explore all products
-          </Link>
-        </section>
-      ) : (
-        <>
-          <section
-            aria-label="Product results"
-            className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
-          >
-            {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </section>
-
-          {pagination.totalPages > 1 && (
-            <nav
-              aria-label="Product pages"
-              className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-border pt-7"
+            <Link
+              href="/products"
+              className="mt-6 inline-flex border-b border-[#171717] pb-1 text-sm text-[#171717]"
             >
-              {pagination.hasPreviousPage ? (
-                <Link
-                  href={pageHref(pagination.page - 1)}
-                  rel="prev"
-                  className="flex items-center gap-1 text-xs sm:text-sm text-[#171717] font-semibold hover:underline"
-                >
-                  <MdOutlineKeyboardDoubleArrowLeft size={22} />
-                  <span>Previous</span>
-                </Link>
-              ) : (
-                <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#cfcfc8]">
-                  <MdOutlineKeyboardDoubleArrowLeft size={22} />
-                  <span>Previous</span>
+              Explore all products
+            </Link>
+          </section>
+        ) : (
+          <>
+            <section
+              aria-label="Product results"
+              className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
+            >
+              <ProductGrid products={products} />
+            </section>
+
+            {pagination.totalPages > 1 && (
+              <nav
+                aria-label="Product pages"
+                className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-border pt-7"
+              >
+                {pagination.hasPreviousPage ? (
+                  <Link
+                    href={pageHref(pagination.page - 1)}
+                    rel="prev"
+                    className="flex items-center gap-1 text-xs sm:text-sm text-[#171717] font-semibold hover:underline"
+                  >
+                    <MdOutlineKeyboardDoubleArrowLeft size={22} />
+                    <span>Previous</span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#cfcfc8]">
+                    <MdOutlineKeyboardDoubleArrowLeft size={22} />
+                    <span>Previous</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  {pageNumbers.map((page, index) => {
+                    const previousPage = pageNumbers[index - 1];
+
+                    return (
+                      <span key={page} className="flex items-center gap-2">
+                        {previousPage !== undefined &&
+                          page - previousPage > 1 && (
+                            <span
+                              className="px-1 text-sm text-[#85857e]"
+                              aria-hidden="true"
+                            >
+                              …
+                            </span>
+                          )}
+
+                        <Link
+                          href={pageHref(page)}
+                          aria-current={
+                            page === pagination.page ? "page" : undefined
+                          }
+                          aria-label={`Page ${page}`}
+                          className={`flex size-9 items-center justify-center rounded-full text-sm ${
+                            page === pagination.page
+                              ? "bg-[#171717] text-white"
+                              : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
+                          }`}
+                        >
+                          {page}
+                        </Link>
+                      </span>
+                    );
+                  })}
                 </div>
-              )}
 
-              <div className="flex items-center gap-2">
-                {pageNumbers.map((page, index) => {
-                  const previousPage = pageNumbers[index - 1];
-
-                  return (
-                    <span key={page} className="flex items-center gap-2">
-                      {previousPage !== undefined &&
-                        page - previousPage > 1 && (
-                          <span
-                            className="px-1 text-sm text-[#85857e]"
-                            aria-hidden="true"
-                          >
-                            …
-                          </span>
-                        )}
-
-                      <Link
-                        href={pageHref(page)}
-                        aria-current={
-                          page === pagination.page ? "page" : undefined
-                        }
-                        aria-label={`Page ${page}`}
-                        className={`flex size-9 items-center justify-center rounded-full text-sm ${
-                          page === pagination.page
-                            ? "bg-[#171717] text-white"
-                            : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-                        }`}
-                      >
-                        {page}
-                      </Link>
-                    </span>
-                  );
-                })}
-              </div>
-
-              {pagination.hasNextPage ? (
-                <Link
-                  href={pageHref(pagination.page + 1)}
-                  rel="next"
-                  className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#171717] hover:underline"
-                >
-                  <span>Next</span>
-                  <MdOutlineKeyboardDoubleArrowRight size={22} />
-                </Link>
-              ) : (
-                <div className="flex text-xs sm:text-sm font-semibold text-[#cfcfc8] items-center gap-1">
-                  <span>Next</span>{" "}
-                  <MdOutlineKeyboardDoubleArrowRight size={22} />
-                </div>
-              )}
-            </nav>
-          )}
-        </>
-      )}
+                {pagination.hasNextPage ? (
+                  <Link
+                    href={pageHref(pagination.page + 1)}
+                    rel="next"
+                    className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#171717] hover:underline"
+                  >
+                    <span>Next</span>
+                    <MdOutlineKeyboardDoubleArrowRight size={22} />
+                  </Link>
+                ) : (
+                  <div className="flex text-xs sm:text-sm font-semibold text-[#cfcfc8] items-center gap-1">
+                    <span>Next</span>{" "}
+                    <MdOutlineKeyboardDoubleArrowRight size={22} />
+                  </div>
+                )}
+              </nav>
+            )}
+          </>
+        )}
       </ProductFilters>
     </main>
   );

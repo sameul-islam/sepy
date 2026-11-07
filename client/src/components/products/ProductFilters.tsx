@@ -11,10 +11,15 @@ import {
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MdKeyboardArrowDown, MdTune } from "react-icons/md";
+import { MdGridView, MdGridOn } from "react-icons/md";
 
 import type { Category, ProductFilterOptions } from "@/lib/api-types";
 
 import ProductGridSkeleton from "./ProductGridSkeleton";
+import {
+  ProductGridViewContext,
+  type ProductGridView,
+} from "./ProductGridViewContext";
 
 import AvailabilityFilter from "./filters/AvailabilityFilter";
 import ColorFilter from "./filters/ColorFilter";
@@ -91,6 +96,7 @@ export default function ProductFilters({
 
   const [isOpen, setIsOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [gridView, setGridView] = useState<ProductGridView>("compact");
   const [isPending, startTransition] = useTransition();
   const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] = useState(false);
 
@@ -353,33 +359,71 @@ export default function ProductFilters({
   return (
     <>
       <section className="py-2">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            aria-haspopup="dialog"
-            aria-expanded={isOpen}
-            className="inline-flex min-h-10 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs sm:text-sm font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer"
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={isOpen}
+              className="inline-flex min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer sm:text-sm"
+            >
+              <MdTune size={19} aria-hidden="true" />
+              <span>Filter</span>
+
+              {activeFilterCount > 0 && (
+                <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            <div className="w-40 sm:w-47.5">
+              <FilterSelect
+                label="Sort by"
+                hideLabel
+                value={sort}
+                options={SORT_OPTIONS}
+                placeholder="Sort by"
+                onChange={updateSort}
+              />
+            </div>
+          </div>
+
+          <div
+            className="flex shrink-0 items-center gap-1"
+            role="group"
+            aria-label="Product grid layout"
           >
-            <MdTune size={19} aria-hidden="true" />
-            <span>Filter</span>
+            <button
+              type="button"
+              onClick={() => setGridView("comfortable")}
+              aria-label="Comfortable grid view"
+              aria-pressed={gridView === "comfortable"}
+              title="Comfortable grid"
+              className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                gridView === "comfortable"
+                  ? "bg-[#171717] text-white"
+                  : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
+              }`}
+            >
+              <MdGridView size={21} aria-hidden="true" />
+            </button>
 
-            {activeFilterCount > 0 && (
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          <div className="w-47.5">
-            <FilterSelect
-              label="Sort by"
-              hideLabel
-              value={sort}
-              options={SORT_OPTIONS}
-              placeholder="Sort by"
-              onChange={updateSort}
-            />
+            <button
+              type="button"
+              onClick={() => setGridView("compact")}
+              aria-label="Compact grid view"
+              aria-pressed={gridView === "compact"}
+              title="Compact grid"
+              className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                gridView === "compact"
+                  ? "bg-[#171717] text-white"
+                  : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
+              }`}
+            >
+              <MdGridOn size={21} aria-hidden="true" />
+            </button>
           </div>
         </div>
       </section>
@@ -582,13 +626,15 @@ export default function ProductFilters({
           : `${totalProducts} products available`}
       </span>
 
-      <div aria-busy={isPending}>
-        {isPending && isSkeletonDelayComplete ? (
-          <ProductGridSkeleton />
-        ) : (
-          children
-        )}
-      </div>
+      <ProductGridViewContext.Provider value={gridView}>
+        <div aria-busy={isPending}>
+          {isPending && isSkeletonDelayComplete ? (
+            <ProductGridSkeleton />
+          ) : (
+            children
+          )}
+        </div>
+      </ProductGridViewContext.Provider>
     </>
   );
 }
