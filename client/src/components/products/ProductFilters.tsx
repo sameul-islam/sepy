@@ -352,14 +352,14 @@ export default function ProductFilters({
 
   return (
     <>
-      <section className="mb-7 border-y border-[#e8e8e3] py-4 sm:mb-9">
-        <div className="flex items-center justify-between gap-3">
+      <section className="py-2">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => setIsOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={isOpen}
-            className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
+            className="inline-flex min-h-10 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs sm:text-sm font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer"
           >
             <MdTune size={19} aria-hidden="true" />
             <span>Filter</span>
@@ -371,21 +371,15 @@ export default function ProductFilters({
             )}
           </button>
 
-          <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-[#85857e] sm:inline">
-              Sort by
-            </span>
-
-            <div className="w-38.5 sm:w-47.5">
-              <FilterSelect
-                label="Sort by"
-                hideLabel
-                value={sort}
-                options={SORT_OPTIONS}
-                placeholder="Sort by"
-                onChange={updateSort}
-              />
-            </div>
+          <div className="w-47.5">
+            <FilterSelect
+              label="Sort by"
+              hideLabel
+              value={sort}
+              options={SORT_OPTIONS}
+              placeholder="Sort by"
+              onChange={updateSort}
+            />
           </div>
         </div>
       </section>

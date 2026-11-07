@@ -132,7 +132,7 @@ export default function FilterDrawer({
         aria-label="Close filters"
         tabIndex={-1}
         onClick={beginClose}
-        className={`sepy-filter-motion absolute inset-0 h-full w-full cursor-default bg-black/35 backdrop-blur-[2px] ${
+        className={`sepy-filter-motion absolute inset-0 h-full w-full cursor-default bg-black/35 ${
           isClosing
             ? "animate-[sepy-filter-fade-out_320ms_ease-in_forwards]"
             : "animate-[sepy-filter-fade-in_320ms_ease-out]"
@@ -147,7 +147,7 @@ export default function FilterDrawer({
         aria-labelledby="product-filter-title"
         tabIndex={-1}
         onAnimationEnd={handleDrawerAnimationEnd}
-        className={`sepy-filter-motion absolute inset-y-0 right-0 flex h-dvh w-full max-w-110 flex-col bg-white shadow-2xl outline-none ${
+        className={`sepy-filter-motion absolute inset-y-0 right-0 flex h-dvh w-full max-w-120 flex-col bg-white shadow-2xl outline-none ${
           isClosing
             ? "animate-[sepy-filter-slide-out_320ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
             : "animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"

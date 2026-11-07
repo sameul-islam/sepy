@@ -14,6 +14,7 @@ import {
 } from "react-icons/md";
 
 import type { FilterSelectOption } from "./types";
+import { BiSort } from "react-icons/bi";
 
 type FilterSelectProps = {
   label: string;
@@ -170,12 +171,13 @@ export default function FilterSelect({
             openMenu();
           }
         }}
-        className="flex min-h-12 w-full items-center justify-between gap-3 border border-[#deded8] bg-white px-4 text-left text-sm text-[#171717] transition-colors hover:border-[#a5a59d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+        className="flex px-3 py-2 items-center justify-between gap-1.5 border border-[#deded8] bg-white text-left text-xs sm:text-sm text-[#171717] transition-colors hover:border-[#a5a59d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
       >
+        <BiSort size={16}/>
         <span
           className={
             selectedOption
-              ? "font-medium"
+              ? "font-bold"
               : "text-[#85857e]"
           }
         >
@@ -197,7 +199,7 @@ export default function FilterSelect({
           role="listbox"
           aria-label={label}
           onKeyDown={handleMenuKeyDown}
-          className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto border border-[#e5e5e0] bg-white py-1 shadow-xl"
+          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto border border-[#e5e5e0] bg-white py-1 shadow-xl"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
