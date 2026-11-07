@@ -9,6 +9,7 @@ const CATEGORY_ORDER = [
   "mens-bottoms",
   "mens-hoodies",
   "mens-activewear",
+  "accessories",
 ] as const;
 
 export const getActiveCategories = async () => {

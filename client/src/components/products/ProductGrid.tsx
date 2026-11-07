@@ -22,7 +22,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
   return (
     <section
       aria-label="Product results"
-      className={`grid w-full ${gridClasses} gap-x-1.5 gap-y-7 sm:gap-x-3 sm:gap-y-10 lg:gap-x-4`}
+      className={`grid ${gridClasses} gap-x-1.5 gap-y-7 sm:gap-x-3 sm:gap-y-10 lg:gap-x-4`}
     >
       {products.map((product) => (
         <ProductCard key={product._id} product={product} />

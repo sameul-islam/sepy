@@ -8,6 +8,7 @@ const CATEGORY_ORDER = [
     "mens-bottoms",
     "mens-hoodies",
     "mens-activewear",
+    "accessories",
 ];
 export const getActiveCategories = async () => {
     const categories = await Category.find({ isActive: true })

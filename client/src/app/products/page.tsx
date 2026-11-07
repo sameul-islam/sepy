@@ -335,12 +335,7 @@ export default async function ProductsPage({
           </section>
         ) : (
           <>
-            <section
-              aria-label="Product results"
-              className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:grid-cols-3 sm:gap-x-3 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
-            >
-              <ProductGrid products={products} />
-            </section>
+            <ProductGrid products={products} />
 
             {pagination.totalPages > 1 && (
               <nav
