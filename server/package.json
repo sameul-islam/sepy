@@ -9,7 +9,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed:categories": "tsx src/scripts/seedCategories.ts",
-    "seed:admin": "tsx src/scripts/seedAdmin.ts"
+    "seed:admin": "tsx src/scripts/seedAdmin.ts",
+    "migrate:product-audience": "tsx src/scripts/migrateProductAudience.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

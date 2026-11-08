@@ -142,6 +142,11 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+    
+    audience: {
+      type: String,
+      enum: ["women", "men", "unisex"],
+    },
 
     images: {
       type: [productImageSchema],

@@ -65,6 +65,8 @@ export const createProductSchema = z
           .string()
           .regex(/^[a-f\d]{24}$/i, "Category must be a valid MongoDB ObjectId"),
 
+        audience: z.enum(["women", "men", "unisex"]),
+
         images: z
           .array(
             z
@@ -238,6 +240,9 @@ export const productListQuerySchema = z
     // Department intentionally remains single-select.
     department: z.enum(["women", "men", "unisex"]).optional(),
 
+    // Product audience filter.
+    audience: z.enum(["women", "men", "unisex"]).optional(),
+
     // Multiple sizes: S,M,L
     size: createMultiValueQuerySchema(sizeFilterSchema, 20).optional(),
 
@@ -266,6 +271,18 @@ export const productListQuerySchema = z
     sort: z.enum(["newest", "price-asc", "price-desc"]).default("newest"),
   })
   .strict()
+  .refine(
+    (data) =>
+      !(
+        data.department === "unisex" &&
+        data.audience !== undefined &&
+        data.audience !== "unisex"
+      ),
+    {
+      message: "Department unisex cannot be combined with a different audience",
+      path: ["audience"],
+    },
+  )
   .refine(
     (data) =>
       data.minPrice === undefined ||
@@ -307,6 +324,8 @@ export const updateProductSchema = z
           .string()
           .regex(/^[a-f\d]{24}$/i, "Category must be a valid MongoDB ObjectId")
           .optional(),
+
+        audience: z.enum(["women", "men", "unisex"]).optional(),
 
         images: z
           .array(

@@ -15,6 +15,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     limit,
     category: categorySlugs,
     department,
+    audience,
     size,
     color,
     minPrice,
@@ -23,13 +24,19 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     sort = "newest",
   } = query;
 
+  const categoryDepartment =
+    department === "women" || department === "men" ? department : undefined;
+
+  const effectiveAudience =
+    audience ?? (department === "unisex" ? "unisex" : undefined);
+
   let activeCategoryIds;
 
   if (categorySlugs?.length) {
     const activeCategories = await Category.find({
       slug: { $in: categorySlugs },
       isActive: true,
-      ...(department ? { department } : {}),
+      ...(categoryDepartment ? { department: categoryDepartment } : {}),
     })
       .select("_id")
       .lean();
@@ -42,12 +49,10 @@ export const getActiveProducts = async (query: ProductListQuery) => {
   } else {
     const activeCategories = await Category.find({
       isActive: true,
-      ...(department ? { department } : {}),
+      ...(categoryDepartment ? { department: categoryDepartment } : {}),
     })
       .select("_id")
       .lean();
-
-    activeCategoryIds = activeCategories.map((category) => category._id);
   }
 
   // Build conditions for the SAME variant document.
@@ -135,6 +140,22 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         "categoryDetails.isActive": true,
       },
     },
+    ...(effectiveAudience
+      ? [
+          {
+            $match: {
+              $expr: {
+                $eq: [
+                  {
+                    $ifNull: ["$audience", "$categoryDetails.department"],
+                  },
+                  effectiveAudience,
+                ],
+              },
+            },
+          },
+        ]
+      : []),
   ];
 
   // Apply all selected filters to one matching variant array.
@@ -238,14 +259,13 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         price: 1,
         compareAtPrice: 1,
         inStock: 1,
-
         category: {
           _id: "$categoryDetails._id",
           name: "$categoryDetails.name",
           slug: "$categoryDetails.slug",
           department: "$categoryDetails.department",
         },
-
+        audience: 1,
         images: 1,
         availableColors: 1,
         isFeatured: 1,
@@ -516,6 +536,7 @@ export const getFeaturedProducts = async () => {
           slug: "$categoryDetails.slug",
           department: "$categoryDetails.department",
         },
+        audience: 1,
         images: 1,
         availableColors: 1,
         isFeatured: 1,
@@ -636,6 +657,7 @@ export const createProduct = async (input: CreateProductInput) => {
             slug: input.slug,
             description: input.description,
             category: category._id,
+            audience: input.audience,
             images: input.images,
             isFeatured: input.isFeatured,
             featuredOrder: input.featuredOrder,
@@ -698,6 +720,7 @@ export type UpdateProductInput = {
   slug?: string;
   description?: string;
   category?: string;
+  audience?: "women" | "men" | "unisex";
   images?: {
     url: string;
     alt: string;

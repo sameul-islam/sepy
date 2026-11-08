@@ -3,13 +3,15 @@ import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
 export const getActiveProducts = async (query) => {
-    const { page, limit, category: categorySlugs, department, size, color, minPrice, maxPrice, inStock, sort = "newest", } = query;
+    const { page, limit, category: categorySlugs, department, audience, size, color, minPrice, maxPrice, inStock, sort = "newest", } = query;
+    const categoryDepartment = department === "women" || department === "men" ? department : undefined;
+    const effectiveAudience = audience ?? (department === "unisex" ? "unisex" : undefined);
     let activeCategoryIds;
     if (categorySlugs?.length) {
         const activeCategories = await Category.find({
             slug: { $in: categorySlugs },
             isActive: true,
-            ...(department ? { department } : {}),
+            ...(categoryDepartment ? { department: categoryDepartment } : {}),
         })
             .select("_id")
             .lean();
@@ -21,11 +23,10 @@ export const getActiveProducts = async (query) => {
     else {
         const activeCategories = await Category.find({
             isActive: true,
-            ...(department ? { department } : {}),
+            ...(categoryDepartment ? { department: categoryDepartment } : {}),
         })
             .select("_id")
             .lean();
-        activeCategoryIds = activeCategories.map((category) => category._id);
     }
     // Build conditions for the SAME variant document.
     const variantConditions = [];
@@ -102,6 +103,22 @@ export const getActiveProducts = async (query) => {
                 "categoryDetails.isActive": true,
             },
         },
+        ...(effectiveAudience
+            ? [
+                {
+                    $match: {
+                        $expr: {
+                            $eq: [
+                                {
+                                    $ifNull: ["$audience", "$categoryDetails.department"],
+                                },
+                                effectiveAudience,
+                            ],
+                        },
+                    },
+                },
+            ]
+            : []),
     ];
     // Apply all selected filters to one matching variant array.
     const variantFilterStages = [
@@ -203,6 +220,7 @@ export const getActiveProducts = async (query) => {
                     slug: "$categoryDetails.slug",
                     department: "$categoryDetails.department",
                 },
+                audience: 1,
                 images: 1,
                 availableColors: 1,
                 isFeatured: 1,
@@ -450,6 +468,7 @@ export const getFeaturedProducts = async () => {
                     slug: "$categoryDetails.slug",
                     department: "$categoryDetails.department",
                 },
+                audience: 1,
                 images: 1,
                 availableColors: 1,
                 isFeatured: 1,
@@ -558,6 +577,7 @@ export const createProduct = async (input) => {
                     slug: input.slug,
                     description: input.description,
                     category: category._id,
+                    audience: input.audience,
                     images: input.images,
                     isFeatured: input.isFeatured,
                     featuredOrder: input.featuredOrder,
