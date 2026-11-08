@@ -40,11 +40,11 @@ export default function FeaturedProducts() {
 
         const mapProducts = (products: ApiProduct[]): Product[] =>
           products.flatMap((product): Product[] => {
-            if (!product.category || product.images.length === 0) {
+            if (product.images.length === 0) {
               return [];
             }
 
-            const gender = product.category.department;
+            const gender = product.audience;
 
             if (gender !== "women" && gender !== "men") {
               return [];

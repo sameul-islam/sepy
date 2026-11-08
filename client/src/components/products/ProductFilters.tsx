@@ -43,7 +43,7 @@ type ProductFiltersProps = {
   filterOptions: ProductFilterOptions;
   currentQuery: string;
   totalProducts: number;
-  department?: "women" | "men" | "unisex";
+  department?: "women" | "men";
   category?: string[];
   size?: string[];
   color?: string[];
@@ -57,7 +57,6 @@ const DEPARTMENT_OPTIONS = [
   { label: "All departments", value: "" },
   { label: "Women", value: "women" },
   { label: "Men", value: "men" },
-  { label: "Unisex", value: "unisex" },
 ];
 
 const SORT_OPTIONS = [
@@ -352,9 +351,7 @@ export default function ProductFilters({
     });
   };
 
-  const availableCategories = categories.filter(
-    (item) => !draft.department || item.department === draft.department,
-  );
+  const availableCategories = categories;
 
   return (
     <>

@@ -164,9 +164,7 @@ export default async function ProductsPage({
   const requestedDepartment = getSingleValue(params.department);
 
   const department =
-    requestedDepartment === "women" ||
-    requestedDepartment === "men" ||
-    requestedDepartment === "unisex"
+    requestedDepartment === "women" || requestedDepartment === "men"
       ? requestedDepartment
       : undefined;
 
@@ -254,8 +252,6 @@ export default async function ProductsPage({
           ? "Women"
           : department === "men"
             ? "Men"
-            : department === "unisex"
-              ? "Unisex"
               : "All Products";
 
   const pageHref = (page: number) =>

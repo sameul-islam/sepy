@@ -146,6 +146,7 @@ const productSchema = new mongoose.Schema(
     audience: {
       type: String,
       enum: ["women", "men", "unisex"],
+      required: true,
     },
 
     images: {

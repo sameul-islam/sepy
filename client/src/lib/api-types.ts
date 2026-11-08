@@ -2,7 +2,6 @@ export type Category = {
   _id: string;
   name: string;
   slug: string;
-  department: "women" | "men" | "unisex";
   image?: string;
 };
 
@@ -46,6 +45,7 @@ export type Product = {
   price: number;
   compareAtPrice?: number | null;
   inStock: boolean;
+  audience: "women" | "men" | "unisex";
   category: Category;
   images: ProductImage[];
   availableColors: string[];

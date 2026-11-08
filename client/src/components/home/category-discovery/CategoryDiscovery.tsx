@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getCategories } from "@/lib/api";
+import { getCategories, getProducts } from "@/lib/api";
 
 type GroupKey = "women" | "men";
 type Direction = "forward" | "backward";
@@ -42,28 +42,43 @@ export default function CategoryDiscovery() {
 
     async function loadCategories() {
       try {
-        const categories = await getCategories();
+        const [categories, listing] = await Promise.all([
+          getCategories(),
+          getProducts({
+            page: 1,
+            limit: 100,
+          }),
+        ]);
 
         if (cancelled) return;
 
         const groups: CategoryGroup[] = GROUPS.map((group) => ({
           ...group,
           items: categories
-            .filter(
-              (category) =>
-                category.department === group.key &&
-                typeof category.image === "string" &&
-                category.image.trim().length > 0,
-            )
-            .slice(0, 4)
-            .map((category) => ({
-              title: category.name,
-              image: category.image!,
-              href: `/products?${new URLSearchParams({
-                category: category.slug,
-                department: group.key,
-              }).toString()}`,
-            })),
+            .map((category) => {
+              const matchingProduct = listing.products.find(
+                (product) =>
+                  product.audience === group.key &&
+                  product.category?.slug === category.slug &&
+                  product.images.length > 0,
+              );
+
+              const image =
+                category.image?.trim() || matchingProduct?.images[0]?.url;
+
+              if (!image) return null;
+
+              return {
+                title: category.name,
+                image,
+                href: `/products?${new URLSearchParams({
+                  category: category.slug,
+                  department: group.key,
+                }).toString()}`,
+              };
+            })
+            .filter((item): item is CategoryItem => item !== null)
+            .slice(0, 4),
         }));
 
         setCategoryGroups(groups);

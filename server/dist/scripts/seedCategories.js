@@ -2,51 +2,11 @@ import mongoose from "mongoose";
 import connectDatabase from "../config/database.js";
 import Category from "../models/Category.js";
 const categories = [
-    {
-        name: "Women's Tops",
-        slug: "womens-tops",
-        department: "women",
-    },
-    {
-        name: "Women's Bottoms",
-        slug: "womens-bottoms",
-        department: "women",
-    },
-    {
-        name: "Women's Hoodies",
-        slug: "womens-hoodies",
-        department: "women",
-    },
-    {
-        name: "Women's Activewear",
-        slug: "womens-activewear",
-        department: "women",
-    },
-    {
-        name: "Men's Tops",
-        slug: "mens-tops",
-        department: "men",
-    },
-    {
-        name: "Men's Bottoms",
-        slug: "mens-bottoms",
-        department: "men",
-    },
-    {
-        name: "Men's Hoodies",
-        slug: "mens-hoodies",
-        department: "men",
-    },
-    {
-        name: "Men's Activewear",
-        slug: "mens-activewear",
-        department: "men",
-    },
-    {
-        name: "Accessories",
-        slug: "accessories",
-        department: null,
-    },
+    { name: "Tops", slug: "tops" },
+    { name: "Bottoms", slug: "bottoms" },
+    { name: "Hoodies", slug: "hoodies" },
+    { name: "Outerwear", slug: "outerwear" },
+    { name: "Accessories", slug: "accessories" },
 ];
 const seedCategories = async () => {
     try {
@@ -58,7 +18,6 @@ const seedCategories = async () => {
                     $setOnInsert: {
                         name: category.name,
                         slug: category.slug,
-                        department: category.department,
                         isActive: true,
                     },
                 },

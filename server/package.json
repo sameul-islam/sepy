@@ -10,7 +10,9 @@
     "start": "node dist/server.js",
     "seed:categories": "tsx src/scripts/seedCategories.ts",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "migrate:product-audience": "tsx src/scripts/migrateProductAudience.ts"
+    "migrate:product-audience": "tsx src/scripts/migrateProductAudience.ts",
+    "migrate:categories": "tsx src/scripts/migrateCategories.ts",
+    "check:mongodb": "tsx src/scripts/checkMongoTopology.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -17,12 +17,6 @@ const categorySchema = new mongoose.Schema(
       maxlength: 120,
     },
 
-    department: {
-      type: String,
-      enum: ["women", "men"],
-      default: null,
-    },
-
     image: {
       type: String,
       trim: true,
@@ -42,7 +36,6 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.index({ slug: 1 }, { unique: true });
-categorySchema.index({ department: 1, isActive: 1 });
 
 export type CategoryDocument = InferSchemaType<typeof categorySchema>;
 

@@ -177,9 +177,7 @@ export const productListQuerySchema = z
     // Multiple category slugs: tops,hoodies
     category: createMultiValueQuerySchema(categorySlugFilterSchema, 10).optional(),
     // Department intentionally remains single-select.
-    department: z.enum(["women", "men", "unisex"]).optional(),
-    // Product audience filter.
-    audience: z.enum(["women", "men", "unisex"]).optional(),
+    department: z.enum(["women", "men"]).optional(),
     // Multiple sizes: S,M,L
     size: createMultiValueQuerySchema(sizeFilterSchema, 20).optional(),
     // Multiple colors: black,sky-blue,chocolate-brown
@@ -203,12 +201,6 @@ export const productListQuerySchema = z
     sort: z.enum(["newest", "price-asc", "price-desc"]).default("newest"),
 })
     .strict()
-    .refine((data) => !(data.department === "unisex" &&
-    data.audience !== undefined &&
-    data.audience !== "unisex"), {
-    message: "Department unisex cannot be combined with a different audience",
-    path: ["audience"],
-})
     .refine((data) => data.minPrice === undefined ||
     data.maxPrice === undefined ||
     data.minPrice <= data.maxPrice, {

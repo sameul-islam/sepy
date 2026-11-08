@@ -1,20 +1,16 @@
 import Category from "../models/Category.js";
 
 const CATEGORY_ORDER = [
-  "womens-tops",
-  "womens-bottoms",
-  "womens-hoodies",
-  "womens-activewear",
-  "mens-tops",
-  "mens-bottoms",
-  "mens-hoodies",
-  "mens-activewear",
+  "tops",
+  "bottoms",
+  "hoodies",
+  "outerwear",
   "accessories",
 ] as const;
 
 export const getActiveCategories = async () => {
   const categories = await Category.find({ isActive: true })
-    .select("_id name slug department image")
+    .select("_id name slug image")
     .lean();
 
   const order = new Map<string, number>(

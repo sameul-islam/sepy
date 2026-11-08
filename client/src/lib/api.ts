@@ -64,7 +64,7 @@ export async function getProducts(params: {
   page: number;
   limit?: number;
   category?: string[];
-  department?: "women" | "men" | "unisex";
+  department?: "women" | "men";
   size?: string[];
   color?: string[];
   minPrice?: number;

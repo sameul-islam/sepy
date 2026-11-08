@@ -15,7 +15,6 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     limit,
     category: categorySlugs,
     department,
-    audience,
     size,
     color,
     minPrice,
@@ -24,36 +23,18 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     sort = "newest",
   } = query;
 
-  const categoryDepartment =
-    department === "women" || department === "men" ? department : undefined;
+  const activeCategories = await Category.find({
+    isActive: true,
+    ...(categorySlugs?.length ? { slug: { $in: categorySlugs } } : {}),
+  })
+    .select("_id")
+    .lean();
 
-  const effectiveAudience =
-    audience ?? (department === "unisex" ? "unisex" : undefined);
-
-  let activeCategoryIds;
-
-  if (categorySlugs?.length) {
-    const activeCategories = await Category.find({
-      slug: { $in: categorySlugs },
-      isActive: true,
-      ...(categoryDepartment ? { department: categoryDepartment } : {}),
-    })
-      .select("_id")
-      .lean();
-
-    if (activeCategories.length === 0) {
-      throw new AppError("Category not found", 404);
-    }
-
-    activeCategoryIds = activeCategories.map((category) => category._id);
-  } else {
-    const activeCategories = await Category.find({
-      isActive: true,
-      ...(categoryDepartment ? { department: categoryDepartment } : {}),
-    })
-      .select("_id")
-      .lean();
+  if (categorySlugs?.length && activeCategories.length === 0) {
+    throw new AppError("Category not found", 404);
   }
+
+  const activeCategoryIds = activeCategories.map((category) => category._id);
 
   // Build conditions for the SAME variant document.
   const variantConditions: Record<string, unknown>[] = [];
@@ -103,6 +84,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       $match: {
         status: "active",
         category: { $in: activeCategoryIds },
+        ...(department ? { audience: department } : {}),
       },
     },
     {
@@ -140,22 +122,6 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         "categoryDetails.isActive": true,
       },
     },
-    ...(effectiveAudience
-      ? [
-          {
-            $match: {
-              $expr: {
-                $eq: [
-                  {
-                    $ifNull: ["$audience", "$categoryDetails.department"],
-                  },
-                  effectiveAudience,
-                ],
-              },
-            },
-          },
-        ]
-      : []),
   ];
 
   // Apply all selected filters to one matching variant array.
@@ -263,7 +229,6 @@ export const getActiveProducts = async (query: ProductListQuery) => {
           _id: "$categoryDetails._id",
           name: "$categoryDetails.name",
           slug: "$categoryDetails.slug",
-          department: "$categoryDetails.department",
         },
         audience: 1,
         images: 1,
@@ -534,7 +499,6 @@ export const getFeaturedProducts = async () => {
           _id: "$categoryDetails._id",
           name: "$categoryDetails.name",
           slug: "$categoryDetails.slug",
-          department: "$categoryDetails.department",
         },
         audience: 1,
         images: 1,
@@ -550,7 +514,7 @@ export const getFeaturedProducts = async () => {
     {
       $facet: {
         women: [
-          { $match: { "category.department": "women" } },
+          { $match: { audience: "women" } },
           {
             $sort: {
               featuredOrder: 1,
@@ -561,7 +525,7 @@ export const getFeaturedProducts = async () => {
           { $limit: 6 },
         ],
         men: [
-          { $match: { "category.department": "men" } },
+          { $match: { audience: "men" } },
           {
             $sort: {
               featuredOrder: 1,
@@ -599,7 +563,7 @@ export const getActiveProductBySlug = async (slug: string) => {
   })
     .populate({
       path: "category",
-      select: "name slug department",
+      select: "name slug",
       match: { isActive: true },
     })
     .lean();
@@ -689,7 +653,7 @@ export const createProduct = async (input: CreateProductInput) => {
     const product = await Product.findById(createdProductId)
       .populate({
         path: "category",
-        select: "name slug department",
+        select: "name slug",
         match: { isActive: true },
       })
       .lean();
@@ -813,7 +777,7 @@ export const updateProduct = async (
   )
     .populate({
       path: "category",
-      select: "name slug department",
+      select: "name slug",
       match: { isActive: true },
     })
     .lean();

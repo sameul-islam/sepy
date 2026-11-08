@@ -13,11 +13,6 @@ const categorySchema = new mongoose.Schema({
         lowercase: true,
         maxlength: 120,
     },
-    department: {
-        type: String,
-        enum: ["women", "men"],
-        default: null,
-    },
     image: {
         type: String,
         trim: true,
@@ -33,7 +28,6 @@ const categorySchema = new mongoose.Schema({
     versionKey: false,
 });
 categorySchema.index({ slug: 1 }, { unique: true });
-categorySchema.index({ department: 1, isActive: 1 });
 const Category = mongoose.models.Category ??
     mongoose.model("Category", categorySchema);
 export default Category;
