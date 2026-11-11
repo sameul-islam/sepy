@@ -96,27 +96,3 @@ export type FeaturedProductsData = {
   products: Product[];
 };
 
-export type LookProduct = {
-  _id: string;
-  name: string;
-  slug: string;
-  images: {
-    url: string;
-    alt: string;
-  }[];
-};
-
-export type LookDetail = {
-  _id: string;
-  title: string;
-  slug: string;
-  eyebrow: string;
-  image: {
-    url: string;
-    alt: string;
-  };
-  products: {
-    sortOrder: number;
-    product: LookProduct;
-  }[];
-};

@@ -7,7 +7,6 @@ import categoryRoutes from "./routes/category.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import variantRoutes from "./routes/variant.routes.js";
 import authRoutes from "./routes/auth.routes.js";
-import lookRoutes from "./routes/look.routes.js";
 import { env } from "./config/env.js";
 
 const app = express();
@@ -25,7 +24,6 @@ app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/variants", variantRoutes);
-app.use("/api/v1/looks", lookRoutes);
 app.use("/api/v1/auth", authRoutes);
 
 app.use(notFound);

@@ -63,8 +63,7 @@ export default function CategoryDiscovery() {
                   product.images.length > 0,
               );
 
-              const image =
-                category.image?.trim() || matchingProduct?.images[0]?.url;
+              const image = matchingProduct?.images[0]?.url.trim();
 
               if (!image) return null;
 
