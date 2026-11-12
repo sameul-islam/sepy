@@ -63,20 +63,20 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     });
   }
 
-  if (inStock !== undefined) {
-    variantConditions.push(
-      inStock
-        ? {
-            $gt: ["$$variant.stock", 0],
-          }
-        : {
-            $eq: ["$$variant.stock", 0],
-          },
-    );
-  }
-
   const variantCondition =
     variantConditions.length > 0 ? { $and: variantConditions } : true;
+
+  const matchingInStockCount = {
+    $size: {
+      $filter: {
+        input: "$matchingVariants",
+        as: "variant",
+        cond: {
+          $gt: ["$$variant.stock", 0],
+        },
+      },
+    },
+  };
 
   // Base pipeline: active products with active variants and categories.
   const basePipeline: PipelineStage[] = [
@@ -140,6 +140,14 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     {
       $match: {
         "matchingVariants.0": { $exists: true },
+
+        ...(inStock !== undefined
+          ? {
+              $expr: inStock
+                ? { $gt: [matchingInStockCount, 0] }
+                : { $eq: [matchingInStockCount, 0] },
+            }
+          : {}),
       },
     },
   ];

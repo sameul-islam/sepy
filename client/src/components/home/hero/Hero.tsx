@@ -27,14 +27,14 @@ export default function Hero() {
 
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/"
+              href="/products?department=women"
               className="inline-flex h-11 sm:h-13 items-center justify-center bg-white px-4 sm:px-6 text-xs sm:text-sm rounded-xs font-extrabold uppercase text-black transition-colors duration-300 hover:bg-white/90"
             >
               Shop Women
             </Link>
 
             <Link
-              href="/"
+              href="/products?department=men"
               className="inline-flex h-11 sm:h-13 items-center justify-center bg-white px-4 sm:px-6 text-xs sm:text-sm rounded-xs font-extrabold uppercase text-black transition-colors duration-300 hover:bg-white/90"
             >
               Shop Men
