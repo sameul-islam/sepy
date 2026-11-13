@@ -143,26 +143,20 @@ export default function CategoryDiscovery() {
   return (
     <section
       aria-labelledby="category-discovery-title"
-      className="bg-background px-3 py-15 sm:px-5 md:py-17 lg:px-6 xl:px-10"
+      className="bg-background px-3 py-7 sm:px-5 md:py-12 lg:px-6 xl:px-10"
     >
       <div className="mx-auto max-w-full">
         {/* Intro */}
         <div className="mx-auto max-w-xl text-center">
           <h2
             id="category-discovery-title"
-            className="text-lg sm:text-2xl text-black font-bold py-2"
+            className=" sm:text-xl text-black font-bold py-2 uppercase"
           >
-            Our Categories
+            Popular Categories
           </h2>
-          <p
-            id="category-discovery-subtitle"
-            className="text-sm text-gray-800 leading-6 font-semibold  sm:text-base"
-          >
-            Designed around movement. Refined for everyday life.
-          </p>
 
           <div
-            className="mt-7 flex items-center justify-center gap-6"
+            className="mt-2 flex items-center justify-center gap-6"
             aria-label="Shop categories by gender"
           >
             {GROUPS.map((group) => {
@@ -175,7 +169,7 @@ export default function CategoryDiscovery() {
                   aria-pressed={isActive}
                   disabled={isTransitioning}
                   onClick={() => handleGroupChange(group.key)}
-                  className={`relative cursor-pointer pb-1 text-xs font-extrabold uppercase tracking-[0.18em] transition-opacity duration-300 disabled:cursor-default ${
+                  className={`relative cursor-pointer pb-px text-xs font-extrabold uppercase tracking-[0.14em] transition-opacity duration-300 disabled:cursor-default ${
                     isActive
                       ? "text-text-primary"
                       : "text-text-muted hover:text-text-primary"
@@ -196,7 +190,7 @@ export default function CategoryDiscovery() {
         </div>
 
         {/* Category grid */}
-        <div className="mt-12 lg:mt-16">
+        <div className="mt-7 lg:mt-11">
           {isLoading ? (
             <div
               className="grid grid-cols-2 gap-x-1.5 gap-y-10 sm:gap-x-2 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-2.5"
@@ -264,7 +258,7 @@ function CategoryGrid({
   isTransitioning,
 }: CategoryGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-x-1.5 gap-y-10 sm:gap-x-2 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-2.5">
+    <div className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:gap-x-2 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-2.5">
       {currentGroup.items.map((item, index) => {
         const previousItem = previousGroup?.items[index] ?? null;
 

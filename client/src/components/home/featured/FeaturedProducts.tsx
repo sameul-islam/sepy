@@ -136,7 +136,7 @@ export default function FeaturedProducts() {
             id="featured-products-title"
             className="text-lg font-bold text-black sm:text-2xl"
           >
-            Featured
+            Trending Styles
           </h2>
 
           <div
