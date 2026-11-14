@@ -291,3 +291,43 @@ body {
     opacity: 0.3;
   }
 }
+
+
+
+
+/* ================================
+   SEPY — Shared Loading Skeleton
+   ================================ */
+
+.sepy-skeleton {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: var(--surface-muted);
+}
+
+.sepy-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 55%) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: sepy-shared-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes sepy-shared-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sepy-skeleton::after {
+    animation: none;
+  }
+}

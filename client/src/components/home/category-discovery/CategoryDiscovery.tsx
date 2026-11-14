@@ -193,7 +193,7 @@ export default function CategoryDiscovery() {
         <div className="mt-7 lg:mt-11">
           {isLoading ? (
             <div
-              className="grid grid-cols-2 gap-x-1.5 gap-y-10 sm:gap-x-2 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-2.5"
+              className="grid grid-cols-2 gap-x-1.5 gap-y-7 sm:gap-x-2 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-2.5"
               role="status"
               aria-label="Loading categories"
               aria-busy="true"
@@ -202,20 +202,9 @@ export default function CategoryDiscovery() {
 
               {Array.from({ length: 4 }, (_, index) => (
                 <div key={index} aria-hidden="true">
-                  <div className="relative aspect-3/4 overflow-hidden bg-surface">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Image
-                        src="/images/brand/sepy-logo.svg"
-                        alt=""
-                        width={85}
-                        height={85}
-                        aria-hidden="true"
-                        className="h-auto w-85 max-w-[85%] object-contain opacity-25"
-                      />
-                    </div>
-                  </div>
+                  <div className="sepy-skeleton aspect-3/4" />
 
-                  <div className="mx-auto mt-4 h-3 w-3/5 bg-surface-muted" />
+                  <div className="sepy-skeleton mx-auto mt-4 h-3 w-3/5" />
                 </div>
               ))}
             </div>
