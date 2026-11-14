@@ -2,110 +2,100 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { A11y, Keyboard, Scrollbar } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
-import HorizontalScrollBar from "@/components/ui/HorizontalScrollBar";
 import type { Product } from "@/lib/api-types";
+
+import "swiper/css";
+import "swiper/css/scrollbar";
 
 type NewArrivalsRailProps = {
   products: Product[];
 };
 
 const PRODUCT_CARD_WIDTH =
-  "w-[calc((100vw-2rem)/2)] sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]";
+  "!w-[calc((100vw-2rem)/2)] sm:!w-[calc((100vw-2.5rem)/3)] lg:!w-[calc((100vw-4.5rem)/4)] xl:!w-[calc((100vw-6.5rem)/4)]";
 
 function formatPrice(price: number) {
   return `৳ ${new Intl.NumberFormat("en-BD").format(price)}`;
 }
 
 export default function NewArrivalsRail({ products }: NewArrivalsRailProps) {
-  const railRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const interactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
-  const dragState = useRef({
-    active: false,
-    startX: 0,
-    startScrollLeft: 0,
-    moved: false,
-  });
-
-  const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
-    const rail = railRef.current;
-
-    if (!rail || event.button !== 0) {
-      return;
+  const showScrollbar = useCallback(() => {
+    if (interactionTimeoutRef.current !== null) {
+      clearTimeout(interactionTimeoutRef.current);
+      interactionTimeoutRef.current = null;
     }
 
-    dragState.current = {
-      active: true,
-      startX: event.clientX,
-      startScrollLeft: rail.scrollLeft,
-      moved: false,
+    setIsInteracting(true);
+  }, []);
+
+  const hideScrollbar = useCallback(() => {
+    if (interactionTimeoutRef.current !== null) {
+      clearTimeout(interactionTimeoutRef.current);
+    }
+
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false);
+      interactionTimeoutRef.current = null;
+    }, 700);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (interactionTimeoutRef.current !== null) {
+        clearTimeout(interactionTimeoutRef.current);
+      }
     };
-
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
-    const rail = railRef.current;
-
-    if (!rail || !dragState.current.active) {
-      return;
-    }
-
-    const distance = event.clientX - dragState.current.startX;
-
-    if (Math.abs(distance) > 5) {
-      dragState.current.moved = true;
-    }
-
-    rail.scrollLeft = dragState.current.startScrollLeft - distance;
-  };
-
-  const endDrag = () => {
-    if (!dragState.current.active) {
-      return;
-    }
-
-    dragState.current.active = false;
-    setIsDragging(false);
-  };
-
-  const handleClickCapture = (event: MouseEvent<HTMLDivElement>) => {
-    if (!dragState.current.moved) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    dragState.current.moved = false;
-  };
+  }, []);
 
   return (
-    <div>
-      <div
-        id="new-arrivals-rail"
-        ref={railRef}
-        role="region"
-        aria-label="New arrivals products"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={endDrag}
-        onMouseLeave={endDrag}
-        onClickCapture={handleClickCapture}
-        className={`flex w-full snap-none gap-1.5 overflow-x-auto overscroll-x-contain pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden ${
-          isDragging ? "cursor-grabbing select-none" : "cursor-grab"
-        }`}
-      >
-        {products.map((product) => {
-          const image = product.images[0];
+    <Swiper
+      modules={[A11y, Keyboard, Scrollbar]}
+      slidesPerView="auto"
+      slidesPerGroup={1}
+      spaceBetween={6}
+      speed={500}
+      watchOverflow
+      grabCursor
+      resistanceRatio={0.85}
+      keyboard={{
+        enabled: true,
+        onlyInViewport: true,
+      }}
+      a11y={{
+        enabled: true,
+      }}
+      scrollbar={{
+        draggable: true,
+        snapOnRelease: true,
+        hide: false,
+      }}
+      onTouchStart={showScrollbar}
+      onSliderMove={showScrollbar}
+      onTouchEnd={hideScrollbar}
+      onTransitionEnd={hideScrollbar}
+      className={`new-arrivals-swiper w-full ${
+        isInteracting ? "is-interacting" : ""
+      }`}
+    >
+      {products.map((product) => {
+        const image = product.images[0];
+        const secondaryImage = product.images[1];
 
-          return (
-            <article
-              key={product._id}
-              className={`${PRODUCT_CARD_WIDTH} shrink-0`}
-            >
+        return (
+          <SwiperSlide
+            key={product._id}
+            className={`${PRODUCT_CARD_WIDTH} h-auto!`}
+          >
+            <article>
               <Link
                 href={`/products/${product.slug}`}
                 draggable={false}
@@ -118,8 +108,20 @@ export default function NewArrivalsRail({ products }: NewArrivalsRailProps) {
                     fill
                     draggable={false}
                     sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
-                    className="pointer-events-none object-cover transition-transform duration-700 ease-out motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    className="pointer-events-none object-cover transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-0"
                   />
+
+                  {secondaryImage ? (
+                    <Image
+                      src={secondaryImage.url}
+                      alt=""
+                      fill
+                      draggable={false}
+                      sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
+                      aria-hidden="true"
+                      className="pointer-events-none object-cover opacity-0 transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-100"
+                    />
+                  ) : null}
                 </div>
 
                 <div className="mt-3">
@@ -142,17 +144,19 @@ export default function NewArrivalsRail({ products }: NewArrivalsRailProps) {
                 </div>
               </Link>
             </article>
-          );
-        })}
+          </SwiperSlide>
+        );
+      })}
 
+      <SwiperSlide className={`${PRODUCT_CARD_WIDTH} h-auto!`}>
         <Link
           href="/products?sort=newest"
           aria-label="View all new arrivals"
           draggable={false}
-          className={`${PRODUCT_CARD_WIDTH} group block shrink-0 focus-visible:outline-none`}
+          className="group block focus-visible:outline-none"
         >
           <div className="flex aspect-3/4 flex-col items-center justify-center bg-surface transition-colors duration-500 group-hover:bg-surface-muted">
-            <span className="flex size-14 items-center justify-center rounded-full border border-border text-text-primary transition-all duration-300 group-hover:border-text-primary">
+            <span className="flex size-10 items-center justify-center rounded-full border border-gray-500 text-text-primary transition-all duration-300 group-hover:border-text-primary md:size-14">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
@@ -178,13 +182,7 @@ export default function NewArrivalsRail({ products }: NewArrivalsRailProps) {
             </span>
           </div>
         </Link>
-      </div>
-
-      <HorizontalScrollBar
-        scrollRef={railRef}
-        scrollId="new-arrivals-rail"
-        ariaLabel="New arrivals scroll position"
-      />
-    </div>
+      </SwiperSlide>
+    </Swiper>
   );
 }

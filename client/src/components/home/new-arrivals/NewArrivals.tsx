@@ -37,7 +37,7 @@ export default async function NewArrivals() {
             id="new-arrivals-title"
             className="font-extrabold text-black sm:text-xl uppercase"
           >
-            New Releases
+            New Arrivals
           </h2>
         </header>
 

@@ -206,18 +206,12 @@ body {
   display: none;
 }
 
-
 /* ================================
    Product Grid Skeleton
    ================================ */
 
 .sepy-skeleton-block {
-  background: linear-gradient(
-    100deg,
-    #f1f1ee 20%,
-    #f7f7f5 40%,
-    #f1f1ee 60%
-  );
+  background: linear-gradient(100deg, #f1f1ee 20%, #f7f7f5 40%, #f1f1ee 60%);
   background-size: 200% 100%;
   animation: sepy-skeleton-shimmer 1.5s ease-in-out infinite;
 }
@@ -235,5 +229,65 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sepy-skeleton-block {
     animation: none;
+  }
+}
+
+/* New Arrivals - Swiper scrollbar */
+.new-arrivals-swiper .swiper-scrollbar {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 20px !important;
+  margin-top: 12px;
+  border-radius: 9999px;
+  background: transparent !important;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.new-arrivals-swiper .swiper-scrollbar::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.new-arrivals-swiper .swiper-scrollbar-drag {
+  position: relative;
+  top: 8px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #9ca3af;
+  cursor: grab;
+}
+
+.new-arrivals-swiper .swiper-scrollbar-drag:active {
+  cursor: grabbing;
+}
+
+/* Desktop: show scrollbar when the New Arrivals section is hovered */
+@media (hover: hover) and (min-width: 640px) {
+  .group\/new-arrivals:hover .new-arrivals-swiper .swiper-scrollbar {
+    opacity: 0.4;
+  }
+
+  .new-arrivals-swiper .swiper-scrollbar:hover {
+    opacity: 1;
+  }
+
+  .new-arrivals-swiper.is-interacting .swiper-scrollbar {
+    opacity: 1;
+  }
+}
+
+/* Mobile: show a subtle scrollbar only during interaction */
+@media (max-width: 639px) {
+  .new-arrivals-swiper.is-interacting .swiper-scrollbar {
+    opacity: 0.3;
   }
 }
