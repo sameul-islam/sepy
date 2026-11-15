@@ -55,6 +55,10 @@ export default function FeaturedProducts() {
                 slug: product.slug,
                 gender,
                 image: product.images[0].url,
+                imageAlt: product.images[0].alt || product.name,
+                secondaryImage: product.images[1]?.url,
+                price: product.price,
+                compareAtPrice: product.compareAtPrice,
               },
             ];
           });
@@ -126,54 +130,74 @@ export default function FeaturedProducts() {
   return (
     <section
       aria-labelledby="featured-products-title"
-      className="bg-background px-3 py-15 sm:px-5 md:py-17 lg:px-6 xl:px-10"
+      className="bg-background px-3 py-7 sm:px-5 md:py-12 lg:px-6 xl:px-10"
     >
       <div className="mx-auto max-w-full">
         <header>
-          <div className="flex items-center justify-between gap-4">
-            <h2
-              id="featured-products-title"
-              className="text-lg font-bold text-black sm:text-2xl"
-            >
-              Featured
-            </h2>
-          </div>
-
-          <div
-            className="mt-7 flex items-center justify-center gap-6"
-            aria-label="Featured products by gender"
+          {/* Section title */}
+          <h2
+            id="featured-products-title"
+            className="font-bold text-black sm:text-xl uppercase"
           >
-            {(["women", "men"] as const).map((gender) => {
-              const isActive = gender === activeGender;
+            Featured Products
+          </h2>
 
-              return (
-                <button
-                  key={gender}
-                  type="button"
-                  aria-pressed={isActive}
-                  disabled={isTransitioning}
-                  onClick={() => handleGenderChange(gender)}
-                  className={`relative cursor-pointer pb-1 text-xs font-extrabold uppercase tracking-[0.18em] transition-opacity duration-300 disabled:cursor-default ${
-                    isActive
-                      ? "text-text-primary"
-                      : "text-text-muted hover:text-text-primary"
-                  }`}
-                >
-                  {gender}
+          {/* Gender tabs and View All */}
+          <div className="mt-3 flex items-center justify-between gap-4 sm:mt-4">
+            <div
+              className="flex items-center gap-6"
+              aria-label="Featured products by gender"
+            >
+              {(["women", "men"] as const).map((gender) => {
+                const isActive = gender === activeGender;
 
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-x-0 -bottom-0.5 h-px bg-current transition-transform duration-300 motion-reduce:transition-none ${
-                      isActive ? "scale-x-100" : "scale-x-0"
+                return (
+                  <button
+                    key={gender}
+                    type="button"
+                    aria-pressed={isActive}
+                    disabled={isTransitioning}
+                    onClick={() => handleGenderChange(gender)}
+                    className={`relative cursor-pointer pb-px text-xs font-extrabold uppercase tracking-[0.18em] transition-opacity duration-300 disabled:cursor-default ${
+                      isActive
+                        ? "text-text-primary"
+                        : "text-text-muted hover:text-text-primary"
                     }`}
-                  />
-                </button>
-              );
-            })}
+                  >
+                    {gender}
+
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-x-0 -bottom-0.5 h-px bg-current transition-transform duration-300 motion-reduce:transition-none ${
+                        isActive ? "scale-x-100" : "scale-x-0"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold underline cursor-pointer text-text-primary sm:text-sm">
+              View All
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="size-4"
+              >
+                <path
+                  d="M4.5 12H19.5M13 5.5L19.5 12L13 18.5"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </div>
         </header>
 
-        <div className="mt-12 lg:mt-16">
+        <div className="mt-5 lg:mt-7">
           {isLoading ? (
             <div
               className="flex gap-2 overflow-hidden"
@@ -190,8 +214,8 @@ export default function FeaturedProducts() {
                   className="w-[calc((100vw-2rem)/2)] shrink-0 sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]"
                 >
                   <div className="sepy-skeleton aspect-3/4" />
-
-                  <div className="sepy-skeleton mx-auto mt-4 h-3 w-3/5" />
+                  <div className="sepy-skeleton mt-3 h-3 w-3/5" />
+                  <div className="sepy-skeleton mt-2 h-3 w-1/3" />
                 </div>
               ))}
             </div>

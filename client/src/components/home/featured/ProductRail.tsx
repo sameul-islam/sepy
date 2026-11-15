@@ -2,10 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 
 import type { Product } from "./featured-products-data";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 type Direction = "forward" | "backward";
 
@@ -28,9 +35,22 @@ export default function ProductRail({
   onTransitionEnd,
 }: ProductRailProps) {
   const railRef = useRef<HTMLDivElement>(null);
+  const scrollbarRef = useRef<HTMLDivElement>(null);
+  const scrollbarThumbRef = useRef<HTMLSpanElement>(null);
 
   const [progress, setProgress] = useState(0);
+  const [thumbSize, setThumbSize] = useState(100);
+  const [canScroll, setCanScroll] = useState(false);
+
   const [isDragging, setIsDragging] = useState(false);
+  const [isIndicatorDragging, setIsIndicatorDragging] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+
+  const interactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const indicatorDragOffset = useRef(0);
 
   const dragState = useRef({
     active: false,
@@ -39,22 +59,44 @@ export default function ProductRail({
     moved: false,
   });
 
-  const updateScrollState = () => {
+  const updateScrollState = useCallback(() => {
     const rail = railRef.current;
 
     if (!rail) {
       return;
     }
 
-    const maxScroll = rail.scrollWidth - rail.clientWidth;
+    const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const hasOverflow = maxScroll > 1;
 
-    if (maxScroll <= 0) {
+    setCanScroll(hasOverflow);
+
+    if (!hasOverflow) {
       setProgress(0);
+      setThumbSize(100);
       return;
     }
 
-    setProgress(rail.scrollLeft / maxScroll);
-  };
+    const visibleRatio = rail.clientWidth / rail.scrollWidth;
+
+    setThumbSize(Math.max(visibleRatio * 100, 12));
+    setProgress(Math.min(1, Math.max(0, rail.scrollLeft / maxScroll)));
+  }, []);
+
+  const handleRailScroll = useCallback(() => {
+    updateScrollState();
+
+    if (interactionTimeoutRef.current !== null) {
+      clearTimeout(interactionTimeoutRef.current);
+    }
+
+    setIsInteracting(true);
+
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false);
+      interactionTimeoutRef.current = null;
+    }, 700);
+  }, [updateScrollState]);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -65,7 +107,7 @@ export default function ProductRail({
 
     updateScrollState();
 
-    rail.addEventListener("scroll", updateScrollState, {
+    rail.addEventListener("scroll", handleRailScroll, {
       passive: true,
     });
 
@@ -73,11 +115,149 @@ export default function ProductRail({
 
     resizeObserver.observe(rail);
 
+    if (rail.firstElementChild) {
+      resizeObserver.observe(rail.firstElementChild);
+    }
+
     return () => {
-      rail.removeEventListener("scroll", updateScrollState);
+      rail.removeEventListener("scroll", handleRailScroll);
       resizeObserver.disconnect();
+
+      if (interactionTimeoutRef.current !== null) {
+        clearTimeout(interactionTimeoutRef.current);
+      }
     };
-  }, [products, previousProducts]);
+  }, [products, previousProducts, updateScrollState, handleRailScroll]);
+
+  const handleIndicatorPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const rail = railRef.current;
+    const track = scrollbarRef.current;
+    const thumb = scrollbarThumbRef.current;
+
+    if (!rail || !track || !thumb || !canScroll) {
+      return;
+    }
+
+    const trackRect = track.getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+
+    const maxScroll = rail.scrollWidth - rail.clientWidth;
+    const maxThumbTravel = trackRect.width - thumbRect.width;
+
+    if (maxThumbTravel <= 0) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const isThumbTarget =
+      event.clientX >= thumbRect.left && event.clientX <= thumbRect.right;
+
+    indicatorDragOffset.current = isThumbTarget
+      ? event.clientX - thumbRect.left
+      : thumbRect.width / 2;
+
+    track.setPointerCapture(event.pointerId);
+    setIsIndicatorDragging(true);
+
+    const pointerPosition =
+      event.clientX - trackRect.left - indicatorDragOffset.current;
+
+    const ratio = Math.max(0, Math.min(1, pointerPosition / maxThumbTravel));
+
+    rail.scrollLeft = ratio * maxScroll;
+  };
+
+  const handleIndicatorPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const rail = railRef.current;
+    const track = scrollbarRef.current;
+    const thumb = scrollbarThumbRef.current;
+
+    if (
+      !rail ||
+      !track ||
+      !thumb ||
+      !track.hasPointerCapture(event.pointerId)
+    ) {
+      return;
+    }
+
+    const trackRect = track.getBoundingClientRect();
+    const thumbRect = thumb.getBoundingClientRect();
+
+    const maxScroll = rail.scrollWidth - rail.clientWidth;
+    const maxThumbTravel = trackRect.width - thumbRect.width;
+
+    if (maxThumbTravel <= 0) {
+      return;
+    }
+
+    const pointerPosition =
+      event.clientX - trackRect.left - indicatorDragOffset.current;
+
+    const ratio = Math.max(0, Math.min(1, pointerPosition / maxThumbTravel));
+
+    rail.scrollLeft = ratio * maxScroll;
+  };
+
+  const handleIndicatorPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const track = scrollbarRef.current;
+
+    if (track?.hasPointerCapture(event.pointerId)) {
+      track.releasePointerCapture(event.pointerId);
+    }
+
+    setIsIndicatorDragging(false);
+  };
+
+  const handleIndicatorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const rail = railRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    const maxScroll = rail.scrollWidth - rail.clientWidth;
+    const step = rail.clientWidth * 0.8;
+
+    let nextPosition: number | null = null;
+
+    switch (event.key) {
+      case "ArrowRight":
+        nextPosition = rail.scrollLeft + step * 0.2;
+        break;
+
+      case "ArrowLeft":
+        nextPosition = rail.scrollLeft - step * 0.2;
+        break;
+
+      case "PageDown":
+        nextPosition = rail.scrollLeft + step;
+        break;
+
+      case "PageUp":
+        nextPosition = rail.scrollLeft - step;
+        break;
+
+      case "Home":
+        nextPosition = 0;
+        break;
+
+      case "End":
+        nextPosition = maxScroll;
+        break;
+
+      default:
+        return;
+    }
+
+    event.preventDefault();
+
+    rail.scrollTo({
+      left: Math.max(0, Math.min(maxScroll, nextPosition)),
+      behavior: "smooth",
+    });
+  };
 
   const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
     const rail = railRef.current;
@@ -132,25 +312,14 @@ export default function ProductRail({
     dragState.current.moved = false;
   };
 
-  const scrollByAmount = (direction: "left" | "right") => {
-    const rail = railRef.current;
-
-    if (!rail) {
-      return;
-    }
-
-    rail.scrollBy({
-      left:
-        direction === "right"
-          ? rail.clientWidth * 0.82
-          : -(rail.clientWidth * 0.82),
-      behavior: "smooth",
-    });
-  };
-
   return (
-    <div className="relative">
+    <div
+      className={`group/featured-rail relative ${
+        isInteracting ? "is-interacting" : ""
+      }`}
+    >
       <div
+        id="featured-products-rail"
         ref={railRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -176,49 +345,49 @@ export default function ProductRail({
           />
         )}
       </div>
-
-      <div className="mt-7 flex items-center justify-center md:justify-between">
-        <div
-          className="relative h-px w-16 overflow-hidden bg-border sm:w-20"
-          role="progressbar"
-          aria-label="Featured product scroll position"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
-        >
-          <span
-            aria-hidden="true"
-            className="absolute inset-y-0 left-0 bg-foreground"
-            style={{
-              width: `${Math.max(progress * 100, 18)}%`,
-            }}
-          />
-        </div>
-
-        <div className="hidden items-center gap-2 md:flex">
-          <button
-            type="button"
-            aria-label="Previous products"
-            onClick={() => scrollByAmount("left")}
-            className="flex size-9 cursor-pointer items-center justify-center border border-border text-sm text-text-primary transition-colors duration-300 hover:bg-surface focus-visible:outline-none"
+      {canScroll ? (
+        <div className="mt-2 flex justify-center">
+          {/* Centered draggable indicator */}
+          <div
+            ref={scrollbarRef}
+            role="scrollbar"
+            aria-label="Featured products scroll position"
+            aria-controls="featured-products-rail"
+            aria-orientation="horizontal"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+            aria-valuetext={`${Math.round(progress * 100)}% scrolled`}
+            tabIndex={0}
+            onKeyDown={handleIndicatorKeyDown}
+            onPointerDown={handleIndicatorPointerDown}
+            onPointerMove={handleIndicatorPointerMove}
+            onPointerUp={handleIndicatorPointerUp}
+            onPointerCancel={handleIndicatorPointerUp}
+            onLostPointerCapture={() => setIsIndicatorDragging(false)}
+            className={`relative flex h-3 sm:h-4 w-full touch-pan-y items-center justify-self-center outline-none transition-opacity duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              isIndicatorDragging ? "cursor-grabbing" : "cursor-grab"
+            } opacity-0 [@media(hover:hover)]:group-hover/featured-rail:opacity-40 hover:opacity-100 focus-visible:opacity-100 ${
+              isInteracting ? "opacity-100" : ""
+            }`}
           >
-            <span aria-hidden="true">
-              <IoIosArrowBack />
-            </span>
-          </button>
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gray-100"
+            />
 
-          <button
-            type="button"
-            aria-label="Next products"
-            onClick={() => scrollByAmount("right")}
-            className="flex size-9 cursor-pointer items-center justify-center border border-border text-sm text-text-primary transition-colors duration-300 hover:bg-surface focus-visible:outline-none"
-          >
-            <span aria-hidden="true">
-              <IoIosArrowForward />
-            </span>
-          </button>
+            <span
+              ref={scrollbarThumbRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-gray-300 transition-[height] duration-200 hover:h-1.5"
+              style={{
+                width: `${thumbSize}%`,
+                left: `${progress * (100 - thumbSize)}%`,
+              }}
+            />
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
@@ -324,6 +493,10 @@ function ProductCardViewport({
   );
 }
 
+function formatPrice(price: number) {
+  return `৳ ${new Intl.NumberFormat("en-BD").format(price)}`;
+}
+
 type ProductCardProps = {
   product: Product;
   className?: string;
@@ -349,17 +522,44 @@ function ProductCard({
         <div className="relative aspect-3/4 overflow-hidden bg-surface">
           <Image
             src={product.image}
-            alt={product.title}
+            alt={ariaHidden ? "" : product.imageAlt}
             fill
             draggable={false}
             sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
-            className="pointer-events-none object-cover transition-transform duration-700 ease-out motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            className="pointer-events-none object-cover transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-0"
           />
+
+          {product.secondaryImage ? (
+            <Image
+              src={product.secondaryImage}
+              alt=""
+              fill
+              draggable={false}
+              sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
+              aria-hidden="true"
+              className="pointer-events-none object-cover opacity-0 transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-100"
+            />
+          ) : null}
         </div>
 
-        <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.14em] text-text-primary sm:text-sm">
-          {product.title}
-        </p>
+        <div className="mt-3">
+          <h3 className="text-xs font-bold text-text-primary sm:text-sm">
+            {product.title}
+          </h3>
+
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <span className="font-medium text-text-primary">
+              {formatPrice(product.price)}
+            </span>
+
+            {product.compareAtPrice != null &&
+            product.compareAtPrice > product.price ? (
+              <span className="text-text-muted line-through">
+                {formatPrice(product.compareAtPrice)}
+              </span>
+            ) : null}
+          </div>
+        </div>
       </Link>
     </article>
   );

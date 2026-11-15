@@ -1,5 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaTiktok,
+} from "react-icons/fa6";
 
 const shopLinks = [
   { label: "Women", href: "/women" },
@@ -17,70 +22,84 @@ const socialLinks = [
   {
     label: "Instagram",
     href: "https://www.instagram.com/",
+    Icon: FaInstagram,
   },
   {
     label: "Facebook",
     href: "https://www.facebook.com/",
+    Icon: FaFacebookF,
   },
   {
     label: "TikTok",
     href: "https://www.tiktok.com/",
+    Icon: FaTiktok,
   },
 ];
 
 const legalLinks = [
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms & Conditions", href: "/terms" },
 ];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border  bg-surface">
-      <div className="mx-auto max-w-420 px-5 py-14 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
-        {/* Brand + Subscription */}
-        <div className="grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div className="text-center sm:text-left">
+    <footer className="bg-[#111311] text-[#F3F3EF]">
+      <div className="mx-auto max-w-420 px-5 sm:px-8 lg:px-12">
+
+        {/* Brand and Newsletter */}
+        <div className="grid gap-12 border-b border-white/10 py-14 sm:py-16 lg:grid-cols-[1fr_0.85fr] lg:items-end lg:gap-20 lg:py-20">
+
+          {/* Brand */}
+          <div>
             <Link
               href="/"
               aria-label="SEPY home"
-              className="inline-block focus-visible:outline-none"
+              className="inline-flex focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
               <Image
                 src="/images/brand/sepy-symbol.png"
                 alt="SEPY"
                 width={240}
                 height={60}
-                className="h-auto w-22 sm:w-26 lg:w-28"
+                className="h-auto w-24 brightness-0 invert sm:w-28"
               />
             </Link>
 
-            <p className="mt-5 max-w-xs text-sm font-semibold mx-auto sm:mx-0">
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
               Performance, refined.
+            </p>
+
+            <h2 className="mt-7 max-w-lg text-3xl font-extrabold uppercase leading-[1.08] tracking-[-0.045em] sm:text-4xl lg:text-5xl">
+              Move with
+              <span className="block text-white/45">
+                purpose.
+              </span>
+            </h2>
+
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/55">
+              Designed for movement. Made for performance.
+              Built for every day.
             </p>
           </div>
 
-          <div className="w-full max-w-md mx-auto sm:mx-0 text-center sm:text-left lg:min-w-100">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-primary">
+          {/* Newsletter */}
+          <div className="w-full max-w-md lg:justify-self-end">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
               Stay in motion
             </p>
 
-            <p className="mt-2 text-sm font-semibold">
-              New releases, collections and updates.
+            <h3 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl">
+              Get the latest from SEPY.
+            </h3>
+
+            <p className="mt-2 text-sm leading-6 text-white/55">
+              Discover new releases, collections and updates.
             </p>
 
-            <form
-              action="/api/subscribe"
-              method="post"
-              className="
-    mt-5 flex h-12 w-full items-stretch
-    overflow-hidden
-    border border-border-strong bg-white
-    transition-colors duration-200
-    hover:border-foreground
-    focus-within:border-foreground
-    focus-within:ring-1
-    focus-within:ring-foreground
-  "
+            <div
+              role="group"
+              aria-label="Newsletter subscription"
+              className="mt-6 flex h-12 w-full items-stretch border border-white/20 bg-white/4 transition-colors duration-300 focus-within:border-white/60 hover:border-white/40"
             >
               <label htmlFor="footer-email" className="sr-only">
                 Email address
@@ -94,67 +113,53 @@ export default function Footer() {
                 autoComplete="email"
                 autoCapitalize="none"
                 spellCheck={false}
-                required
                 placeholder="Your email address"
-                className="
-      min-w-0 flex-1 h-full
-      appearance-none border-0
-      rounded-none bg-transparent
-      px-4 py-0
-      text-sm font-bold text-foreground
-      placeholder:font-normal
-      placeholder:text-foreground/45
-      outline-none ring-0
-      focus:border-0 focus:outline-none
-      focus:ring-0
-    "
+                className="min-w-0 flex-1 border-0 bg-transparent px-4 text-sm text-white outline-none placeholder:text-white/35"
               />
 
               <button
-                type="submit"
-                className="
-      flex h-full shrink-0 items-center justify-center
-      self-stretch
-      border-l border-border-strong rounded-none
-      bg-gray-100 px-4 sm:px-6
-      text-xs font-extrabold uppercase
-      tracking-[0.12em] text-black hover:text-white
-      transition-colors duration-300
-      hover:bg-foreground/80
-      active:bg-foreground/70
-      focus-visible:outline-none
-      focus-visible:ring-2
-      focus-visible:ring-inset
-      focus-visible:ring-white
-    "
+                type="button"
+                className="shrink-0 border-l border-white/20 px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-white transition-colors duration-300 hover:bg-white hover:text-[#111311] sm:px-6"
               >
                 Subscribe
               </button>
-            </form>
+            </div>
+
+            <p className="mt-3 text-[10px] leading-5 text-white/35">
+              Stay connected. No unnecessary noise.
+            </p>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="mt-16 grid grid-cols-2 gap-x-8 gap-y-12 border-t border-border pt-12 sm:grid-cols-3 lg:mt-20 lg:grid-cols-[1fr_1fr_1fr] text-center sm:text-left font-semibold">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 py-12 sm:grid-cols-3 lg:py-16">
+
           <FooterLinkGroup title="Shop" links={shopLinks} />
+
           <FooterLinkGroup title="Help" links={helpLinks} />
 
+          {/* Social Media */}
           <div className="col-span-2 sm:col-span-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
-              Follow
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+              Follow SEPY
             </p>
 
-            <nav aria-label="Social media" className="mt-5">
-              <ul className="space-y-3">
-                {socialLinks.map((link) => (
-                  <li key={link.label}>
+            <p className="mt-5 max-w-55 text-sm leading-6 text-white/55">
+              Follow our journey and stay inspired to move.
+            </p>
+
+            <nav aria-label="Social media" className="mt-6">
+              <ul className="flex items-center gap-3">
+                {socialLinks.map(({ label, href, Icon }) => (
+                  <li key={label}>
                     <a
-                      href={link.href}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4 font-bold"
+                      aria-label={`SEPY on ${label}`}
+                      className="flex size-10 items-center justify-center border border-white/15 text-white/75 transition-all duration-300 hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-[#111311] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                     >
-                      {link.label}
+                      <Icon aria-hidden="true" size={15} />
                     </a>
                   </li>
                 ))}
@@ -164,16 +169,19 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-14 flex flex-col gap-5 border-t border-border pt-6 text-[10px] uppercase tracking-[0.14em] text-text-muted sm:flex-row items-center sm:justify-between text-center sm:text-left">
-          <p>© {new Date().getFullYear()} SEPY</p>
+        <div className="flex flex-col items-center justify-between gap-5 border-t border-white/10 py-6 text-center sm:flex-row sm:text-left">
+
+          <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/40">
+            © {new Date().getFullYear()} SEPY. All rights reserved.
+          </p>
 
           <nav aria-label="Legal">
-            <ul className="flex items-center gap-5">
+            <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
               {legalLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4"
+                    className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/45 transition-colors duration-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
                   >
                     {link.label}
                   </Link>
@@ -182,6 +190,7 @@ export default function Footer() {
             </ul>
           </nav>
         </div>
+
       </div>
     </footer>
   );
@@ -198,17 +207,17 @@ type FooterLinkGroupProps = {
 function FooterLinkGroup({ title, links }: FooterLinkGroupProps) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
         {title}
       </p>
 
       <nav aria-label={title} className="mt-5">
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {links.map((link) => (
             <li key={link.label}>
               <Link
                 href={link.href}
-                className="text-sm text-text-primary transition-opacity duration-300 hover:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-4"
+                className="text-sm font-medium text-white/75 transition-colors duration-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
               >
                 {link.label}
               </Link>
