@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-import Image from "next/image";
-
 import { getFeaturedProducts } from "@/lib/api";
 import type { Product as ApiProduct } from "@/lib/api-types";
 
@@ -131,13 +129,15 @@ export default function FeaturedProducts() {
       className="bg-background px-3 py-15 sm:px-5 md:py-17 lg:px-6 xl:px-10"
     >
       <div className="mx-auto max-w-full">
-        <div className="mx-auto max-w-xl text-center">
-          <h2
-            id="featured-products-title"
-            className="text-lg font-bold text-black sm:text-2xl"
-          >
-            Trending Styles
-          </h2>
+        <header>
+          <div className="flex items-center justify-between gap-4">
+            <h2
+              id="featured-products-title"
+              className="text-lg font-bold text-black sm:text-2xl"
+            >
+              Featured
+            </h2>
+          </div>
 
           <div
             className="mt-7 flex items-center justify-center gap-6"
@@ -171,7 +171,7 @@ export default function FeaturedProducts() {
               );
             })}
           </div>
-        </div>
+        </header>
 
         <div className="mt-12 lg:mt-16">
           {isLoading ? (
@@ -181,7 +181,7 @@ export default function FeaturedProducts() {
               aria-label="Loading featured products"
               aria-busy="true"
             >
-              <span className="sr-only">Loading products...</span>
+              <span className="sr-only">Loading featured products...</span>
 
               {Array.from({ length: 4 }, (_, index) => (
                 <div
@@ -189,20 +189,9 @@ export default function FeaturedProducts() {
                   aria-hidden="true"
                   className="w-[calc((100vw-2rem)/2)] shrink-0 sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]"
                 >
-                  <div className="relative aspect-3/4 overflow-hidden bg-surface">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Image
-                        src="/images/brand/sepy-logo.svg"
-                        alt=""
-                        width={85}
-                        height={85}
-                        aria-hidden="true"
-                        className="h-85 w-auto max-w-[85%] object-contain opacity-25 "
-                      />
-                    </div>
-                  </div>
+                  <div className="sepy-skeleton aspect-3/4" />
 
-                  <div className="mx-auto mt-4 h-3 w-3/5 bg-surface-muted" />
+                  <div className="sepy-skeleton mx-auto mt-4 h-3 w-3/5" />
                 </div>
               ))}
             </div>

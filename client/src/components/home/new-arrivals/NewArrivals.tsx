@@ -1,4 +1,4 @@
-
+import { unstable_rethrow } from "next/navigation";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api-types";
 
@@ -18,6 +18,7 @@ export default async function NewArrivals() {
       (product) => product.images.length > 0,
     );
   } catch (error) {
+    unstable_rethrow(error);
     console.error("Failed to load new arrivals:", error);
     return null;
   }
