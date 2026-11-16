@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { PRODUCT_ACTIVITIES } from "../constants/product-activities.js";
+
 const slugSchema = z
   .string()
   .trim()
@@ -122,8 +124,8 @@ export const createProductSchema = z
               .max(12)
               .default([]),
             activity: z
-              .array(z.string().trim().min(1).max(50))
-              .max(12)
+              .array(z.enum(PRODUCT_ACTIVITIES))
+              .max(PRODUCT_ACTIVITIES.length)
               .default([]),
           })
           .strict()
@@ -206,6 +208,8 @@ const colorFilterSchema = z
   .max(60)
   .transform((value) => value.toLowerCase());
 
+const activityFilterSchema = z.enum(PRODUCT_ACTIVITIES);
+
 function createMultiValueQuerySchema<T extends z.ZodType<string, string>>(
   itemSchema: T,
   maxItems: number,
@@ -240,12 +244,17 @@ export const productListQuerySchema = z
     // Department intentionally remains single-select.
     department: z.enum(["women", "men"]).optional(),
 
-
     // Multiple sizes: S,M,L
     size: createMultiValueQuerySchema(sizeFilterSchema, 20).optional(),
 
     // Multiple colors: black,sky-blue,chocolate-brown
     color: createMultiValueQuerySchema(colorFilterSchema, 30).optional(),
+
+    // Multiple activities: Training,Running
+    activity: createMultiValueQuerySchema(
+      activityFilterSchema,
+      PRODUCT_ACTIVITIES.length,
+    ).optional(),
 
     minPrice: z.coerce
       .number()
@@ -369,8 +378,8 @@ export const updateProductSchema = z
               .max(12)
               .optional(),
             activity: z
-              .array(z.string().trim().min(1).max(50))
-              .max(12)
+              .array(z.enum(PRODUCT_ACTIVITIES))
+              .max(PRODUCT_ACTIVITIES.length)
               .optional(),
           })
           .strict()

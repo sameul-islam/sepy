@@ -1,5 +1,7 @@
 import mongoose, { type InferSchemaType, type Model } from "mongoose";
 
+import { PRODUCT_ACTIVITIES } from "../constants/product-activities.js";
+
 const productImageSchema = new mongoose.Schema(
   {
     url: {
@@ -80,12 +82,12 @@ const productDetailsSchema = new mongoose.Schema(
 
     activity: {
       type: [String],
+      enum: [...PRODUCT_ACTIVITIES],
       default: [],
       validate: {
         validator: (items: string[]) =>
-          items.length <= 12 &&
-          items.every((item) => item.trim().length > 0 && item.length <= 50),
-        message: "Activity must contain up to 12 valid items",
+          items.length <= PRODUCT_ACTIVITIES.length,
+        message: `Activity must contain up to ${PRODUCT_ACTIVITIES.length} valid items`,
       },
     },
   },
@@ -142,7 +144,7 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    
+
     audience: {
       type: String,
       enum: ["women", "men", "unisex"],

@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+
+import type { ProductActivity } from "../constants/product-activities.js";
+
 import type { PipelineStage } from "mongoose";
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
@@ -17,6 +20,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     department,
     size,
     color,
+    activity,
     minPrice,
     maxPrice,
     inStock,
@@ -85,6 +89,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
         status: "active",
         category: { $in: activeCategoryIds },
         ...(department ? { audience: department } : {}),
+        ...(activity?.length ? { "details.activity": { $in: activity } } : {}),
       },
     },
     {
@@ -707,7 +712,7 @@ export type UpdateProductInput = {
     material?: string;
     fit?: string;
     careInstructions?: string[];
-    activity?: string[];
+    activity?: ProductActivity[];
   };
   seo?: {
     title?: string;

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PRODUCT_ACTIVITIES } from "../constants/product-activities.js";
 const productImageSchema = new mongoose.Schema({
     url: {
         type: String,
@@ -63,11 +64,11 @@ const productDetailsSchema = new mongoose.Schema({
     },
     activity: {
         type: [String],
+        enum: [...PRODUCT_ACTIVITIES],
         default: [],
         validate: {
-            validator: (items) => items.length <= 12 &&
-                items.every((item) => item.trim().length > 0 && item.length <= 50),
-            message: "Activity must contain up to 12 valid items",
+            validator: (items) => items.length <= PRODUCT_ACTIVITIES.length,
+            message: `Activity must contain up to ${PRODUCT_ACTIVITIES.length} valid items`,
         },
     },
 }, {

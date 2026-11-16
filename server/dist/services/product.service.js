@@ -3,7 +3,7 @@ import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
 export const getActiveProducts = async (query) => {
-    const { page, limit, category: categorySlugs, department, size, color, minPrice, maxPrice, inStock, sort = "newest", } = query;
+    const { page, limit, category: categorySlugs, department, size, color, activity, minPrice, maxPrice, inStock, sort = "newest", } = query;
     const activeCategories = await Category.find({
         isActive: true,
         ...(categorySlugs?.length ? { slug: { $in: categorySlugs } } : {}),
@@ -55,6 +55,7 @@ export const getActiveProducts = async (query) => {
                 status: "active",
                 category: { $in: activeCategoryIds },
                 ...(department ? { audience: department } : {}),
+                ...(activity?.length ? { "details.activity": { $in: activity } } : {}),
             },
         },
         {

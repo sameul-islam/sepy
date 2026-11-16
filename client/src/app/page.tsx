@@ -1,3 +1,4 @@
+import ActivitySection from "@/components/home/activity/ActivitySection";
 import CategoryDiscovery from "@/components/home/category-discovery/CategoryDiscovery";
 import CollectionEditorial from "@/components/home/collection/CollectionEditorial";
 import FeaturedProducts from "@/components/home/featured/FeaturedProducts";
@@ -16,6 +17,7 @@ export default function Home() {
       </Suspense>
       <CollectionEditorial />
       <FeaturedProducts />
+      <ActivitySection/>
     </main>
   );
 }
