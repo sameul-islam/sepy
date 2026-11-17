@@ -2,7 +2,18 @@ export type Category = {
   _id: string;
   name: string;
   slug: string;
-  image?: string;
+  images?: {
+    women?: string;
+    men?: string;
+    default?: string;
+  };
+};
+
+export type HomepageCategory = {
+  _id: string;
+  name: string;
+  slug: string;
+  image: string;
 };
 
 export type ProductImage = {
@@ -95,4 +106,3 @@ export type ProductListData = {
 export type FeaturedProductsData = {
   products: Product[];
 };
-

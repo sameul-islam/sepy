@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getCategories, getProducts } from "@/lib/api";
+import { getHomepageCategories } from "@/lib/api";
 
 type GroupKey = "women" | "men";
 type Direction = "forward" | "backward";
@@ -42,43 +42,39 @@ export default function CategoryDiscovery() {
 
     async function loadCategories() {
       try {
-        const [categories, listing] = await Promise.all([
-          getCategories(),
-          getProducts({
-            page: 1,
-            limit: 100,
-          }),
+        const [womenCategories, menCategories] = await Promise.all([
+          getHomepageCategories("women"),
+          getHomepageCategories("men"),
         ]);
 
         if (cancelled) return;
 
-        const groups: CategoryGroup[] = GROUPS.map((group) => ({
-          ...group,
-          items: categories
-            .map((category) => {
-              const matchingProduct = listing.products.find(
-                (product) =>
-                  product.audience === group.key &&
-                  product.category?.slug === category.slug &&
-                  product.images.length > 0,
-              );
-
-              const image = matchingProduct?.images[0]?.url.trim();
-
-              if (!image) return null;
-
-              return {
-                title: category.name,
-                image,
-                href: `/products?${new URLSearchParams({
-                  category: category.slug,
-                  department: group.key,
-                }).toString()}`,
-              };
-            })
-            .filter((item): item is CategoryItem => item !== null)
-            .slice(0, 4),
-        }));
+        const groups: CategoryGroup[] = [
+          {
+            key: "women",
+            label: "Women",
+            items: womenCategories.map((category) => ({
+              title: category.name,
+              image: category.image,
+              href: `/products?${new URLSearchParams({
+                category: category.slug,
+                department: "women",
+              }).toString()}`,
+            })),
+          },
+          {
+            key: "men",
+            label: "Men",
+            items: menCategories.map((category) => ({
+              title: category.name,
+              image: category.image,
+              href: `/products?${new URLSearchParams({
+                category: category.slug,
+                department: "men",
+              }).toString()}`,
+            })),
+          },
+        ];
 
         setCategoryGroups(groups);
       } catch {

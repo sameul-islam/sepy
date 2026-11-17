@@ -1,4 +1,23 @@
 import mongoose from "mongoose";
+const categoryImagesSchema = new mongoose.Schema({
+    women: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+    },
+    men: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+    },
+    default: {
+        type: String,
+        trim: true,
+        maxlength: 2048,
+    },
+}, {
+    _id: false,
+});
 const categorySchema = new mongoose.Schema({
     name: {
         type: String,
@@ -13,10 +32,9 @@ const categorySchema = new mongoose.Schema({
         lowercase: true,
         maxlength: 120,
     },
-    image: {
-        type: String,
-        trim: true,
-        maxlength: 2048,
+    images: {
+        type: categoryImagesSchema,
+        default: () => ({}),
     },
     isActive: {
         type: Boolean,

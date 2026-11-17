@@ -2,6 +2,7 @@ import type {
   ApiResponse,
   Category,
   FeaturedProductsData,
+  HomepageCategory,
   ProductDetail,
   ProductListData,
 } from "./api-types";
@@ -57,6 +58,16 @@ async function fetchApi<T>(path: string, signal?: AbortSignal): Promise<T> {
 
 export async function getCategories(): Promise<Category[]> {
   return fetchApi<Category[]>("/categories");
+}
+
+export async function getHomepageCategories(
+  department: "women" | "men",
+): Promise<HomepageCategory[]> {
+  const searchParams = new URLSearchParams({ department });
+
+  return fetchApi<HomepageCategory[]>(
+    `/categories/homepage?${searchParams.toString()}`,
+  );
 }
 
 export async function getProducts(params: {
