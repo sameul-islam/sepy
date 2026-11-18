@@ -73,6 +73,7 @@ export async function getHomepageCategories(
 export async function getProducts(params: {
   page: number;
   limit?: number;
+  search?: string;
   category?: string[];
   department?: "women" | "men";
   size?: string[];
@@ -87,6 +88,10 @@ export async function getProducts(params: {
     page: String(params.page),
     limit: String(params.limit ?? 12),
   });
+
+  if (params.search) {
+    searchParams.set("search", params.search);
+  }
 
   if (params.category?.length) {
     searchParams.set("category", params.category.join(","));

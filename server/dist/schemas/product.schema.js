@@ -174,6 +174,7 @@ export const productSearchSuggestionsQuerySchema = z
     .strict();
 export const productListQuerySchema = z
     .object({
+    search: z.string().trim().min(2).max(80).optional(),
     page: z.coerce
         .number()
         .int()
@@ -207,7 +208,7 @@ export const productListQuerySchema = z
         .enum(["true", "false"])
         .transform((value) => value === "true")
         .optional(),
-    sort: z.enum(["newest", "price-asc", "price-desc"]).default("newest"),
+    sort: z.enum(["newest", "price-asc", "price-desc"]).optional(),
 })
     .strict()
     .refine((data) => data.minPrice === undefined ||

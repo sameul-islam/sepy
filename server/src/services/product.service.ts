@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 import { syncProductSearchData } from "./product-search-sync.service.js";
+import {
+  buildProductSearchStage,
+  type ProductSearchTier,
+} from "./product-search.service.js";
 import type { ProductActivity } from "../constants/product-activities.js";
 
 import type { PipelineStage } from "mongoose";
@@ -17,6 +21,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
   const {
     page,
     limit,
+    search,
     category: categorySlugs,
     department,
     size,
@@ -25,7 +30,7 @@ export const getActiveProducts = async (query: ProductListQuery) => {
     minPrice,
     maxPrice,
     inStock,
-    sort = "newest",
+    sort,
   } = query;
 
   const activeCategories = await Category.find({
@@ -82,6 +87,17 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       },
     },
   };
+
+  const createSearchStages = (tier: ProductSearchTier): PipelineStage[] => [
+    buildProductSearchStage(search!, tier) as unknown as PipelineStage,
+    {
+      $addFields: {
+        searchScore: {
+          $meta: "searchScore",
+        },
+      },
+    },
+  ];
 
   // Base pipeline: active products with active variants and categories.
   const basePipeline: PipelineStage[] = [
@@ -164,7 +180,9 @@ export const getActiveProducts = async (query: ProductListQuery) => {
       ? { price: 1, createdAt: -1, _id: 1 }
       : sort === "price-desc"
         ? { price: -1, createdAt: -1, _id: 1 }
-        : { createdAt: -1, _id: 1 };
+        : search && sort === undefined
+          ? { searchScore: -1, createdAt: -1, _id: 1 }
+          : { createdAt: -1, _id: 1 };
 
   const skip = (page - 1) * limit;
 
@@ -352,19 +370,36 @@ export const getActiveProducts = async (query: ProductListQuery) => {
   ];
 
   // Execute listing, count and filter options in one aggregation.
-  const [result] = await Product.aggregate([
-    ...basePipeline,
-    {
-      $facet: {
-        products: productStages,
-        count: countStages,
-        filters: filterOptionStages,
-      },
-    } as unknown as PipelineStage,
-  ]);
+
+  const executeListing = async (searchStages: PipelineStage[]) => {
+    const [aggregationResult] = await Product.aggregate([
+      ...searchStages,
+      ...basePipeline,
+      {
+        $facet: {
+          products: productStages,
+          count: countStages,
+          filters: filterOptionStages,
+        },
+      } as unknown as PipelineStage,
+    ]);
+
+    return aggregationResult;
+  };
+
+  let result = await executeListing(
+    search ? createSearchStages("primary") : [],
+  );
+
+  let total = result?.count?.[0]?.total ?? 0;
+
+  // Search secondary fields only when primary search has no results.
+  if (search && total === 0) {
+    result = await executeListing(createSearchStages("secondary"));
+    total = result?.count?.[0]?.total ?? 0;
+  }
 
   const products = result?.products ?? [];
-  const total = result?.count?.[0]?.total ?? 0;
 
   const rawFilters = result?.filters?.[0] ?? {
     sizes: [],

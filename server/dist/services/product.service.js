@@ -1,10 +1,11 @@
 import { syncProductSearchData } from "./product-search-sync.service.js";
+import { buildProductSearchStage, } from "./product-search.service.js";
 import Category from "../models/Category.js";
 import Product from "../models/Product.js";
 import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
 export const getActiveProducts = async (query) => {
-    const { page, limit, category: categorySlugs, department, size, color, activity, minPrice, maxPrice, inStock, sort = "newest", } = query;
+    const { page, limit, search, category: categorySlugs, department, size, color, activity, minPrice, maxPrice, inStock, sort, } = query;
     const activeCategories = await Category.find({
         isActive: true,
         ...(categorySlugs?.length ? { slug: { $in: categorySlugs } } : {}),
@@ -49,6 +50,16 @@ export const getActiveProducts = async (query) => {
             },
         },
     };
+    const createSearchStages = (tier) => [
+        buildProductSearchStage(search, tier),
+        {
+            $addFields: {
+                searchScore: {
+                    $meta: "searchScore",
+                },
+            },
+        },
+    ];
     // Base pipeline: active products with active variants and categories.
     const basePipeline = [
         {
@@ -126,7 +137,9 @@ export const getActiveProducts = async (query) => {
         ? { price: 1, createdAt: -1, _id: 1 }
         : sort === "price-desc"
             ? { price: -1, createdAt: -1, _id: 1 }
-            : { createdAt: -1, _id: 1 };
+            : search && sort === undefined
+                ? { searchScore: -1, createdAt: -1, _id: 1 }
+                : { createdAt: -1, _id: 1 };
     const skip = (page - 1) * limit;
     // Product listing pipeline.
     const productStages = [
@@ -299,18 +312,28 @@ export const getActiveProducts = async (query) => {
         },
     ];
     // Execute listing, count and filter options in one aggregation.
-    const [result] = await Product.aggregate([
-        ...basePipeline,
-        {
-            $facet: {
-                products: productStages,
-                count: countStages,
-                filters: filterOptionStages,
+    const executeListing = async (searchStages) => {
+        const [aggregationResult] = await Product.aggregate([
+            ...searchStages,
+            ...basePipeline,
+            {
+                $facet: {
+                    products: productStages,
+                    count: countStages,
+                    filters: filterOptionStages,
+                },
             },
-        },
-    ]);
+        ]);
+        return aggregationResult;
+    };
+    let result = await executeListing(search ? createSearchStages("primary") : []);
+    let total = result?.count?.[0]?.total ?? 0;
+    // Search secondary fields only when primary search has no results.
+    if (search && total === 0) {
+        result = await executeListing(createSearchStages("secondary"));
+        total = result?.count?.[0]?.total ?? 0;
+    }
     const products = result?.products ?? [];
-    const total = result?.count?.[0]?.total ?? 0;
     const rawFilters = result?.filters?.[0] ?? {
         sizes: [],
         colors: [],

@@ -1,16 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import { PiMagnifyingGlass } from "react-icons/pi";
+import type { RefObject } from "react";
 
 type MenuButtonProps = {
   isOpen: boolean;
   onClick: () => void;
+  onSearchClick: () => void;
+  searchButtonRef: RefObject<HTMLButtonElement | null>;
 };
+
 
 export default function MenuButton({
   isOpen,
   onClick,
+  onSearchClick,
 }: MenuButtonProps) {
   return (
     <div className="flex gap-x-3 sm:gap-x-5 md:gap-x-16 lg:gap-x-20">
@@ -23,9 +27,7 @@ export default function MenuButton({
           aria-controls="sepy-navigation-drawer"
           className="group relative flex h-10 w-10 cursor-pointer items-center justify-center"
         >
-          <span className="sr-only">
-            {isOpen ? "Close menu" : "Open menu"}
-          </span>
+          <span className="sr-only">{isOpen ? "Close menu" : "Open menu"}</span>
 
           <span className="relative block h-4 w-5">
             <span
@@ -59,23 +61,22 @@ export default function MenuButton({
         </button>
       </div>
 
-      <Link
-        href="/search"
-        aria-label="Search"
+      <button
+        type="button"
+        onClick={onSearchClick}
+        aria-label="Open search"
         className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
       >
-        <div className="flex gap-x-1.5">
+        <span className="flex gap-x-1.5">
           <PiMagnifyingGlass
             aria-hidden="true"
             className="h-4.75 w-4.75"
             strokeWidth={1.35}
           />
 
-          <span className="hidden text-sm font-bold md:flex">
-            Search
-          </span>
-        </div>
-      </Link>
+          <span className="hidden text-sm font-bold md:flex">Search</span>
+        </span>
+      </button>
     </div>
   );
 }
