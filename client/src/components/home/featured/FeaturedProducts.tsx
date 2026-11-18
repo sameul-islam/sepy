@@ -211,7 +211,7 @@ export default function FeaturedProducts() {
                 <div
                   key={index}
                   aria-hidden="true"
-                  className="w-[calc((100vw-2rem)/2)] shrink-0 sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]"
+                  className="w-[calc((100vw-2rem)/1.2)] shrink-0 sm:w-[calc((100vw-2.5rem)/3)] lg:w-[calc((100vw-4.5rem)/4)] xl:w-[calc((100vw-6.5rem)/4)]"
                 >
                   <div className="sepy-skeleton aspect-3/4" />
                   <div className="sepy-skeleton mt-3 h-3 w-3/5" />

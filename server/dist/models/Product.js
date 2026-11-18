@@ -74,6 +74,25 @@ const productDetailsSchema = new mongoose.Schema({
 }, {
     _id: false,
 });
+const productSearchSchema = new mongoose.Schema({
+    categoryName: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        maxlength: 100,
+    },
+    colors: {
+        type: [String],
+        default: [],
+        validate: {
+            validator: (items) => items.length <= 30 &&
+                items.every((item) => item.trim().length > 0 && item.length <= 60),
+            message: "Search colors must contain up to 30 valid items",
+        },
+    },
+}, {
+    _id: false,
+});
 const productSeoSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -153,6 +172,12 @@ const productSchema = new mongoose.Schema({
     details: {
         type: productDetailsSchema,
         default: () => ({}),
+    },
+    search: {
+        type: productSearchSchema,
+        default: () => ({
+            colors: [],
+        }),
     },
     seo: {
         type: productSeoSchema,

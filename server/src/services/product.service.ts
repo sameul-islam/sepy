@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { syncProductSearchData } from "./product-search-sync.service.js";
 import type { ProductActivity } from "../constants/product-activities.js";
 
 import type { PipelineStage } from "mongoose";
@@ -656,6 +657,8 @@ export const createProduct = async (input: CreateProductInput) => {
         { session },
       );
 
+      await syncProductSearchData(product._id, { session });
+
       createdProductId = product._id;
     });
 
@@ -727,28 +730,6 @@ export const updateProduct = async (
 ) => {
   const updates: Record<string, unknown> = { ...input };
 
-  const existingProduct = await Product.exists({
-    _id: productId,
-  });
-
-  if (!existingProduct) {
-    throw new AppError("Product not found", 404);
-  }
-
-  if (input.status === "active") {
-    const activeVariant = await Variant.exists({
-      product: productId,
-      isActive: true,
-    });
-
-    if (!activeVariant) {
-      throw new AppError(
-        "A product must have at least one active variant before it can be activated",
-        400,
-      );
-    }
-  }
-
   if (input.details !== undefined) {
     delete updates.details;
 
@@ -765,43 +746,85 @@ export const updateProduct = async (
     }
   }
 
-  if (input.category !== undefined) {
-    const category = await Category.findOne({
-      _id: input.category,
-      isActive: true,
-    })
-      .select("_id")
+  const session = await Product.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      const existingProduct = await Product.exists({
+        _id: productId,
+      }).session(session);
+
+      if (!existingProduct) {
+        throw new AppError("Product not found", 404);
+      }
+
+      if (input.status === "active") {
+        const activeVariant = await Variant.exists({
+          product: productId,
+          isActive: true,
+        }).session(session);
+
+        if (!activeVariant) {
+          throw new AppError(
+            "A product must have at least one active variant before it can be activated",
+            400,
+          );
+        }
+      }
+
+      if (input.category !== undefined) {
+        const category = await Category.findOne({
+          _id: input.category,
+          isActive: true,
+        })
+          .select("_id")
+          .session(session)
+          .lean();
+
+        if (!category) {
+          throw new AppError("Active category not found", 404);
+        }
+
+        updates.category = category._id;
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { $set: updates },
+        {
+          new: true,
+          runValidators: true,
+          session,
+        },
+      )
+        .select("_id")
+        .lean();
+
+      if (!updatedProduct) {
+        throw new AppError("Product not found", 404);
+      }
+
+      await syncProductSearchData(updatedProduct._id, { session });
+    });
+
+    const product = await Product.findById(productId)
+      .populate({
+        path: "category",
+        select: "name slug",
+        match: { isActive: true },
+      })
       .lean();
 
-    if (!category) {
+    if (!product) {
+      throw new AppError("Product not found", 404);
+    }
+
+    if (!product.category) {
       throw new AppError("Active category not found", 404);
     }
 
-    updates.category = category._id;
+    return product;
+  } finally {
+    await session.endSession();
   }
-
-  const product = await Product.findByIdAndUpdate(
-    productId,
-    { $set: updates },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .populate({
-      path: "category",
-      select: "name slug",
-      match: { isActive: true },
-    })
-    .lean();
-
-  if (!product) {
-    throw new AppError("Product not found", 404);
-  }
-
-  if (!product.category) {
-    throw new AppError("Active category not found", 404);
-  }
-
-  return product;
 };

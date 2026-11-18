@@ -334,6 +334,14 @@ function CategoryCard({
           sizes="(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 25vw"
           className="object-cover"
         />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.04) 45%, rgba(0,0,0,0.22) 100%)",
+          }}
+        />
       </div>
 
       <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.14em] text-text-primary sm:text-sm">

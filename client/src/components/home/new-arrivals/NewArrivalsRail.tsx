@@ -16,7 +16,7 @@ type NewArrivalsRailProps = {
 };
 
 const PRODUCT_CARD_WIDTH =
-  "!w-[calc((100vw-2rem)/2)] sm:!w-[calc((100vw-2.5rem)/3)] lg:!w-[calc((100vw-4.5rem)/4)] xl:!w-[calc((100vw-6.5rem)/4)]";
+  "!w-[calc((100vw-2rem)/1.2)] sm:!w-[calc((100vw-2.5rem)/3)] lg:!w-[calc((100vw-4.5rem)/4)] xl:!w-[calc((100vw-6.5rem)/4)]";
 
 function formatPrice(price: number) {
   return `৳ ${new Intl.NumberFormat("en-BD").format(price)}`;
