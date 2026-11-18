@@ -224,6 +224,16 @@ function createMultiValueQuerySchema<T extends z.ZodType<string, string>>(
     .transform((values) => [...new Set(values)]);
 }
 
+export const productSearchSuggestionsQuerySchema = z
+  .object({
+    q: z.string().trim().min(2).max(80),
+  })
+  .strict();
+
+export type ProductSearchSuggestionsQuery = z.infer<
+  typeof productSearchSuggestionsQuerySchema
+>;
+
 export const productListQuerySchema = z
   .object({
     page: z.coerce

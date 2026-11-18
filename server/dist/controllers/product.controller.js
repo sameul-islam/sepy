@@ -1,4 +1,5 @@
 import { getActiveProducts, getFeaturedProducts, } from "../services/product.service.js";
+import { getProductSearchSuggestions } from "../services/product-search.service.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 export const getProducts = async (req, res, next) => {
     try {
@@ -16,6 +17,17 @@ export const getFeaturedProductsController = async (_req, res, next) => {
         sendSuccess(res, 200, "Featured products retrieved successfully", {
             products,
         });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+export const getProductSearchSuggestionsController = async (_req, res, next) => {
+    try {
+        const query = res.locals.validatedData
+            .query;
+        const result = await getProductSearchSuggestions(query.q);
+        sendSuccess(res, 200, "Product search suggestions retrieved successfully", result);
     }
     catch (error) {
         next(error);

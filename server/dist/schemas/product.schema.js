@@ -167,6 +167,11 @@ function createMultiValueQuerySchema(itemSchema, maxItems) {
         .pipe(z.array(itemSchema).min(1).max(maxItems))
         .transform((values) => [...new Set(values)]);
 }
+export const productSearchSuggestionsQuerySchema = z
+    .object({
+    q: z.string().trim().min(2).max(80),
+})
+    .strict();
 export const productListQuerySchema = z
     .object({
     page: z.coerce

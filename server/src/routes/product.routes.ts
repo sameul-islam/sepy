@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getProducts,
   getFeaturedProductsController,
+  getProductSearchSuggestionsController,
 } from "../controllers/product.controller.js";
 import validate from "../middleware/validate.js";
 import { getProductBySlug } from "../controllers/product-details.controller.js";
@@ -13,12 +14,21 @@ import {
   createProductSchema,
   updateProductSchema,
   productListQuerySchema,
+  productSearchSuggestionsQuerySchema,
 } from "../schemas/product.schema.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 
 import { z } from "zod";
 
 const router = Router();
+
+const productSearchSuggestionsSchema = z
+  .object({
+    body: z.object({}).strict().default({}),
+    params: z.object({}).strict(),
+    query: productSearchSuggestionsQuerySchema,
+  })
+  .strict();
 
 const listProductsSchema = z
   .object({
@@ -44,6 +54,11 @@ const updateProductRequestSchema = z
   })
   .strict();
 
+router.get(
+  "/search/suggestions",
+  validate(productSearchSuggestionsSchema),
+  getProductSearchSuggestionsController,
+);
 router.get("/", validate(listProductsSchema), getProducts);
 router.get("/featured", getFeaturedProductsController);
 router.get("/:slug", validate(getProductBySlugSchema), getProductBySlug);

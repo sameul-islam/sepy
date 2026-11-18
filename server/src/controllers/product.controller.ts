@@ -3,7 +3,11 @@ import {
   getActiveProducts,
   getFeaturedProducts,
 } from "../services/product.service.js";
-import type { ProductListQuery } from "../schemas/product.schema.js";
+import { getProductSearchSuggestions } from "../services/product-search.service.js";
+import type {
+  ProductListQuery,
+  ProductSearchSuggestionsQuery,
+} from "../schemas/product.schema.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
 export const getProducts = async (
@@ -33,6 +37,28 @@ export const getFeaturedProductsController = async (
     sendSuccess(res, 200, "Featured products retrieved successfully", {
       products,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProductSearchSuggestionsController = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const query = res.locals.validatedData
+      .query as ProductSearchSuggestionsQuery;
+
+    const result = await getProductSearchSuggestions(query.q);
+
+    sendSuccess(
+      res,
+      200,
+      "Product search suggestions retrieved successfully",
+      result,
+    );
   } catch (error) {
     next(error);
   }
