@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PiArrowUpRight, PiMagnifyingGlass, PiX } from "react-icons/pi";
 
-import ProductCard from "@/components/products/ProductCard";
-import { getFeaturedProducts, getProducts } from "@/lib/api";
+import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/api-types";
-import { FaMagnifyingGlass } from "react-icons/fa6";
-import { RiCloseLargeLine } from "react-icons/ri";
 
 type SearchOverlayProps = {
   onClose: () => void;
 };
 
-type LiveSearchState = {
+type SearchState = {
   query: string;
   status: "idle" | "loading" | "success" | "error";
   products: Product[];
@@ -22,13 +22,13 @@ type LiveSearchState = {
 
 const RECENT_SEARCHES_KEY = "sepy-recent-searches";
 const MAX_RECENT_SEARCHES = 5;
-const SEARCH_MIN_LENGTH = 2;
+const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 300;
-const PRODUCT_LIMIT = 4;
+const MAX_RESULTS = 4;
 
 const POPULAR_SEARCHES = ["T-shirts", "Shorts", "Hoodies", "Training"];
 
-const INITIAL_SEARCH_STATE: LiveSearchState = {
+const INITIAL_SEARCH_STATE: SearchState = {
   query: "",
   status: "idle",
   products: [],
@@ -37,49 +37,41 @@ const INITIAL_SEARCH_STATE: LiveSearchState = {
 export default function SearchOverlay({ onClose }: SearchOverlayProps) {
   const router = useRouter();
 
-  const [query, setQuery] = useState("");
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
-
-  const [liveSearch, setLiveSearch] =
-    useState<LiveSearchState>(INITIAL_SEARCH_STATE);
-
-  const [searchAttempt, setSearchAttempt] = useState(0);
-
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [query, setQuery] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [searchState, setSearchState] =
+    useState<SearchState>(INITIAL_SEARCH_STATE);
+  const [searchAttempt, setSearchAttempt] = useState(0);
+
   const normalizedQuery = query.trim();
-  const isLiveSearch = normalizedQuery.length >= SEARCH_MIN_LENGTH;
+  const isSearchActive = normalizedQuery.length >= MIN_SEARCH_LENGTH;
 
-  const displayedProducts = isLiveSearch
-    ? liveSearch.products
-    : featuredProducts;
+  const isLoading =
+    isSearchActive &&
+    (searchState.query !== normalizedQuery || searchState.status === "loading");
 
-  const isProductsLoading = isLiveSearch
-    ? liveSearch.query !== normalizedQuery || liveSearch.status === "loading"
-    : isLoadingFeatured;
+  const hasResults =
+    isSearchActive &&
+    searchState.query === normalizedQuery &&
+    searchState.status === "success";
 
-  const hasSearchError =
-    isLiveSearch &&
-    liveSearch.query === normalizedQuery &&
-    liveSearch.status === "error";
+  const hasError =
+    isSearchActive &&
+    searchState.query === normalizedQuery &&
+    searchState.status === "error";
 
-  const hasSearchResults =
-    isLiveSearch &&
-    liveSearch.query === normalizedQuery &&
-    liveSearch.status === "success";
+  const products = hasResults ? searchState.products : [];
 
-  const hasNoSearchResults = hasSearchResults && displayedProducts.length === 0;
-
-  // Load recent searches and focus the search input.
+  // Restore recent searches and focus the input.
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
-        const storedSearches = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+        const stored = window.localStorage.getItem(RECENT_SEARCHES_KEY);
 
-        if (storedSearches) {
-          const parsed: unknown = JSON.parse(storedSearches);
+        if (stored) {
+          const parsed: unknown = JSON.parse(stored);
 
           if (
             Array.isArray(parsed) &&
@@ -91,7 +83,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
           }
         }
       } catch {
-        window.localStorage.removeItem(RECENT_SEARCHES_KEY);
+        // Ignore unavailable or invalid local storage.
       }
 
       inputRef.current?.focus();
@@ -102,9 +94,9 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     };
   }, []);
 
-  // Lock background scrolling and manage keyboard accessibility.
+  // Prevent background scrolling and manage keyboard navigation.
   useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
@@ -116,12 +108,14 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
 
       if (event.key !== "Tab") return;
 
-      const focusableElements = document.querySelectorAll<HTMLElement>(
-        [
-          "#sepy-search-overlay button:not([disabled])",
-          "#sepy-search-overlay input:not([disabled])",
-          "#sepy-search-overlay a[href]",
-        ].join(","),
+      const dialog = document.getElementById("sepy-search-dialog");
+
+      if (!dialog) return;
+
+      const focusableElements = dialog.querySelectorAll<HTMLElement>(
+        ["input:not([disabled])", "button:not([disabled])", "a[href]"].join(
+          ",",
+        ),
       );
 
       if (focusableElements.length === 0) return;
@@ -141,43 +135,17 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflow = previousOverflow;
 
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose]);
 
-  // Load featured products for the empty search state.
-  useEffect(() => {
-    let isActive = true;
-
-    getFeaturedProducts()
-      .then((data) => {
-        if (!isActive) return;
-
-        setFeaturedProducts(data.products.slice(0, PRODUCT_LIMIT));
-      })
-      .catch(() => {
-        if (isActive) {
-          setFeaturedProducts([]);
-        }
-      })
-      .finally(() => {
-        if (isActive) {
-          setIsLoadingFeatured(false);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  // Search products as the user types.
+  // Live product search.
   useEffect(() => {
     const searchQuery = query.trim();
 
-    if (searchQuery.length < SEARCH_MIN_LENGTH) {
+    if (searchQuery.length < MIN_SEARCH_LENGTH) {
       return;
     }
 
@@ -186,23 +154,23 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     const timeoutId = window.setTimeout(() => {
       getProducts({
         page: 1,
-        limit: PRODUCT_LIMIT,
+        limit: MAX_RESULTS,
         search: searchQuery,
         signal: controller.signal,
       })
         .then((data) => {
           if (controller.signal.aborted) return;
 
-          setLiveSearch({
+          setSearchState({
             query: searchQuery,
             status: "success",
-            products: data.products,
+            products: data.products.slice(0, MAX_RESULTS),
           });
         })
         .catch(() => {
           if (controller.signal.aborted) return;
 
-          setLiveSearch({
+          setSearchState({
             query: searchQuery,
             status: "error",
             products: [],
@@ -219,31 +187,28 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
   const saveRecentSearch = (value: string) => {
     const normalized = value.trim();
 
-    if (!normalized) return;
+    if (normalized.length < MIN_SEARCH_LENGTH) return;
 
-    const updatedSearches = [
+    const updated = [
       normalized,
       ...recentSearches.filter(
         (item) => item.toLowerCase() !== normalized.toLowerCase(),
       ),
     ].slice(0, MAX_RECENT_SEARCHES);
 
-    setRecentSearches(updatedSearches);
+    setRecentSearches(updated);
 
     try {
-      window.localStorage.setItem(
-        RECENT_SEARCHES_KEY,
-        JSON.stringify(updatedSearches),
-      );
+      window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
     } catch {
-      // Search navigation should still work if storage is unavailable.
+      // Search navigation should work without local storage.
     }
   };
 
   const navigateToSearch = (value: string) => {
     const normalized = value.trim();
 
-    if (normalized.length < SEARCH_MIN_LENGTH) return;
+    if (normalized.length < MIN_SEARCH_LENGTH) return;
 
     saveRecentSearch(normalized);
     onClose();
@@ -251,7 +216,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     router.push(`/search?q=${encodeURIComponent(normalized)}`);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     navigateToSearch(query);
   };
@@ -261,14 +226,14 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
 
     const normalized = value.trim();
 
-    if (normalized.length >= SEARCH_MIN_LENGTH) {
-      setLiveSearch({
+    if (normalized.length >= MIN_SEARCH_LENGTH) {
+      setSearchState({
         query: normalized,
         status: "loading",
         products: [],
       });
     } else {
-      setLiveSearch(INITIAL_SEARCH_STATE);
+      setSearchState(INITIAL_SEARCH_STATE);
     }
   };
 
@@ -278,12 +243,12 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     try {
       window.localStorage.removeItem(RECENT_SEARCHES_KEY);
     } catch {
-      // Clearing the visible list does not depend on storage.
+      // Ignore storage errors.
     }
   };
 
   const retrySearch = () => {
-    setLiveSearch({
+    setSearchState({
       query: normalizedQuery,
       status: "loading",
       products: [],
@@ -292,380 +257,275 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     setSearchAttempt((current) => current + 1);
   };
 
-  const renderProductSkeletons = (count: number) => (
-    <>
-      {Array.from({ length: count }, (_, index) => (
-        <div key={index} className="space-y-3" aria-hidden="true">
-          <div className="aspect-4/5 animate-pulse bg-[#f1f1ee]" />
-          <div className="h-3 w-3/4 animate-pulse bg-[#f1f1ee]" />
-          <div className="h-3 w-1/3 animate-pulse bg-[#f1f1ee]" />
-        </div>
-      ))}
-    </>
-  );
+  const formatPrice = (price: number) => `৳${price.toLocaleString("en-BD")}`;
 
-  const renderSearchError = () => (
-    <div className="py-8 text-center" role="alert">
-      <p className="text-sm text-[#5f5f5a]">
-        Something went wrong while searching. Please try again.
-      </p>
-
-      <button
-        type="button"
-        onClick={retrySearch}
-        className="mt-3 text-xs text-[#171717] underline underline-offset-4 transition-opacity hover:opacity-60"
-      >
-        Try Again
-      </button>
-    </div>
-  );
-
-  const renderNoResults = () => (
-    <div className="py-8 text-center" role="status">
-      <h3 className="text-base font-medium text-[#171717]">
-        No products found
-      </h3>
-
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#85857e]">
-        We couldn&apos;t find any products for &ldquo;
-        {normalizedQuery}&rdquo;. Check the spelling or try a more general
-        keyword.
-      </p>
-
-      <p className="mt-5 text-sm text-[#5f5f5a]">
-        Need help finding the right gear?
-      </p>
-
-      <a
-        href="/contact"
-        className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-[#171717] underline underline-offset-4 transition-opacity hover:opacity-60"
-      >
-        Contact Us
-        <PiArrowUpRight size={15} />
-      </a>
-    </div>
-  );
-
-  const renderMobileProducts = () => {
-    if (isProductsLoading) {
-      return (
-        <div className="grid grid-cols-2 gap-1.5" aria-label="Loading products">
-          {renderProductSkeletons(2)}
-        </div>
-      );
-    }
-
-    if (hasSearchError) {
-      return renderSearchError();
-    }
-
-    if (hasNoSearchResults) {
-      return renderNoResults();
-    }
-
-    if (displayedProducts.length > 0) {
-      return (
-        <div
-          className="sepy-scrollbar-hidden flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-2 pb-2 sm:-mx-8 sm:px-8"
-          aria-live="polite"
-          aria-busy={isProductsLoading}
-        >
-          {displayedProducts.map((product) => (
-            <div
-              key={product._id}
-              className="w-[44%] shrink-0 snap-start sm:w-[31%]"
-            >
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
-      );
-    }
+  const renderProduct = (product: Product) => {
+    const image = product.images[0];
 
     return (
-      <p className="text-sm text-[#85857e]">
-        Featured products are unavailable right now.
-      </p>
+      <Link
+        key={product._id}
+        href={`/products/${encodeURIComponent(product.slug)}`}
+        onClick={onClose}
+        className="group flex min-w-0 items-center gap-3 py-2.5 transition-opacity duration-200 hover:opacity-70 sm:gap-4"
+      >
+        <div className="relative size-22 shrink-0 overflow-hidden bg-[#f5f5f2] sm:size-26">
+          {image ? (
+            <Image
+              src={image.url}
+              alt={image.alt || product.name}
+              fill
+              sizes="68px"
+              className="object-cover"
+            />
+          ) : null}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="line-clamp-2 text-xs font-semibold leading-5 text-[#171717] sm:text-sm">
+            {product.name}
+          </h3>
+
+          <p className="mt-0.5 text-[11px] text-[#85857e]">
+            {product.category.name}
+          </p>
+
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-[#171717]">
+              {formatPrice(product.price)}
+            </span>
+
+            {typeof product.compareAtPrice === "number" &&
+              product.compareAtPrice > product.price && (
+                <span className="text-[11px] text-[#85857e] line-through">
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+              )}
+          </div>
+        </div>
+
+        <PiArrowUpRight
+          size={17}
+          className="mr-1 shrink-0 text-[#85857e] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+        />
+      </Link>
     );
   };
 
-  const renderDesktopProducts = () => {
-    if (isProductsLoading) {
-      return (
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
+      {Array.from({ length: 4 }, (_, index) => (
         <div
-          className="grid grid-cols-2 gap-x-4 gap-y-8 xl:grid-cols-4 xl:gap-x-6"
-          aria-label="Loading products"
+          key={index}
+          className="flex items-center gap-4 py-2.5"
+          aria-hidden="true"
         >
-          {renderProductSkeletons(4)}
+          <div className="size-15 shrink-0 animate-pulse bg-[#f1f1ee] sm:size-17" />
+
+          <div className="flex-1 space-y-2">
+            <div className="h-3 w-3/4 animate-pulse bg-[#f1f1ee]" />
+            <div className="h-3 w-1/3 animate-pulse bg-[#f1f1ee]" />
+            <div className="h-3 w-1/4 animate-pulse bg-[#f1f1ee]" />
+          </div>
         </div>
-      );
-    }
+      ))}
+    </div>
+  );
 
-    if (hasSearchError) {
-      return renderSearchError();
-    }
+  const renderPopularSearches = () => (
+    <section>
+      <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#171717]">
+        Popular Searches
+      </h2>
 
-    if (hasNoSearchResults) {
-      return renderNoResults();
-    }
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+        {POPULAR_SEARCHES.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => navigateToSearch(item)}
+            className="text-sm text-[#5f5f5a] transition-colors duration-200 hover:text-[#171717]"
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
 
-    if (displayedProducts.length > 0) {
-      return (
-        <div
-          className="grid grid-cols-2 gap-x-4 gap-y-8 xl:grid-cols-4 xl:gap-x-6"
-          aria-live="polite"
-          aria-busy={isProductsLoading}
-        >
-          {displayedProducts.map((product) => (
-            <ProductCard key={product._id} product={product} />
+  const renderRecentSearches = () => {
+    if (recentSearches.length === 0) return null;
+
+    return (
+      <section className="mt-8 border-t border-[#e5e5e0] pt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#171717]">
+            Recent Searches
+          </h2>
+
+          <button
+            type="button"
+            onClick={clearRecentSearches}
+            className="text-[11px] text-[#85857e] font-bold transition-colors hover:text-[#171717] cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+          {recentSearches.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => navigateToSearch(item)}
+              className="text-sm text-[#5f5f5a] transition-colors duration-200 hover:text-[#171717]"
+            >
+              {item}
+            </button>
           ))}
+        </div>
+      </section>
+    );
+  };
+
+  const renderSearchContent = () => {
+    if (!isSearchActive) {
+      return (
+        <div className="py-7 sm:py-8">
+          {renderPopularSearches()}
+          {renderRecentSearches()}
         </div>
       );
     }
 
     return (
-      <p className="text-sm text-[#85857e]">
-        Featured products are unavailable right now.
-      </p>
+      <div className="py-5 sm:py-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#85857e]">
+            Products
+          </h2>
+
+          {hasResults && products.length > 0 && (
+            <button
+              type="button"
+              onClick={() => navigateToSearch(query)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-[#171717] transition-opacity hover:opacity-60 cursor-pointer"
+            >
+              View all results
+              <PiArrowUpRight size={14} />
+            </button>
+          )}
+        </div>
+
+        {isLoading && renderSkeletons()}
+
+        {hasError && (
+          <div className="py-6" role="alert">
+            <p className="text-sm text-[#5f5f5a]">
+              We couldn&apos;t complete your search. Please try again.
+            </p>
+
+            <button
+              type="button"
+              onClick={retrySearch}
+              className="mt-3 text-xs font-bold text-[#171717] underline underline-offset-4"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {hasResults && products.length > 0 && (
+          <div
+            className="grid grid-cols-1 gap-x-10 lg:grid-cols-2"
+            aria-live="polite"
+          >
+            {products.map(renderProduct)}
+          </div>
+        )}
+
+        {hasResults && products.length === 0 && (
+          <div className="py-6" role="status">
+            <p className="text-sm font-semibold text-[#171717]">
+              No products found for &ldquo;{normalizedQuery}&rdquo;.
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-[#85857e]">
+              Check the spelling or try a more general search.
+            </p>
+
+            <Link
+              href="/contact"
+              onClick={onClose}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#171717] underline underline-offset-4"
+            >
+              Need help? Contact us
+              <PiArrowUpRight size={14} />
+            </Link>
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
     <div
-      id="sepy-search-overlay"
+      id="sepy-search-dialog"
       role="dialog"
       aria-modal="true"
       aria-label="Search SEPY"
-      className="fixed inset-x-0 bottom-0 top-12 z-40 overflow-y-auto bg-white sm:top-15 lg:bottom-auto lg:top-18 lg:h-fit lg:max-h-[calc(100dvh-4.5rem)]"
+      className="fixed inset-0 z-60 flex flex-col overflow-y-auto overscroll-contain bg-white lg:inset-x-0 lg:bottom-auto lg:top-18 lg:z-40 lg:max-h-[calc(100dvh-72px)] lg:border-b lg:border-[#e5e5e0] lg:shadow-[0_12px_24px_rgba(0,0,0,0.035)]"
     >
-      <div className="bg-white">
+      <div className="mx-auto flex w-full max-w-360 flex-1 flex-col px-5 sm:px-8 lg:px-10">
         {/* Search input */}
-        <div className="sticky top-0 z-20 border-b border-[#e5e5e0] bg-white px-2 py-3 sm:px-6 lg:px-10">
+        <div className="flex shrink-0 items-center border-b border-[#e5e5e0] py-3 sm:py-4">
           <form
             onSubmit={handleSubmit}
-            className="flex items-center gap-1.5"
             role="search"
+            className="flex min-w-0 flex-1 items-center gap-3"
           >
-            <button
-              type="submit"
-              aria-label="Submit search"
-              disabled={normalizedQuery.length < SEARCH_MIN_LENGTH}
-              className="hidden sm:flex size-9 items-center justify-center  text-[#171717] transition-opacity hover:opacity-60 disabled:opacity-40 cursor-pointer"
-            >
-              <FaMagnifyingGlass size={18} />
-            </button>
-            <div className="relative min-w-0 flex-1">
-              <input
-                ref={inputRef}
-                type="search"
-                value={query}
-                onChange={(event) => handleQueryChange(event.target.value)}
-                placeholder="What are you looking for?"
-                aria-label="Search products"
-                aria-controls="sepy-search-products"
-                autoComplete="off"
-                className="h-11 md:h-14 w-full appearance-none border-0 bg-transparent pr-12 text-sm font-bold outline-none ring-0 transition-[border-color] duration-200 placeholder:text-[#85857e] focus:outline-none focus:ring-0"
-              />
-              <button
-                type="submit"
-                aria-label="Submit search"
-                disabled={normalizedQuery.length < SEARCH_MIN_LENGTH}
-                className="sm:hidden absolute right-1 top-1 flex size-9 items-center justify-center  text-[#171717] transition-opacity hover:opacity-60 disabled:opacity-40"
+            <PiMagnifyingGlass
+              size={20}
+              strokeWidth={1.5}
+              className="shrink-0 text-[#171717]"
+            />
+
+            <input
+              ref={inputRef}
+              type="search"
+              value={query}
+              onChange={(event) => handleQueryChange(event.target.value)}
+              placeholder="What are you looking for?"
+              aria-label="Search products"
+              autoComplete="off"
+              className="h-11 min-w-0 flex-1 appearance-none border-0 bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#85857e] focus:outline-none focus:ring-0 sm:text-base [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+            />
+
+            {isSearchActive && (
+              <span
+                className="hidden shrink-0 text-[10px] text-[#85857e] sm:block"
+                aria-live="polite"
               >
-                <FaMagnifyingGlass size={18} />
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close search"
-              className="flex size-9 shrink-0 items-center justify-center text-[#171717] transition-opacity hover:opacity-60 cursor-pointer"
-            >
-              <RiCloseLargeLine size={22} />
-            </button>
+                {isLoading ? "Searching..." : ""}
+              </span>
+            )}
           </form>
-        </div>
 
-        {/* Mobile search discovery */}
-        <div className="px-5 pb-12 pt-6 sm:px-8 lg:hidden">
-          {/* {!isLiveSearch && recentSearches.length > 0 && (
-            <section className="border-b border-[#e5e5e0] pb-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-wide text-[#171717]">
-                  Recent Searches
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={clearRecentSearches}
-                  className="text-xs text-[#5f5f5a] underline underline-offset-4 transition-colors hover:text-[#171717]"
-                >
-                  Clear History
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {recentSearches.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => navigateToSearch(item)}
-                    className="bg-[#f1f1ee] px-4 py-2 text-xs text-[#171717] transition-colors hover:bg-[#e5e5e0]"
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )} */}
-
-          <section
-            id="sepy-search-products"
-            className="border-b border-[#e5e5e0] py-6"
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close search"
+            className="ml-3 flex size-9 shrink-0 items-center justify-center text-[#171717] transition-opacity duration-200 hover:opacity-50 cursor-pointer"
           >
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase text-[#171717]">
-                {isLiveSearch ? "Search Results" : "Featured Products"}
-              </h2>
-            </div>
-
-            {renderMobileProducts()}
-          </section>
-
-          {!isLiveSearch && (
-            <section className="pt-6">
-              <h2 className="mb-4 font-display text-sm font-bold uppercase tracking-wide text-[#171717]">
-                Popular Searches
-              </h2>
-
-              <ul className="space-y-3">
-                {POPULAR_SEARCHES.map((item) => (
-                  <li key={item}>
-                    <button
-                      type="button"
-                      onClick={() => navigateToSearch(item)}
-                      className="group flex min-h-8 w-full items-center justify-between text-left text-sm text-[#5f5f5a] transition-colors hover:text-[#171717]"
-                    >
-                      <span>{item}</span>
-
-                      <PiArrowUpRight
-                        size={16}
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                      />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+            <PiX size={23} strokeWidth={1.4} />
+          </button>
         </div>
 
-        {/* Desktop search discovery */}
-        <div className="hidden grid-cols-[minmax(0,1fr)_minmax(260px,25%)] lg:grid">
-          <section
-            id="sepy-search-products"
-            className="min-w-0 px-8 py-8 xl:px-10"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-xs font-bold uppercase tracking-wide text-[#171717]">
-                {isLiveSearch ? "Search Results" : "Featured Products"}
-              </h2>
+        {/* Search content */}
+        <div className="flex-1">{renderSearchContent()}</div>
 
-              {isLiveSearch && (
-                <button
-                  type="button"
-                  onClick={() => navigateToSearch(query)}
-                  disabled={normalizedQuery.length < SEARCH_MIN_LENGTH}
-                  className="text-xs text-[#5f5f5a] underline underline-offset-4 transition-colors hover:text-[#171717] disabled:opacity-40"
-                >
-                  View All
-                </button>
-              )}
-            </div>
-
-            {renderDesktopProducts()}
-          </section>
-
-          <aside className="border-l border-[#e5e5e0] bg-[#fafaf9] px-6 py-8 xl:px-8">
-            {isLiveSearch && (
-              <section className="border-b border-[#e5e5e0] pb-6">
-                <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-wide text-[#171717]">
-                  Search
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={() => navigateToSearch(query)}
-                  className="flex w-full items-center gap-3 py-2 text-left text-sm text-[#171717] transition-opacity hover:opacity-60"
-                >
-                  <PiMagnifyingGlass size={16} />
-
-                  <span className="min-w-0">
-                    Search for{" "}
-                    <strong className="break-all">
-                      &ldquo;{normalizedQuery}&rdquo;
-                    </strong>
-                  </span>
-                </button>
-              </section>
-            )}
-
-            {!isLiveSearch && (
-              <section className="border-b border-[#e5e5e0] pb-6">
-                <h2 className="mb-4 font-display text-xs font-bold uppercase tracking-wide text-[#171717]">
-                  Popular Searches
-                </h2>
-
-                <ul className="space-y-3">
-                  {POPULAR_SEARCHES.map((item) => (
-                    <li key={item}>
-                      <button
-                        type="button"
-                        onClick={() => navigateToSearch(item)}
-                        className="text-left text-sm text-[#5f5f5a] transition-colors hover:text-[#171717]"
-                      >
-                        {item}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {recentSearches.length > 0 && (
-              <section className="pt-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="font-display text-xs font-bold uppercase tracking-wide text-[#171717]">
-                    Recent Searches
-                  </h2>
-
-                  <button
-                    type="button"
-                    onClick={clearRecentSearches}
-                    className="text-[11px] text-[#5f5f5a] underline underline-offset-4 transition-colors hover:text-[#171717]"
-                  >
-                    Clear
-                  </button>
-                </div>
-
-                <ul className="space-y-3">
-                  {recentSearches.map((item) => (
-                    <li key={item}>
-                      <button
-                        type="button"
-                        onClick={() => navigateToSearch(item)}
-                        className="text-left text-sm text-[#5f5f5a] transition-colors hover:text-[#171717]"
-                      >
-                        {item}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </aside>
-        </div>
+        {/* Desktop bottom spacing */}
+        <div className="hidden h-2 shrink-0 lg:block" />
       </div>
     </div>
   );
