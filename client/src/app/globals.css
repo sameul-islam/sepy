@@ -331,3 +331,21 @@ body {
     animation: none;
   }
 }
+
+
+
+/* Remove browser-native search decorations */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Prevent unwanted native focus outline */
+input[type="search"]:focus,
+input[type="search"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
