@@ -14,6 +14,7 @@ import { MdClose } from "react-icons/md";
 
 type FilterDrawerProps = {
   isOpen: boolean;
+  isSidebarVisible: boolean;
   onClose: () => void;
   children: ReactNode;
   footer: ReactNode;
@@ -21,6 +22,7 @@ type FilterDrawerProps = {
 
 export default function FilterDrawer({
   isOpen,
+  isSidebarVisible,
   onClose,
   children,
   footer,
@@ -40,20 +42,8 @@ export default function FilterDrawer({
   }
 
   const beginClose = useCallback(() => {
-    setIsClosing((previous) => previous || true);
+    setIsClosing(true);
   }, []);
-
-  const handleCloseClick = () => {
-    const isDesktop = window.matchMedia(
-      "(min-width: 1024px)",
-    ).matches;
-
-    if (isDesktop) {
-      onClose();
-    } else {
-      beginClose();
-    }
-  };
 
   const handleDrawerAnimationEnd = (
     event: AnimationEvent<HTMLElement>,
@@ -71,8 +61,7 @@ export default function FilterDrawer({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Desktop sidebar should not lock body scrolling
-    // or take focus away from the page.
+    // Desktop sidebar does not behave like a modal.
     if (window.matchMedia("(min-width: 1024px)").matches) {
       return;
     }
@@ -92,11 +81,20 @@ export default function FilterDrawer({
         return;
       }
 
-      if (event.key !== "Tab" || !drawerRef.current) return;
+      if (event.key !== "Tab" || !drawerRef.current) {
+        return;
+      }
 
       const focusableElements =
         drawerRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          [
+            'button:not([disabled])',
+            'input:not([disabled])',
+            'select:not([disabled])',
+            'textarea:not([disabled])',
+            'a[href]',
+            '[tabindex]:not([tabindex="-1"])',
+          ].join(","),
         );
 
       if (focusableElements.length === 0) {
@@ -106,6 +104,7 @@ export default function FilterDrawer({
       }
 
       const firstElement = focusableElements[0];
+
       const lastElement =
         focusableElements[focusableElements.length - 1];
 
@@ -128,10 +127,14 @@ export default function FilterDrawer({
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+
       document.body.style.overflow = previousOverflow;
+
       previousActiveElement?.focus();
     };
   }, [isOpen, beginClose]);
+
+  const isPanelHidden = !isSidebarVisible && !isOpen;
 
   return (
     <>
@@ -142,7 +145,7 @@ export default function FilterDrawer({
           aria-label="Close filters"
           tabIndex={-1}
           onClick={beginClose}
-          className={`sepy-filter-motion absolute inset-0 z-100 h-full w-full cursor-default bg-black/35 lg:hidden ${
+          className={`sepy-filter-motion fixed inset-0 z-100 h-full w-full cursor-default bg-black/35 lg:hidden ${
             isClosing
               ? "animate-[sepy-filter-fade-out_320ms_ease-in_forwards]"
               : "animate-[sepy-filter-fade-in_320ms_ease-out]"
@@ -150,16 +153,18 @@ export default function FilterDrawer({
         />
       )}
 
-      {/* Shared filter content: desktop sidebar + mobile drawer */}
+      {/* One shared filter panel for both responsive layouts */}
       <div
-        className="contents lg:col-start-1 lg:row-start-2 lg:block lg:min-w-0 lg:overflow-hidden"
-        aria-hidden={!isOpen}
-        inert={!isOpen}
+        id="product-filters-panel"
+        className="min-w-0 overflow-hidden"
+        aria-hidden={isPanelHidden}
+        inert={isPanelHidden}
       >
         <aside
           ref={drawerRef}
-          role="region"
+          role={isOpen ? "dialog" : "region"}
           aria-label="Product filters"
+          aria-modal={isOpen || undefined}
           tabIndex={-1}
           onAnimationEnd={handleDrawerAnimationEnd}
           className={`sepy-filter-motion ${
@@ -167,9 +172,9 @@ export default function FilterDrawer({
               ? "fixed inset-y-0 right-0 z-100 flex h-dvh w-full max-w-120 flex-col animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"
               : "hidden"
           } bg-white outline-none lg:sticky lg:top-24 lg:z-auto lg:flex lg:h-[calc(100dvh-6rem)] lg:w-64 lg:max-w-none lg:flex-col lg:shadow-none lg:transition-[opacity,transform] lg:duration-300 lg:ease-in-out ${
-            isOpen
+            isSidebarVisible
               ? "lg:translate-x-0 lg:opacity-100"
-              : "lg:-translate-x-3 lg:opacity-0"
+              : "lg:-translate-x-full lg:opacity-0 lg:pointer-events-none"
           } ${
             isClosing
               ? "animate-[sepy-filter-slide-out_320ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
@@ -179,11 +184,7 @@ export default function FilterDrawer({
           {/* Header */}
           <header className="flex shrink-0 items-center justify-between border-b border-[#e8e8e3] px-5 py-5 sm:px-7 lg:px-4">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#85857e]">
-                SEPY / Refine
-              </p>
-
-              <h2 className="mt-1 text-xl font-semibold tracking-[-0.035em] text-[#171717]">
+              <h2 className="mt-1 text-xl font-bold tracking-[-0.035em] text-[#171717]">
                 Filters
               </h2>
             </div>
@@ -191,15 +192,15 @@ export default function FilterDrawer({
             <button
               ref={closeButtonRef}
               type="button"
-              onClick={handleCloseClick}
+              onClick={beginClose}
               aria-label="Close filter panel"
-              className="flex size-10 items-center justify-center rounded-full border border-[#e8e8e3] text-[#171717] transition-colors hover:bg-[#f7f7f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+              className="flex size-10 items-center justify-center rounded-full border border-[#e8e8e3] text-[#171717] transition-colors hover:bg-[#f7f7f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] lg:hidden"
             >
-              <MdClose size={21} />
+              <MdClose size={21} aria-hidden="true" />
             </button>
           </header>
 
-          {/* Filter Content */}
+          {/* Filter content */}
           <div className="sepy-scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 lg:px-4">
             {children}
           </div>

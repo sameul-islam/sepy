@@ -101,7 +101,8 @@ export default function ProductFilters({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [gridView, setGridView] = useState<ProductGridView>("compact");
   const [isPending, startTransition] = useTransition();
@@ -145,17 +146,18 @@ export default function ProductFilters({
   });
 
   const closeDrawer = useCallback(() => {
-    setIsOpen(false);
+    setIsDrawerOpen(false);
   }, []);
 
   const toggleFilters = () => {
     const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
 
     if (isDesktop) {
-      setIsOpen((previous) => !previous);
-    } else {
-      setIsOpen(true);
+      setIsSidebarVisible((previous) => !previous);
+      return;
     }
+
+    setIsDrawerOpen(true);
   };
 
   const clearPriceTimer = () => {
@@ -372,21 +374,40 @@ export default function ProductFilters({
   const availableCategories = categories;
 
   return (
-    <div
-      className={`lg:grid lg:items-start lg:gap-x-8 lg:transition-[grid-template-columns] lg:duration-300 lg:ease-in-out ${isOpen ? "lg:grid-cols-[16rem_minmax(0,1fr)]" : "lg:grid-cols-[0fr_minmax(0,1fr)]"}`}
-    >
+    <div className="space-y-4">
       <section className="py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+            {/* Mobile filter trigger */}
             <button
               type="button"
               onClick={toggleFilters}
               aria-haspopup="dialog"
-              aria-expanded={isOpen}
-              className="inline-flex min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer sm:text-sm"
+              aria-expanded={isDrawerOpen}
+              aria-controls="product-filters-panel"
+              className="inline-flex min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer lg:hidden"
             >
               <MdTune size={19} aria-hidden="true" />
               <span>Filter</span>
+
+              {activeFilterCount > 0 && (
+                <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            {/* Desktop sidebar trigger */}
+            <button
+              type="button"
+              onClick={toggleFilters}
+              aria-expanded={isSidebarVisible}
+              aria-controls="product-filters-panel"
+              className="hidden min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer lg:inline-flex"
+            >
+              <MdTune size={19} aria-hidden="true" />
+
+              <span>{isSidebarVisible ? "Hide Filters" : "Show Filters"}</span>
 
               {activeFilterCount > 0 && (
                 <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
@@ -445,213 +466,223 @@ export default function ProductFilters({
         </div>
       </section>
 
-      <FilterDrawer
-        isOpen={isOpen}
-        onClose={closeDrawer}
-        footer={
-          <div className="space-y-3">
-            {priceError && (
-              <p role="alert" className="text-xs text-red-700">
-                {priceError}
-              </p>
-            )}
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                disabled={activeFilterCount === 0}
-                className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-semibold text-[#5f5f5a] transition-all hover:border-[#171717] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#deded8] disabled:hover:text-[#5f5f5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-              >
-                Clear all
-              </button>
-
-              <button
-                type="button"
-                onClick={closeDrawer}
-                disabled={isPending || Boolean(priceError)}
-                aria-live="polite"
-                className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-              >
-                {isPending ? (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <span
-                      aria-hidden="true"
-                      className="size-3 animate-spin rounded-full border-2 border-white/35 border-t-white"
-                    />
-                    Updating results...
-                  </span>
-                ) : (
-                  `View ${totalProducts} Results`
-                )}
-              </button>
-            </div>
-          </div>
-        }
+      <div
+        className={`grid min-w-0 items-start transition-[grid-template-columns,gap] duration-300 ease-in-out ${
+          isSidebarVisible
+            ? "lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-x-8"
+            : "lg:grid-cols-[0_minmax(0,1fr)] lg:gap-x-0"
+        }`}
       >
-        <div className="space-y-7">
-          <div>
-            <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a09f97]">
-              Collection
-            </p>
+        <FilterDrawer
+          isOpen={isDrawerOpen}
+          isSidebarVisible={isSidebarVisible}
+          onClose={closeDrawer}
+          footer={
+            <div className="space-y-3">
+              {priceError && (
+                <p role="alert" className="text-xs text-red-700">
+                  {priceError}
+                </p>
+              )}
 
-            <div className="space-y-4">
-              <FilterSelect
-                label="Department"
-                value={draft.department}
-                options={DEPARTMENT_OPTIONS}
-                placeholder="All departments"
-                onChange={(value) =>
-                  updateDraft({
-                    department: value,
-                    category: [],
-                  })
-                }
-              />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  disabled={activeFilterCount === 0}
+                  className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-semibold text-[#5f5f5a] transition-all hover:border-[#171717] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#deded8] disabled:hover:text-[#5f5f5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                >
+                  Clear all
+                </button>
 
-              <section
-                aria-labelledby="filter-category-heading"
-                className="space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setIsCategoryOpen((previous) => !previous)}
-                    aria-expanded={isCategoryOpen}
-                    aria-controls="product-category-options"
-                    className="flex min-h-8 flex-1 items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-                  >
-                    <span
-                      id="filter-category-heading"
-                      className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
-                    >
-                      Category
-                      {draft.category.length > 0 && (
-                        <span className="ml-2 text-[#85857e]">
-                          ({draft.category.length})
-                        </span>
-                      )}
+                <button
+                  type="button"
+                  onClick={closeDrawer}
+                  disabled={isPending || Boolean(priceError)}
+                  aria-live="polite"
+                  className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                >
+                  {isPending ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className="size-3 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                      />
+                      Updating results...
                     </span>
+                  ) : (
+                    `View ${totalProducts} Results`
+                  )}
+                </button>
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-7">
+            <div>
+              <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a09f97]">
+                Collection
+              </p>
 
-                    <MdKeyboardArrowDown
-                      size={21}
-                      aria-hidden="true"
-                      className={`shrink-0 text-[#5f5f5a] transition-transform duration-300 ${
-                        isCategoryOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
+              <div className="space-y-4">
+                <FilterSelect
+                  label="Department"
+                  value={draft.department}
+                  options={DEPARTMENT_OPTIONS}
+                  placeholder="All departments"
+                  onChange={(value) =>
+                    updateDraft({
+                      department: value,
+                      category: [],
+                    })
+                  }
+                />
 
-                  {draft.category.length > 0 && (
+                <section
+                  aria-labelledby="filter-category-heading"
+                  className="space-y-3"
+                >
+                  <div className="flex items-center justify-between">
                     <button
                       type="button"
-                      onClick={() => updateDraft({ category: [] })}
-                      className="ml-3 text-[11px] font-medium text-[#85857e] underline underline-offset-4 transition-colors hover:text-[#171717]"
+                      onClick={() => setIsCategoryOpen((previous) => !previous)}
+                      aria-expanded={isCategoryOpen}
+                      aria-controls="product-category-options"
+                      className="flex min-h-8 flex-1 items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                     >
-                      Clear
+                      <span
+                        id="filter-category-heading"
+                        className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
+                      >
+                        Category
+                        {draft.category.length > 0 && (
+                          <span className="ml-2 text-[#85857e]">
+                            ({draft.category.length})
+                          </span>
+                        )}
+                      </span>
+
+                      <MdKeyboardArrowDown
+                        size={21}
+                        aria-hidden="true"
+                        className={`shrink-0 text-[#5f5f5a] transition-transform duration-300 ${
+                          isCategoryOpen ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
-                  )}
-                </div>
 
-                <div
-                  id="product-category-options"
-                  aria-hidden={!isCategoryOpen}
-                  className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                    isCategoryOpen
-                      ? "grid-rows-[1fr] opacity-100"
-                      : "grid-rows-[0fr] opacity-0"
-                  }`}
-                >
-                  <div className="min-h-0 overflow-hidden">
-                    <div
-                      className="space-y-2 pb-1 pt-1"
-                      inert={!isCategoryOpen}
-                    >
-                      {availableCategories.map((item) => {
-                        const checked = draft.category.includes(item.slug);
+                    {draft.category.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => updateDraft({ category: [] })}
+                        className="ml-3 text-[11px] font-medium text-[#85857e] underline underline-offset-4 transition-colors hover:text-[#171717]"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
 
-                        return (
-                          <label
-                            key={item._id}
-                            className="flex cursor-pointer items-center gap-3 py-1 text-sm text-[#5f5f5a]"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() =>
-                                updateDraft({
-                                  category: toggleFilterValue(
-                                    draft.category,
-                                    item.slug,
-                                  ),
-                                })
-                              }
-                              className="size-4 accent-[#171717]"
-                            />
+                  <div
+                    id="product-category-options"
+                    aria-hidden={!isCategoryOpen}
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                      isCategoryOpen
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <div
+                        className="space-y-2 pb-1 pt-1"
+                        inert={!isCategoryOpen}
+                      >
+                        {availableCategories.map((item) => {
+                          const checked = draft.category.includes(item.slug);
 
-                            <span>{item.name}</span>
-                          </label>
-                        );
-                      })}
+                          return (
+                            <label
+                              key={item._id}
+                              className="flex cursor-pointer items-center gap-3 py-1 text-sm text-[#5f5f5a]"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() =>
+                                  updateDraft({
+                                    category: toggleFilterValue(
+                                      draft.category,
+                                      item.slug,
+                                    ),
+                                  })
+                                }
+                                className="size-4 accent-[#171717]"
+                              />
+
+                              <span>{item.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </section>
+                </section>
+              </div>
             </div>
+
+            <div className="border-t border-[#eeeeea]" />
+
+            <SizeFilter
+              sizes={filterOptions.sizes}
+              value={draft.size}
+              onChange={(value) => updateDraft({ size: value })}
+            />
+
+            <div className="border-t border-[#eeeeea]" />
+
+            <ColorFilter
+              colors={filterOptions.colors}
+              value={draft.color}
+              onChange={(value) => updateDraft({ color: value })}
+            />
+
+            <div className="border-t border-[#eeeeea]" />
+
+            <PriceFilter
+              minValue={draft.minPrice}
+              maxValue={draft.maxPrice}
+              minimum={filterOptions.priceRange.min}
+              maximum={filterOptions.priceRange.max}
+              error={priceError}
+              onMinChange={(value) => updateDraft({ minPrice: value })}
+              onMaxChange={(value) => updateDraft({ maxPrice: value })}
+            />
+
+            <div className="border-t border-[#eeeeea]" />
+
+            <AvailabilityFilter
+              checked={draft.inStock}
+              onChange={(checked) => updateDraft({ inStock: checked })}
+            />
           </div>
+        </FilterDrawer>
+        <div className="min-w-0">
+          <span className="sr-only" aria-live="polite">
+            {isPending
+              ? "Updating product results"
+              : `${totalProducts} products available`}
+          </span>
 
-          <div className="border-t border-[#eeeeea]" />
-
-          <SizeFilter
-            sizes={filterOptions.sizes}
-            value={draft.size}
-            onChange={(value) => updateDraft({ size: value })}
-          />
-
-          <div className="border-t border-[#eeeeea]" />
-
-          <ColorFilter
-            colors={filterOptions.colors}
-            value={draft.color}
-            onChange={(value) => updateDraft({ color: value })}
-          />
-
-          <div className="border-t border-[#eeeeea]" />
-
-          <PriceFilter
-            minValue={draft.minPrice}
-            maxValue={draft.maxPrice}
-            minimum={filterOptions.priceRange.min}
-            maximum={filterOptions.priceRange.max}
-            error={priceError}
-            onMinChange={(value) => updateDraft({ minPrice: value })}
-            onMaxChange={(value) => updateDraft({ maxPrice: value })}
-          />
-
-          <div className="border-t border-[#eeeeea]" />
-
-          <AvailabilityFilter
-            checked={draft.inStock}
-            onChange={(checked) => updateDraft({ inStock: checked })}
-          />
+          <ProductGridViewContext.Provider value={gridView}>
+            <div aria-busy={isPending}>
+              {isPending && isSkeletonDelayComplete ? (
+                <ProductGridSkeleton />
+              ) : (
+                children
+              )}
+            </div>
+          </ProductGridViewContext.Provider>
         </div>
-      </FilterDrawer>
-
-      <span className="sr-only" aria-live="polite">
-        {isPending
-          ? "Updating product results"
-          : `${totalProducts} products available`}
-      </span>
-
-      <ProductGridViewContext.Provider value={gridView}>
-        <div aria-busy={isPending}>
-          {isPending && isSkeletonDelayComplete ? (
-            <ProductGridSkeleton />
-          ) : (
-            children
-          )}
-        </div>
-      </ProductGridViewContext.Provider>
+      </div>
     </div>
   );
 }
