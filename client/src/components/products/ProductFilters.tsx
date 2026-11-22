@@ -148,6 +148,16 @@ export default function ProductFilters({
     setIsOpen(false);
   }, []);
 
+  const toggleFilters = () => {
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+
+    if (isDesktop) {
+      setIsOpen((previous) => !previous);
+    } else {
+      setIsOpen(true);
+    }
+  };
+
   const clearPriceTimer = () => {
     if (priceTimerRef.current !== null) {
       clearTimeout(priceTimerRef.current);
@@ -362,13 +372,15 @@ export default function ProductFilters({
   const availableCategories = categories;
 
   return (
-    <>
+    <div
+      className={`lg:grid lg:items-start lg:gap-x-8 lg:transition-[grid-template-columns] lg:duration-300 lg:ease-in-out ${isOpen ? "lg:grid-cols-[16rem_minmax(0,1fr)]" : "lg:grid-cols-[0fr_minmax(0,1fr)]"}`}
+    >
       <section className="py-2">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-4">
             <button
               type="button"
-              onClick={() => setIsOpen(true)}
+              onClick={toggleFilters}
               aria-haspopup="dialog"
               aria-expanded={isOpen}
               className="inline-flex min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer sm:text-sm"
@@ -640,6 +652,6 @@ export default function ProductFilters({
           )}
         </div>
       </ProductGridViewContext.Provider>
-    </>
+    </div>
   );
 }

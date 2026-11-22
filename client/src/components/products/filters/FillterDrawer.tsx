@@ -31,8 +31,6 @@ export default function FilterDrawer({
   const [isClosing, setIsClosing] = useState(false);
   const [previousIsOpen, setPreviousIsOpen] = useState(isOpen);
 
-  // Reset closing state when the drawer opens again.
-  // This conditional render-phase update avoids setting state in an effect.
   if (isOpen !== previousIsOpen) {
     setPreviousIsOpen(isOpen);
 
@@ -42,11 +40,20 @@ export default function FilterDrawer({
   }
 
   const beginClose = useCallback(() => {
-    setIsClosing((previous) => {
-      if (previous) return previous;
-      return true;
-    });
+    setIsClosing((previous) => previous || true);
   }, []);
+
+  const handleCloseClick = () => {
+    const isDesktop = window.matchMedia(
+      "(min-width: 1024px)",
+    ).matches;
+
+    if (isDesktop) {
+      onClose();
+    } else {
+      beginClose();
+    }
+  };
 
   const handleDrawerAnimationEnd = (
     event: AnimationEvent<HTMLElement>,
@@ -63,6 +70,12 @@ export default function FilterDrawer({
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // Desktop sidebar should not lock body scrolling
+    // or take focus away from the page.
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      return;
+    }
 
     const previousActiveElement =
       document.activeElement as HTMLElement | null;
@@ -115,80 +128,88 @@ export default function FilterDrawer({
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-
       document.body.style.overflow = previousOverflow;
-
       previousActiveElement?.focus();
     };
-  }, [isOpen, onClose, beginClose]);
-
-  if (!isOpen) return null;
+  }, [isOpen, beginClose]);
 
   return (
-    <div className="fixed inset-0 z-100">
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Close filters"
-        tabIndex={-1}
-        onClick={beginClose}
-        className={`sepy-filter-motion absolute inset-0 h-full w-full cursor-default bg-black/35 ${
-          isClosing
-            ? "animate-[sepy-filter-fade-out_320ms_ease-in_forwards]"
-            : "animate-[sepy-filter-fade-in_320ms_ease-out]"
-        }`}
-      />
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Close filters"
+          tabIndex={-1}
+          onClick={beginClose}
+          className={`sepy-filter-motion absolute inset-0 z-100 h-full w-full cursor-default bg-black/35 lg:hidden ${
+            isClosing
+              ? "animate-[sepy-filter-fade-out_320ms_ease-in_forwards]"
+              : "animate-[sepy-filter-fade-in_320ms_ease-out]"
+          }`}
+        />
+      )}
 
-      {/* Drawer */}
-      <aside
-        ref={drawerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="product-filter-title"
-        tabIndex={-1}
-        onAnimationEnd={handleDrawerAnimationEnd}
-        className={`sepy-filter-motion absolute inset-y-0 right-0 flex h-dvh w-full max-w-120 flex-col bg-white shadow-2xl outline-none ${
-          isClosing
-            ? "animate-[sepy-filter-slide-out_320ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
-            : "animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"
-        }`}
+      {/* Shared filter content: desktop sidebar + mobile drawer */}
+      <div
+        className="contents lg:col-start-1 lg:row-start-2 lg:block lg:min-w-0 lg:overflow-hidden"
+        aria-hidden={!isOpen}
+        inert={!isOpen}
       >
-        {/* Header */}
-        <header className="flex shrink-0 items-center justify-between border-b border-[#e8e8e3] px-5 py-5 sm:px-7">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#85857e]">
-              SEPY / Refine
-            </p>
+        <aside
+          ref={drawerRef}
+          role="region"
+          aria-label="Product filters"
+          tabIndex={-1}
+          onAnimationEnd={handleDrawerAnimationEnd}
+          className={`sepy-filter-motion ${
+            isOpen
+              ? "fixed inset-y-0 right-0 z-100 flex h-dvh w-full max-w-120 flex-col animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"
+              : "hidden"
+          } bg-white outline-none lg:sticky lg:top-24 lg:z-auto lg:flex lg:h-[calc(100dvh-6rem)] lg:w-64 lg:max-w-none lg:flex-col lg:shadow-none lg:transition-[opacity,transform] lg:duration-300 lg:ease-in-out ${
+            isOpen
+              ? "lg:translate-x-0 lg:opacity-100"
+              : "lg:-translate-x-3 lg:opacity-0"
+          } ${
+            isClosing
+              ? "animate-[sepy-filter-slide-out_320ms_cubic-bezier(0.22,1,0.36,1)_forwards]"
+              : ""
+          }`}
+        >
+          {/* Header */}
+          <header className="flex shrink-0 items-center justify-between border-b border-[#e8e8e3] px-5 py-5 sm:px-7 lg:px-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#85857e]">
+                SEPY / Refine
+              </p>
 
-            <h2
-              id="product-filter-title"
-              className="mt-1 text-xl font-semibold tracking-[-0.035em] text-[#171717]"
+              <h2 className="mt-1 text-xl font-semibold tracking-[-0.035em] text-[#171717]">
+                Filters
+              </h2>
+            </div>
+
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={handleCloseClick}
+              aria-label="Close filter panel"
+              className="flex size-10 items-center justify-center rounded-full border border-[#e8e8e3] text-[#171717] transition-colors hover:bg-[#f7f7f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             >
-              Filters
-            </h2>
+              <MdClose size={21} />
+            </button>
+          </header>
+
+          {/* Filter Content */}
+          <div className="sepy-scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7 lg:px-4">
+            {children}
           </div>
 
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={beginClose}
-            aria-label="Close filter panel"
-            className="flex size-10 items-center justify-center rounded-full border border-[#e8e8e3] text-[#171717] transition-colors hover:bg-[#f7f7f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-          >
-            <MdClose size={21} />
-          </button>
-        </header>
-
-        {/* Scrollable Content */}
-        <div className="sepy-scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-7">
-          {children}
-        </div>
-
-        {/* Sticky Footer */}
-        <footer className="shrink-0 border-t border-[#e8e8e3] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-7">
-          {footer}
-        </footer>
-      </aside>
+          {/* Footer */}
+          <footer className="shrink-0 border-t border-[#e8e8e3] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-7 lg:px-4">
+            {footer}
+          </footer>
+        </aside>
+      </div>
 
       <style jsx global>{`
         @keyframes sepy-filter-fade-in {
@@ -234,9 +255,10 @@ export default function FilterDrawer({
         @media (prefers-reduced-motion: reduce) {
           .sepy-filter-motion {
             animation-duration: 1ms !important;
+            transition-duration: 1ms !important;
           }
         }
       `}</style>
-    </div>
+    </>
   );
 }
