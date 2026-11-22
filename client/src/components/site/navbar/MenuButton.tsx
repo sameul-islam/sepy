@@ -10,7 +10,6 @@ type MenuButtonProps = {
   searchButtonRef: RefObject<HTMLButtonElement | null>;
 };
 
-
 export default function MenuButton({
   isOpen,
   onClick,
@@ -65,7 +64,7 @@ export default function MenuButton({
         type="button"
         onClick={onSearchClick}
         aria-label="Open search"
-        className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60"
+        className="flex h-10 w-10 items-center justify-center transition-opacity duration-300 hover:opacity-60 cursor-pointer"
       >
         <span className="flex gap-x-1.5">
           <PiMagnifyingGlass

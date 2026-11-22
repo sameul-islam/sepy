@@ -469,6 +469,15 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
   };
 
   return (
+    <>
+    {/* Search backdrop */}
+    <button
+      type="button"
+      aria-label="Close search"
+      tabIndex={-1}
+      onClick={onClose}
+      className="fixed inset-0 z-40 cursor-default bg-transparent"
+    />
     <div
       id="sepy-search-dialog"
       role="dialog"
@@ -528,5 +537,6 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
         <div className="hidden h-2 shrink-0 lg:block" />
       </div>
     </div>
+        </>
   );
 }

@@ -50,7 +50,8 @@ type ProductFiltersProps = {
   minPrice?: number;
   maxPrice?: number;
   inStock: boolean;
-  sort: "newest" | "price-asc" | "price-desc";
+  sort: "relevance" | "newest" | "price-asc" | "price-desc";
+  searchMode: boolean;
 };
 
 const DEPARTMENT_OPTIONS = [
@@ -63,6 +64,11 @@ const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
   { label: "Price: Low to High", value: "price-asc" },
   { label: "Price: High to Low", value: "price-desc" },
+];
+
+const SEARCH_SORT_OPTIONS = [
+  { label: "Relevance", value: "relevance" },
+  ...SORT_OPTIONS,
 ];
 
 const EMPTY_FILTER: ProductFilterDraft = {
@@ -89,6 +95,7 @@ export default function ProductFilters({
   maxPrice,
   inStock,
   sort,
+  searchMode,
 }: ProductFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -330,7 +337,7 @@ export default function ProductFilters({
       }
     }
 
-    if (nextSort === "newest") {
+    if (nextSort === "relevance" || (nextSort === "newest" && !searchMode)) {
       params.delete("sort");
     } else {
       params.set("sort", nextSort);
@@ -380,7 +387,7 @@ export default function ProductFilters({
                 label="Sort by"
                 hideLabel
                 value={sort}
-                options={SORT_OPTIONS}
+                options={searchMode ? SEARCH_SORT_OPTIONS : SORT_OPTIONS}
                 placeholder="Sort by"
                 onChange={updateSort}
               />
