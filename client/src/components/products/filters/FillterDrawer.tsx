@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -45,15 +44,10 @@ export default function FilterDrawer({
     setIsClosing(true);
   }, []);
 
-  const handleDrawerAnimationEnd = (
-    event: AnimationEvent<HTMLElement>,
-  ) => {
+  const handleDrawerAnimationEnd = (event: AnimationEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
 
-    if (
-      event.animationName === "sepy-filter-slide-out" &&
-      isClosing
-    ) {
+    if (event.animationName === "sepy-filter-slide-out" && isClosing) {
       onClose();
     }
   };
@@ -66,8 +60,7 @@ export default function FilterDrawer({
       return;
     }
 
-    const previousActiveElement =
-      document.activeElement as HTMLElement | null;
+    const previousActiveElement = document.activeElement as HTMLElement | null;
 
     const previousOverflow = document.body.style.overflow;
 
@@ -85,17 +78,16 @@ export default function FilterDrawer({
         return;
       }
 
-      const focusableElements =
-        drawerRef.current.querySelectorAll<HTMLElement>(
-          [
-            'button:not([disabled])',
-            'input:not([disabled])',
-            'select:not([disabled])',
-            'textarea:not([disabled])',
-            'a[href]',
-            '[tabindex]:not([tabindex="-1"])',
-          ].join(","),
-        );
+      const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
+        [
+          "button:not([disabled])",
+          "input:not([disabled])",
+          "select:not([disabled])",
+          "textarea:not([disabled])",
+          "a[href]",
+          '[tabindex]:not([tabindex="-1"])',
+        ].join(","),
+      );
 
       if (focusableElements.length === 0) {
         event.preventDefault();
@@ -105,19 +97,12 @@ export default function FilterDrawer({
 
       const firstElement = focusableElements[0];
 
-      const lastElement =
-        focusableElements[focusableElements.length - 1];
+      const lastElement = focusableElements[focusableElements.length - 1];
 
-      if (
-        event.shiftKey &&
-        document.activeElement === firstElement
-      ) {
+      if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement.focus();
-      } else if (
-        !event.shiftKey &&
-        document.activeElement === lastElement
-      ) {
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
         event.preventDefault();
         firstElement.focus();
       }
@@ -156,7 +141,7 @@ export default function FilterDrawer({
       {/* One shared filter panel for both responsive layouts */}
       <div
         id="product-filters-panel"
-        className="min-w-0 overflow-hidden"
+        className="min-w-0 lg:overflow-clip"
         aria-hidden={isPanelHidden}
         inert={isPanelHidden}
       >
@@ -171,9 +156,9 @@ export default function FilterDrawer({
             isOpen
               ? "fixed inset-y-0 right-0 z-100 flex h-dvh w-full max-w-120 flex-col animate-[sepy-filter-slide-in_320ms_cubic-bezier(0.22,1,0.36,1)]"
               : "hidden"
-          } bg-white outline-none lg:sticky lg:top-24 lg:z-auto lg:flex lg:h-[calc(100dvh-6rem)] lg:w-64 lg:max-w-none lg:flex-col lg:shadow-none lg:transition-[opacity,transform] lg:duration-300 lg:ease-in-out ${
+          } bg-white outline-none lg:sticky lg:top-24 lg:z-auto lg:flex lg:h-[calc(100dvh-6rem)] lg:w-64 lg:max-w-none lg:flex-col lg:shadow-none lg:transition-[opacity,translate] lg:duration-300 lg:ease-in-out ${
             isSidebarVisible
-              ? "lg:translate-x-0 lg:opacity-100"
+              ? "lg:translate-x-0 lg:opacity-100 lg:delay-300"
               : "lg:-translate-x-full lg:opacity-0 lg:pointer-events-none"
           } ${
             isClosing

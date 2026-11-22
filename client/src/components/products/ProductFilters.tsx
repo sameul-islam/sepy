@@ -10,8 +10,8 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { MdKeyboardArrowDown, MdTune } from "react-icons/md";
-import { MdGridView, MdGridOn } from "react-icons/md";
+import ProductFiltersToolbar from "./ProductFiltersToolbar";
+import ProductFilterControls from "./filters/ProductFilterControls";
 
 import type { Category, ProductFilterOptions } from "@/lib/api-types";
 
@@ -21,17 +21,11 @@ import {
   type ProductGridView,
 } from "./ProductGridViewContext";
 
-import AvailabilityFilter from "./filters/AvailabilityFilter";
-import ColorFilter from "./filters/ColorFilter";
 import FilterDrawer from "./filters/FillterDrawer";
-import FilterSelect from "./filters/FilterSelect";
-import PriceFilter from "./filters/PriceFilter";
-import SizeFilter from "./filters/SizeFilter";
 
 import {
   countActiveFilters,
   createFilterDraft,
-  toggleFilterValue,
   validatePriceRange,
 } from "./filters/filter-utils";
 
@@ -53,24 +47,6 @@ type ProductFiltersProps = {
   sort: "relevance" | "featured" | "newest" | "price-asc" | "price-desc";
   searchMode: boolean;
 };
-
-const DEPARTMENT_OPTIONS = [
-  { label: "All departments", value: "" },
-  { label: "Women", value: "women" },
-  { label: "Men", value: "men" },
-];
-
-const SORT_OPTIONS = [
-  { label: "Featured", value: "featured" },
-  { label: "Newest", value: "newest" },
-  { label: "Price: Low to High", value: "price-asc" },
-  { label: "Price: High to Low", value: "price-desc" },
-];
-
-const SEARCH_SORT_OPTIONS = [
-  { label: "Relevance", value: "relevance" },
-  ...SORT_OPTIONS,
-];
 
 const EMPTY_FILTER: ProductFilterDraft = {
   department: "",
@@ -371,106 +347,25 @@ export default function ProductFilters({
     });
   };
 
-  const availableCategories = categories;
-
   return (
     <div className="space-y-4">
-      <section className="py-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-4">
-            {/* Mobile filter trigger */}
-            <button
-              type="button"
-              onClick={toggleFilters}
-              aria-haspopup="dialog"
-              aria-expanded={isDrawerOpen}
-              aria-controls="product-filters-panel"
-              className="inline-flex min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer lg:hidden"
-            >
-              <MdTune size={19} aria-hidden="true" />
-              <span>Filter</span>
-
-              {activeFilterCount > 0 && (
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            {/* Desktop sidebar trigger */}
-            <button
-              type="button"
-              onClick={toggleFilters}
-              aria-expanded={isSidebarVisible}
-              aria-controls="product-filters-panel"
-              className="hidden min-h-10 shrink-0 items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] cursor-pointer lg:inline-flex"
-            >
-              <MdTune size={19} aria-hidden="true" />
-
-              <span>{isSidebarVisible ? "Hide Filters" : "Show Filters"}</span>
-
-              {activeFilterCount > 0 && (
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            <div className="w-40 sm:w-47.5">
-              <FilterSelect
-                label="Sort by"
-                hideLabel
-                value={sort}
-                options={searchMode ? SEARCH_SORT_OPTIONS : SORT_OPTIONS}
-                placeholder="Sort by"
-                onChange={updateSort}
-              />
-            </div>
-          </div>
-
-          <div
-            className="flex shrink-0 items-center gap-1"
-            role="group"
-            aria-label="Product grid layout"
-          >
-            <button
-              type="button"
-              onClick={() => setGridView("comfortable")}
-              aria-label="Comfortable grid view"
-              aria-pressed={gridView === "comfortable"}
-              title="Comfortable grid"
-              className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                gridView === "comfortable"
-                  ? "bg-[#171717] text-white"
-                  : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-              }`}
-            >
-              <MdGridView size={21} aria-hidden="true" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setGridView("compact")}
-              aria-label="Compact grid view"
-              aria-pressed={gridView === "compact"}
-              title="Compact grid"
-              className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                gridView === "compact"
-                  ? "bg-[#171717] text-white"
-                  : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-              }`}
-            >
-              <MdGridOn size={21} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </section>
+      <ProductFiltersToolbar
+        activeFilterCount={activeFilterCount}
+        isSidebarVisible={isSidebarVisible}
+        isDrawerOpen={isDrawerOpen}
+        sort={sort}
+        searchMode={searchMode}
+        gridView={gridView}
+        onToggleFilters={toggleFilters}
+        onSortChange={updateSort}
+        onGridViewChange={setGridView}
+      />
 
       <div
-        className={`grid min-w-0 items-start transition-[grid-template-columns,gap] duration-300 ease-in-out ${
+        className={`grid min-w-0 items-stretch transition-[grid-template-columns,gap] duration-300 ease-in-out ${
           isSidebarVisible
             ? "lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-x-8"
-            : "lg:grid-cols-[0_minmax(0,1fr)] lg:gap-x-0"
+            : "lg:grid-cols-[0_minmax(0,1fr)] lg:gap-x-0 lg:delay-300"
         }`}
       >
         <FilterDrawer
@@ -518,152 +413,15 @@ export default function ProductFilters({
             </div>
           }
         >
-          <div className="space-y-7">
-            <div>
-              <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#a09f97]">
-                Collection
-              </p>
-
-              <div className="space-y-4">
-                <FilterSelect
-                  label="Department"
-                  value={draft.department}
-                  options={DEPARTMENT_OPTIONS}
-                  placeholder="All departments"
-                  onChange={(value) =>
-                    updateDraft({
-                      department: value,
-                      category: [],
-                    })
-                  }
-                />
-
-                <section
-                  aria-labelledby="filter-category-heading"
-                  className="space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setIsCategoryOpen((previous) => !previous)}
-                      aria-expanded={isCategoryOpen}
-                      aria-controls="product-category-options"
-                      className="flex min-h-8 flex-1 items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-                    >
-                      <span
-                        id="filter-category-heading"
-                        className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
-                      >
-                        Category
-                        {draft.category.length > 0 && (
-                          <span className="ml-2 text-[#85857e]">
-                            ({draft.category.length})
-                          </span>
-                        )}
-                      </span>
-
-                      <MdKeyboardArrowDown
-                        size={21}
-                        aria-hidden="true"
-                        className={`shrink-0 text-[#5f5f5a] transition-transform duration-300 ${
-                          isCategoryOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-
-                    {draft.category.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => updateDraft({ category: [] })}
-                        className="ml-3 text-[11px] font-medium text-[#85857e] underline underline-offset-4 transition-colors hover:text-[#171717]"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-
-                  <div
-                    id="product-category-options"
-                    aria-hidden={!isCategoryOpen}
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-                      isCategoryOpen
-                        ? "grid-rows-[1fr] opacity-100"
-                        : "grid-rows-[0fr] opacity-0"
-                    }`}
-                  >
-                    <div className="min-h-0 overflow-hidden">
-                      <div
-                        className="space-y-2 pb-1 pt-1"
-                        inert={!isCategoryOpen}
-                      >
-                        {availableCategories.map((item) => {
-                          const checked = draft.category.includes(item.slug);
-
-                          return (
-                            <label
-                              key={item._id}
-                              className="flex cursor-pointer items-center gap-3 py-1 text-sm text-[#5f5f5a]"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() =>
-                                  updateDraft({
-                                    category: toggleFilterValue(
-                                      draft.category,
-                                      item.slug,
-                                    ),
-                                  })
-                                }
-                                className="size-4 accent-[#171717]"
-                              />
-
-                              <span>{item.name}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-
-            <div className="border-t border-[#eeeeea]" />
-
-            <SizeFilter
-              sizes={filterOptions.sizes}
-              value={draft.size}
-              onChange={(value) => updateDraft({ size: value })}
-            />
-
-            <div className="border-t border-[#eeeeea]" />
-
-            <ColorFilter
-              colors={filterOptions.colors}
-              value={draft.color}
-              onChange={(value) => updateDraft({ color: value })}
-            />
-
-            <div className="border-t border-[#eeeeea]" />
-
-            <PriceFilter
-              minValue={draft.minPrice}
-              maxValue={draft.maxPrice}
-              minimum={filterOptions.priceRange.min}
-              maximum={filterOptions.priceRange.max}
-              error={priceError}
-              onMinChange={(value) => updateDraft({ minPrice: value })}
-              onMaxChange={(value) => updateDraft({ maxPrice: value })}
-            />
-
-            <div className="border-t border-[#eeeeea]" />
-
-            <AvailabilityFilter
-              checked={draft.inStock}
-              onChange={(checked) => updateDraft({ inStock: checked })}
-            />
-          </div>
+          <ProductFilterControls
+            categories={categories}
+            filterOptions={filterOptions}
+            draft={draft}
+            priceError={priceError}
+            isCategoryOpen={isCategoryOpen}
+            onCategoryToggle={() => setIsCategoryOpen((previous) => !previous)}
+            onDraftChange={updateDraft}
+          />
         </FilterDrawer>
         <div className="min-w-0">
           <span className="sr-only" aria-live="polite">
