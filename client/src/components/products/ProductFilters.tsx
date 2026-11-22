@@ -50,7 +50,7 @@ type ProductFiltersProps = {
   minPrice?: number;
   maxPrice?: number;
   inStock: boolean;
-  sort: "relevance" | "newest" | "price-asc" | "price-desc";
+  sort: "relevance" | "featured" | "newest" | "price-asc" | "price-desc";
   searchMode: boolean;
 };
 
@@ -61,6 +61,7 @@ const DEPARTMENT_OPTIONS = [
 ];
 
 const SORT_OPTIONS = [
+  { label: "Featured", value: "featured" },
   { label: "Newest", value: "newest" },
   { label: "Price: Low to High", value: "price-asc" },
   { label: "Price: High to Low", value: "price-desc" },

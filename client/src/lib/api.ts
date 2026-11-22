@@ -81,7 +81,7 @@ export async function getProducts(params: {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
-  sort?: "newest" | "price-asc" | "price-desc";
+  sort?: "featured" | "newest" | "price-asc" | "price-desc";
   signal?: AbortSignal;
 }): Promise<ProductListData> {
   const searchParams = new URLSearchParams({

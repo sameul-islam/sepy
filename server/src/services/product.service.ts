@@ -176,13 +176,20 @@ export const getActiveProducts = async (query: ProductListQuery) => {
 
   // Determine product sorting.
   const sortStage: Record<string, 1 | -1> =
-    sort === "price-asc"
-      ? { price: 1, createdAt: -1, _id: 1 }
-      : sort === "price-desc"
-        ? { price: -1, createdAt: -1, _id: 1 }
-        : search && sort === undefined
-          ? { searchScore: -1, createdAt: -1, _id: 1 }
-          : { createdAt: -1, _id: 1 };
+    sort === "featured"
+      ? {
+          isFeatured: -1,
+          featuredOrder: 1,
+          createdAt: -1,
+          _id: 1,
+        }
+      : sort === "price-asc"
+        ? { price: 1, createdAt: -1, _id: 1 }
+        : sort === "price-desc"
+          ? { price: -1, createdAt: -1, _id: 1 }
+          : search && sort === undefined
+            ? { searchScore: -1, createdAt: -1, _id: 1 }
+            : { createdAt: -1, _id: 1 };
 
   const skip = (page - 1) * limit;
 

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
@@ -31,7 +30,12 @@ type ProductListingPageProps = {
   searchParams: Promise<SearchParams>;
 };
 
-type SortOption = "relevance" | "newest" | "price-asc" | "price-desc";
+type SortOption =
+  | "relevance"
+  | "featured"
+  | "newest"
+  | "price-asc"
+  | "price-desc";
 
 function getSingleValue(
   value: string | string[] | undefined,
@@ -71,9 +75,14 @@ function getPrice(value: string | undefined): number | undefined {
 }
 
 function getSort(value: string | undefined, mode: ListingMode): SortOption {
-  if (value === "price-asc" || value === "price-desc" || value === "newest") {
-    return value;
-  }
+if (
+  value === "featured" ||
+  value === "price-asc" ||
+  value === "price-desc" ||
+  value === "newest"
+) {
+  return value;
+}
 
   return mode === "search" ? "relevance" : "newest";
 }
@@ -296,22 +305,15 @@ export default async function ProductListingPage({
   return (
     <main className="mx-auto w-full max-w-500 px-3 pb-20 pt-20 sm:px-8 sm:pb-28 sm:pt-28 lg:px-12">
       <header className="mb-8 sm:mb-10">
-        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-[#85857e]">
+        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#85857e]">
           SEPY / {mode === "search" ? "Search" : "Shop"}
         </p>
 
         <h1 className="mt-3 text-center font-display text-3xl font-semibold tracking-tight text-[#171717] sm:text-5xl">
           {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle}
         </h1>
-
-        {/* {mode === "catalog" && (
-          <p className="mx-auto mt-3 max-w-xl text-center text-xs leading-5 text-[#5f5f5a] sm:text-sm">
-            Performance essentials, designed for movement and everyday life.
-          </p>
-        )} */}
-
         <p
-          className="mt-4 text-center text-xs font-medium text-[#5f5f5a]"
+          className="mt-4 text-center text-xs font-bold text-[#5f5f5a]"
           aria-live="polite"
         >
           {pagination.total} {pagination.total === 1 ? "product" : "products"}

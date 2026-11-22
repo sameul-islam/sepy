@@ -287,7 +287,7 @@ export const productListQuerySchema = z
       .transform((value) => value === "true")
       .optional(),
 
-    sort: z.enum(["newest", "price-asc", "price-desc"]).optional(),
+    sort: z.enum(["featured", "newest", "price-asc", "price-desc"]).optional(),
   })
   .strict()
   .refine(
