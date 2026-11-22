@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -10,12 +11,16 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+
 import ProductFiltersToolbar from "./ProductFiltersToolbar";
 import ProductFilterControls from "./filters/ProductFilterControls";
-
-import type { Category, ProductFilterOptions } from "@/lib/api-types";
-
 import ProductGridSkeleton from "./ProductGridSkeleton";
+
+import type {
+  Category,
+  ProductFilterOptions,
+} from "@/lib/api-types";
+
 import {
   ProductGridViewContext,
   type ProductGridView,
@@ -77,24 +82,14 @@ export default function ProductFilters({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [gridView, setGridView] = useState<ProductGridView>("compact");
+  const [gridView, setGridView] =
+    useState<ProductGridView>("compact");
+
   const [isPending, startTransition] = useTransition();
-  const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] = useState(false);
-
-  useEffect(() => {
-    if (!isPending) return;
-
-    const timer = setTimeout(() => {
-      setIsSkeletonDelayComplete(true);
-    }, 180);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isPending]);
+  const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] =
+    useState(false);
 
   const appliedDraft = useMemo(
     () =>
@@ -107,14 +102,27 @@ export default function ProductFilters({
         maxPrice,
         inStock,
       }),
-    [department, category, size, color, minPrice, maxPrice, inStock],
+    [
+      department,
+      category,
+      size,
+      color,
+      minPrice,
+      maxPrice,
+      inStock,
+    ],
   );
 
-  const [draft, setDraft] = useState<ProductFilterDraft>(() => appliedDraft);
+  const [draft, setDraft] = useState<ProductFilterDraft>(
+    () => appliedDraft,
+  );
+
   const [priceError, setPriceError] = useState("");
 
   const queryRef = useRef(currentQuery);
-  const priceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const priceTimerRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const priceDraftRef = useRef({
     minPrice: appliedDraft.minPrice,
@@ -126,15 +134,24 @@ export default function ProductFilters({
   }, []);
 
   const toggleFilters = () => {
-    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    setIsDrawerOpen((previous) => !previous);
+  };
 
-    if (isDesktop) {
-      setIsSidebarVisible((previous) => !previous);
+  // Keep the skeleton delay consistent across transitions.
+  useEffect(() => {
+    if (!isPending) {
+      setIsSkeletonDelayComplete(false);
       return;
     }
 
-    setIsDrawerOpen(true);
-  };
+    const timer = setTimeout(() => {
+      setIsSkeletonDelayComplete(true);
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isPending]);
 
   const clearPriceTimer = () => {
     if (priceTimerRef.current !== null) {
@@ -143,11 +160,12 @@ export default function ProductFilters({
     }
   };
 
-  // Keep the local filter values synchronized with URL navigation.
+  // Keep local filter values synchronized with URL navigation.
   useEffect(() => {
     queryRef.current = currentQuery;
 
     const pendingPrice = priceDraftRef.current;
+
     const validationError = validatePriceRange(
       pendingPrice.minPrice,
       pendingPrice.maxPrice,
@@ -158,6 +176,7 @@ export default function ProductFilters({
         ...appliedDraft,
         ...pendingPrice,
       });
+
       setPriceError(validationError);
     } else {
       priceDraftRef.current = {
@@ -176,7 +195,7 @@ export default function ProductFilters({
 
   const activeFilterCount = countActiveFilters(draft);
 
-  // Update the URL and let the Server Component fetch the new products.
+  // Update the URL and let the Server Component fetch new products.
   const updateUrl = (
     nextDraft: ProductFilterDraft,
     preserveCurrentPrice = false,
@@ -230,13 +249,16 @@ export default function ProductFilters({
     queryRef.current = query;
 
     startTransition(() => {
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
+      router.replace(
+        query ? `${pathname}?${query}` : pathname,
+        { scroll: false },
+      );
     });
   };
 
-  const updateDraft = (updates: Partial<ProductFilterDraft>) => {
+  const updateDraft = (
+    updates: Partial<ProductFilterDraft>,
+  ) => {
     const nextDraft = {
       ...draft,
       ...updates,
@@ -244,7 +266,8 @@ export default function ProductFilters({
 
     setDraft(nextDraft);
 
-    const isPriceUpdate = "minPrice" in updates || "maxPrice" in updates;
+    const isPriceUpdate =
+      "minPrice" in updates || "maxPrice" in updates;
 
     if (isPriceUpdate) {
       priceDraftRef.current = {
@@ -276,8 +299,7 @@ export default function ProductFilters({
     // Apply non-price filters immediately.
     clearPriceTimer();
 
-    // Do not send invalid price values to the backend.
-    // Keep the last valid price values already present in the URL.
+    // Preserve the last valid price values in the URL.
     updateUrl(nextDraft, Boolean(validationError));
   };
 
@@ -300,8 +322,7 @@ export default function ProductFilters({
 
     const params = new URLSearchParams(queryRef.current);
 
-    // Preserve valid price values that are still waiting
-    // for the debounce timer to complete.
+    // Preserve valid price values waiting for debounce.
     const pendingPrice = priceDraftRef.current;
 
     const validationError = validatePriceRange(
@@ -326,7 +347,10 @@ export default function ProductFilters({
       }
     }
 
-    if (nextSort === "relevance" || (nextSort === "newest" && !searchMode)) {
+    if (
+      nextSort === "relevance" ||
+      (nextSort === "newest" && !searchMode)
+    ) {
       params.delete("sort");
     } else {
       params.set("sort", nextSort);
@@ -341,17 +365,18 @@ export default function ProductFilters({
     queryRef.current = query;
 
     startTransition(() => {
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
+      router.replace(
+        query ? `${pathname}?${query}` : pathname,
+        { scroll: false },
+      );
     });
   };
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <ProductFiltersToolbar
         activeFilterCount={activeFilterCount}
-        isSidebarVisible={isSidebarVisible}
+        isSidebarVisible={isDrawerOpen}
         isDrawerOpen={isDrawerOpen}
         sort={sort}
         searchMode={searchMode}
@@ -361,85 +386,79 @@ export default function ProductFilters({
         onGridViewChange={setGridView}
       />
 
-      <div
-        className={`grid min-w-0 items-stretch transition-[grid-template-columns,gap] duration-300 ease-in-out ${
-          isSidebarVisible
-            ? "lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-x-8"
-            : "lg:grid-cols-[0_minmax(0,1fr)] lg:gap-x-0 lg:delay-300"
-        }`}
+      <FilterDrawer
+        isOpen={isDrawerOpen}
+        onClose={closeDrawer}
+        footer={
+          <div className="space-y-3">
+            {priceError && (
+              <p role="alert" className="text-xs font-bold text-red-700">
+                {priceError}
+              </p>
+            )}
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                disabled={activeFilterCount === 0}
+                className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-bold text-[#5f5f5a] transition-all duration-300 hover:border-[#171717] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#deded8] disabled:hover:text-[#5f5f5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
+              >
+                Clear all
+              </button>
+
+              <button
+                type="button"
+                onClick={closeDrawer}
+                disabled={isPending || Boolean(priceError)}
+                aria-live="polite"
+                className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
+              >
+                {isPending ? (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="size-3 animate-spin rounded-full border-2 border-white/35 border-t-white"
+                    />
+                    Updating results...
+                  </span>
+                ) : (
+                  `View ${totalProducts} Results`
+                )}
+              </button>
+            </div>
+          </div>
+        }
       >
-        <FilterDrawer
-          isOpen={isDrawerOpen}
-          isSidebarVisible={isSidebarVisible}
-          onClose={closeDrawer}
-          footer={
-            <div className="space-y-3">
-              {priceError && (
-                <p role="alert" className="text-xs text-red-700">
-                  {priceError}
-                </p>
-              )}
-
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  disabled={activeFilterCount === 0}
-                  className="min-h-12 flex-1 border border-[#deded8] px-4 text-xs font-semibold text-[#5f5f5a] transition-all hover:border-[#171717] hover:text-[#171717] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-[#deded8] disabled:hover:text-[#5f5f5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-                >
-                  Clear all
-                </button>
-
-                <button
-                  type="button"
-                  onClick={closeDrawer}
-                  disabled={isPending || Boolean(priceError)}
-                  aria-live="polite"
-                  className="min-h-12 flex-[1.5] bg-[#171717] px-5 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-[#383838] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-                >
-                  {isPending ? (
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <span
-                        aria-hidden="true"
-                        className="size-3 animate-spin rounded-full border-2 border-white/35 border-t-white"
-                      />
-                      Updating results...
-                    </span>
-                  ) : (
-                    `View ${totalProducts} Results`
-                  )}
-                </button>
-              </div>
-            </div>
+        <ProductFilterControls
+          categories={categories}
+          filterOptions={filterOptions}
+          draft={draft}
+          priceError={priceError}
+          isCategoryOpen={isCategoryOpen}
+          onCategoryToggle={() =>
+            setIsCategoryOpen((previous) => !previous)
           }
-        >
-          <ProductFilterControls
-            categories={categories}
-            filterOptions={filterOptions}
-            draft={draft}
-            priceError={priceError}
-            isCategoryOpen={isCategoryOpen}
-            onCategoryToggle={() => setIsCategoryOpen((previous) => !previous)}
-            onDraftChange={updateDraft}
-          />
-        </FilterDrawer>
-        <div className="min-w-0">
-          <span className="sr-only" aria-live="polite">
-            {isPending
-              ? "Updating product results"
-              : `${totalProducts} products available`}
-          </span>
+          onDraftChange={updateDraft}
+        />
+      </FilterDrawer>
 
-          <ProductGridViewContext.Provider value={gridView}>
-            <div aria-busy={isPending}>
-              {isPending && isSkeletonDelayComplete ? (
-                <ProductGridSkeleton />
-              ) : (
-                children
-              )}
-            </div>
-          </ProductGridViewContext.Provider>
-        </div>
+      <div className="min-w-0">
+        <span className="sr-only" aria-live="polite">
+          {isPending
+            ? "Updating product results"
+            : `${totalProducts} products available`}
+        </span>
+
+        <ProductGridViewContext.Provider value={gridView}>
+          <div aria-busy={isPending}>
+            {isPending && isSkeletonDelayComplete ? (
+              <ProductGridSkeleton />
+            ) : (
+              children
+            )}
+          </div>
+        </ProductGridViewContext.Provider>
       </div>
     </div>
   );

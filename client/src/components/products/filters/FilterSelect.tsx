@@ -14,7 +14,6 @@ import {
 } from "react-icons/md";
 
 import type { FilterSelectOption } from "./types";
-import { BiSort } from "react-icons/bi";
 
 type FilterSelectProps = {
   label: string;
@@ -171,9 +170,9 @@ export default function FilterSelect({
             openMenu();
           }
         }}
-        className="flex px-3 py-2 items-center justify-between gap-1.5 border border-[#deded8] bg-white text-left text-xs sm:text-sm text-[#171717] transition-colors hover:border-[#a5a59d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
+        className="flex px-3 py-2 items-center justify-between gap-1.5 bg-white text-left text-xs sm:text-sm text-[#171717] transition-colors hover:border-[#a5a59d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
       >
-        <BiSort size={16}/>
+        <span>sort by:</span>
         <span
           className={
             selectedOption

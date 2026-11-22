@@ -309,7 +309,7 @@ export default async function ProductListingPage({
           SEPY / {mode === "search" ? "Search" : "Shop"}
         </p>
 
-        <h1 className="mt-3 text-center font-display text-3xl font-semibold tracking-tight text-[#171717] sm:text-5xl">
+        <h1 className="mt-3 text-center font-display text-5xl font-semibold tracking-tight text-[#171717] sm:text-7xl">
           {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle}
         </h1>
         <p

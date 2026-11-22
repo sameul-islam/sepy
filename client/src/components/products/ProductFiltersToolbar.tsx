@@ -49,36 +49,16 @@ export default function ProductFiltersToolbar({
     <section className="py-2">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
-          {/* Mobile filter trigger */}
           <button
             type="button"
             onClick={onToggleFilters}
             aria-haspopup="dialog"
             aria-expanded={isDrawerOpen}
             aria-controls="product-filters-panel"
-            className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] lg:hidden"
+            className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 px-3 py-1.5 font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
           >
-            <MdTune size={19} aria-hidden="true" />
+            <MdTune size={22} aria-hidden="true" />
             <span>Filter</span>
-
-            {activeFilterCount > 0 && (
-              <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {/* Desktop sidebar trigger */}
-          <button
-            type="button"
-            onClick={onToggleFilters}
-            aria-expanded={isSidebarVisible}
-            aria-controls="product-filters-panel"
-            className="hidden min-h-10 shrink-0 cursor-pointer items-center gap-2.5 border border-gray-300 px-3 py-1.5 text-xs font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] lg:inline-flex"
-          >
-            <MdTune size={19} aria-hidden="true" />
-
-            <span>{isSidebarVisible ? "Hide Filters" : "Show Filters"}</span>
 
             {activeFilterCount > 0 && (
               <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
@@ -118,7 +98,7 @@ export default function ProductFiltersToolbar({
                 : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
             }`}
           >
-            <MdGridView size={21} aria-hidden="true" />
+          <MdGridView size={21} aria-hidden="true" />
           </button>
 
           <button
