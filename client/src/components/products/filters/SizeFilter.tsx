@@ -14,29 +14,7 @@ export default function SizeFilter({
   onChange,
 }: SizeFilterProps) {
   return (
-    <section
-      aria-labelledby="filter-size-heading"
-      className="space-y-3"
-    >
-      <div className="flex items-center justify-between">
-        <h3
-          id="filter-size-heading"
-          className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
-        >
-          Size
-        </h3>
-
-        {value.length > 0 && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="text-[11px] font-medium text-[#85857e] underline underline-offset-4 hover:text-[#171717]"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
+    <section className="space-y-3">
       {sizes.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {sizes.map((size) => {
@@ -47,9 +25,7 @@ export default function SizeFilter({
                 key={size}
                 type="button"
                 aria-pressed={selected}
-                onClick={() =>
-                  onChange(toggleFilterValue(value, size))
-                }
+                onClick={() => onChange(toggleFilterValue(value, size))}
                 className={`min-w-12 border px-3.5 py-2.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
                   selected
                     ? "border-[#171717] bg-[#171717] text-white"

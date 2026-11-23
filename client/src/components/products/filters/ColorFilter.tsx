@@ -34,25 +34,6 @@ export default function ColorFilter({
 
   return (
     <section aria-labelledby="filter-color-heading" className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3
-          id="filter-color-heading"
-          className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]"
-        >
-          Color
-        </h3>
-
-        {value.length > 0 && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="text-[11px] font-medium text-[#85857e] underline underline-offset-4 hover:text-[#171717]"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
       {colors.length > 0 ? (
         <>
           <div className="grid grid-cols-6 gap-x-2 gap-y-3">
@@ -82,7 +63,7 @@ export default function ColorFilter({
                   >
                     <span
                       className="size-7 rounded-full border border-black/10"
-                      style={{ backgroundColor: swatch ?? '#cfcfc8' }}
+                      style={{ backgroundColor: swatch ?? "#cfcfc8" }}
                     />
 
                     {selected && (

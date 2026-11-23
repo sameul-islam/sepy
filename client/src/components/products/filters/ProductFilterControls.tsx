@@ -170,6 +170,8 @@ export default function ProductFilterControls({
         title="Size"
         isOpen={isSizeOpen}
         onToggle={() => setIsSizeOpen((previous) => !previous)}
+        selectedCount={draft.size.length}
+        onClear={() => onDraftChange({ size: [] })}
       >
         <SizeFilter
           sizes={filterOptions.sizes}
@@ -183,6 +185,8 @@ export default function ProductFilterControls({
         title="Color"
         isOpen={isColorOpen}
         onToggle={() => setIsColorOpen((previous) => !previous)}
+        selectedCount={draft.color.length}
+        onClear={() => onDraftChange({ color: [] })}
       >
         <ColorFilter
           colors={filterOptions.colors}
@@ -196,6 +200,13 @@ export default function ProductFilterControls({
         title="Price"
         isOpen={isPriceOpen}
         onToggle={() => setIsPriceOpen((previous) => !previous)}
+        selectedCount={draft.minPrice || draft.maxPrice ? 1 : 0}
+        onClear={() =>
+          onDraftChange({
+            minPrice: "",
+            maxPrice: "",
+          })
+        }
       >
         <PriceFilter
           minValue={draft.minPrice}
