@@ -349,3 +349,9 @@ input[type="search"]:focus-visible {
   outline: none;
   box-shadow: none;
 }
+
+/* Price Filter — use wrapper border as focus indicator */
+.price-filter-input:focus-visible {
+  outline: none;
+  outline-offset: 0;
+}

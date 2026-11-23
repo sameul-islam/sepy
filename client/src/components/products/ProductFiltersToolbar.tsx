@@ -1,11 +1,10 @@
 "use client";
 
-import { MdTune, MdGridView, MdGridOn } from "react-icons/md";
+import { MdTune } from "react-icons/md";
 
 import FilterSelect from "./filters/FilterSelect";
 import type { ProductGridView } from "./ProductGridViewContext";
-import { HiOutlineViewGrid, HiViewGrid } from "react-icons/hi";
-import { BiCheckbox, BiSolidCheckbox } from "react-icons/bi";
+import { HiOutlineViewGrid, HiViewGrid } from "react-icons/hi";;
 import { RiCheckboxBlankFill, RiCheckboxBlankLine } from "react-icons/ri";
 
 type SortOption = {
@@ -39,7 +38,6 @@ const SEARCH_SORT_OPTIONS: SortOption[] = [
 
 export default function ProductFiltersToolbar({
   activeFilterCount,
-  isSidebarVisible,
   isDrawerOpen,
   sort,
   searchMode,

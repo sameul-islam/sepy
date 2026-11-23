@@ -14,11 +14,11 @@ export default function AvailabilityFilter({
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4 py-1">
       <span>
-        <span className="block text-sm font-medium text-[#171717]">
+        <span className="block text-sm font-bold text-[#171717]">
           In-stock products
         </span>
 
-        <span className="mt-1 block text-xs text-[#85857e]">
+        <span className="mt-1 block text-xs font-bold text-[#6d6d67]">
           Show products currently available to buy
         </span>
       </span>
@@ -37,7 +37,7 @@ export default function AvailabilityFilter({
         className={`flex size-5 shrink-0 items-center justify-center border transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#171717] ${
           checked
             ? "border-[#171717] bg-[#171717] text-white"
-            : "border-[#cfcfc8] bg-white text-transparent"
+            : "border-[#51514e] bg-white text-transparent"
         }`}
       >
         <MdCheck size={15} />

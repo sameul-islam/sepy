@@ -21,7 +21,7 @@ export default function PriceFilter({
 }: PriceFilterProps) {
   return (
     <section aria-labelledby="filter-price-heading" className="space-y-3">
-      <p className="mt-1 text-[11px] text-[#85857e]">Prices in BDT (৳)</p>
+      <p className="mt-1 text-xs font-bold text-[#41413e]">Prices in BDT (৳)</p>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="min-w-0">
@@ -30,7 +30,7 @@ export default function PriceFilter({
           </span>
 
           <span className="flex min-h-12 items-center border border-[#deded8] px-3 transition-colors focus-within:border-[#171717]">
-            <span className="mr-2 text-sm text-[#85857e]">৳</span>
+            <span className="mr-2 text-sm text-[#696963]">৳</span>
 
             <input
               type="text"
@@ -41,7 +41,7 @@ export default function PriceFilter({
               placeholder={minimum === null ? "Any" : String(minimum)}
               aria-label="Minimum price in taka"
               aria-invalid={Boolean(error)}
-              className="min-w-0 w-full bg-transparent text-sm text-[#171717] outline-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden placeholder:text-[#aaa9a2]"
+              className="price-filter-input min-w-0 w-full bg-transparent text-sm font-semibold text-[#171717] outline-none placeholder:text-[#aaa9a2]"
             />
           </span>
         </label>
@@ -52,7 +52,7 @@ export default function PriceFilter({
           </span>
 
           <span className="flex min-h-12 items-center border border-[#deded8] px-3 transition-colors focus-within:border-[#171717]">
-            <span className="mr-2 text-sm text-[#85857e]">৳</span>
+            <span className="mr-2 text-sm text-[#696963]">৳</span>
 
             <input
               type="text"
@@ -63,7 +63,7 @@ export default function PriceFilter({
               placeholder={maximum === null ? "Any" : String(maximum)}
               aria-label="Maximum price in taka"
               aria-invalid={Boolean(error)}
-              className="min-w-0 w-full bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#aaa9a2]"
+              className="price-filter-input min-w-0 w-full bg-transparent text-sm font-semibold text-[#171717] outline-none placeholder:text-[#aaa9a2]"
             />
           </span>
         </label>

@@ -9,7 +9,6 @@ import ColorFilter from "./ColorFilter";
 import FilterAccordion from "./FilterAccordion";
 import PriceFilter from "./PriceFilter";
 import SizeFilter from "./SizeFilter";
-import FilterSelect from "./FilterSelect";
 
 import { toggleFilterValue } from "./filter-utils";
 import type { ProductFilterDraft } from "./types";
@@ -72,13 +71,29 @@ export default function ProductFilterControls({
           isOpen={isSortOpen}
           onToggle={() => setIsSortOpen((previous) => !previous)}
         >
-          <FilterSelect
-            label="Sort by"
-            value={sort}
-            options={searchMode ? SEARCH_SORT_OPTIONS : SORT_OPTIONS}
-            placeholder="Sort by"
-            onChange={onSortChange}
-          />
+          <div className="space-y-3">
+            {(searchMode ? SEARCH_SORT_OPTIONS : SORT_OPTIONS).map((option) => {
+              const selected = sort === option.value;
+
+              return (
+                <label
+                  key={option.value}
+                  className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-[#2c2c29]"
+                >
+                  <input
+                    type="radio"
+                    name="product-sort"
+                    value={option.value}
+                    checked={selected}
+                    onChange={() => onSortChange(option.value)}
+                    className="size-4 accent-[#171717]"
+                  />
+
+                  <span>{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
         </FilterAccordion>
       </div>
       {/* Gender */}
@@ -101,7 +116,7 @@ export default function ProductFilterControls({
             return (
               <label
                 key={option.value || "all"}
-                className="flex cursor-pointer items-center gap-3 text-sm text-[#5f5f5a]"
+                className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-[#2c2c29]"
               >
                 <input
                   type="radio"
@@ -140,7 +155,7 @@ export default function ProductFilterControls({
               return (
                 <label
                   key={item._id}
-                  className="flex cursor-pointer items-center gap-3 text-sm text-[#5f5f5a]"
+                  className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-[#2c2c29]"
                 >
                   <input
                     type="checkbox"

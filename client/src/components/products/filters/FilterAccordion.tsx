@@ -34,12 +34,12 @@ export default function FilterAccordion({
           className="flex min-h-9 flex-1 items-center justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
         >
           <span className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#5f5f5a]">
+            <span className="text-sm font-bold uppercase">
               {title}
             </span>
 
             {selectedCount > 0 && (
-              <span className="text-[11px] font-medium tabular-nums text-[#85857e]">
+              <span className="text-xs font-semibold">
                 ({selectedCount})
               </span>
             )}
@@ -47,15 +47,15 @@ export default function FilterAccordion({
 
           {isOpen ? (
             <MdRemove
-              size={19}
+              size={22}
               aria-hidden="true"
-              className="shrink-0 text-[#5f5f5a]"
+              className="shrink-0 cursor-pointer"
             />
           ) : (
             <MdAdd
-              size={19}
+              size={22}
               aria-hidden="true"
-              className="shrink-0 text-[#5f5f5a]"
+              className="shrink-0 cursor-pointer"
             />
           )}
         </button>
@@ -64,7 +64,7 @@ export default function FilterAccordion({
           <button
             type="button"
             onClick={onClear}
-            className="shrink-0 text-[11px] font-medium text-[#85857e] underline underline-offset-4 transition-colors hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+            className="shrink-0 text-xs font-semibold underline underline-offset-2 cursor-pointer"
           >
             Clear
           </button>

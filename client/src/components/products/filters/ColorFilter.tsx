@@ -55,10 +55,10 @@ export default function ColorFilter({
                   className="group flex min-w-0 flex-col items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
                 >
                   <span
-                    className={`relative flex size-9 items-center justify-center rounded-full border transition-all ${
+                    className={`relative flex size-9 items-center justify-center rounded-full border transition-all cursor-pointer ${
                       selected
-                        ? "border-[#171717] ring-1 ring-[#171717] ring-offset-2"
-                        : "border-[#deded8] group-hover:border-[#85857e]"
+                        ? "border-[#171717] border-2"
+                        : "border-[#adada8] group-hover:border-[#585852]"
                     }`}
                   >
                     <span
@@ -77,7 +77,7 @@ export default function ColorFilter({
                     )}
                   </span>
 
-                  <span className="max-w-full truncate text-[10px] capitalize text-[#85857e]">
+                  <span className="max-w-full truncate text-xs capitalize text-[#5d5d59] font-bold">
                     {color}
                   </span>
                 </button>

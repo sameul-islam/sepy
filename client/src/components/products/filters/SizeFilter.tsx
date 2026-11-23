@@ -26,10 +26,10 @@ export default function SizeFilter({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onChange(toggleFilterValue(value, size))}
-                className={`min-w-12 border px-3.5 py-2.5 text-xs font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                className={`min-w-12 border px-3.5 py-2.5 text-xs font-bold tracking-wide uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer ${
                   selected
                     ? "border-[#171717] bg-[#171717] text-white"
-                    : "border-[#e5e5e0] bg-white text-[#5f5f5a] hover:border-[#171717] hover:text-[#171717]"
+                    : "border-gray-400 bg-white hover:border-black hover:text-[#171717]"
                 }`}
               >
                 {size}

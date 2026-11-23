@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -27,7 +26,6 @@ export default function FilterDrawer({
 }: FilterDrawerProps) {
   const drawerRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const isClosingRef = useRef(false);
 
   const [isClosing, setIsClosing] = useState(false);
   const [previousIsOpen, setPreviousIsOpen] = useState(isOpen);
@@ -37,27 +35,20 @@ export default function FilterDrawer({
     setPreviousIsOpen(isOpen);
 
     if (isOpen) {
-      isClosingRef.current = false;
       setIsClosing(false);
     }
   }
 
   const beginClose = useCallback(() => {
-    if (isClosingRef.current) return;
+    if (isClosing) return;
 
-    isClosingRef.current = true;
     setIsClosing(true);
-  }, []);
+  }, [isClosing]);
 
-  const handleAnimationEnd = (
-    event: AnimationEvent<HTMLElement>,
-  ) => {
+  const handleAnimationEnd = (event: AnimationEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
 
-    if (
-      event.animationName === "sepy-filter-slide-out" &&
-      isClosingRef.current
-    ) {
+    if (event.animationName === "sepy-filter-slide-out" && isClosing) {
       onClose();
     }
   };
@@ -66,8 +57,7 @@ export default function FilterDrawer({
   useEffect(() => {
     if (!isOpen) return;
 
-    const previousActiveElement =
-      document.activeElement as HTMLElement | null;
+    const previousActiveElement = document.activeElement as HTMLElement | null;
 
     const previousOverflow = document.body.style.overflow;
 
@@ -85,17 +75,16 @@ export default function FilterDrawer({
         return;
       }
 
-      const focusableElements =
-        drawerRef.current.querySelectorAll<HTMLElement>(
-          [
-            "button:not([disabled])",
-            "input:not([disabled])",
-            "select:not([disabled])",
-            "textarea:not([disabled])",
-            "a[href]",
-            '[tabindex]:not([tabindex="-1"])',
-          ].join(","),
-        );
+      const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
+        [
+          "button:not([disabled])",
+          "input:not([disabled])",
+          "select:not([disabled])",
+          "textarea:not([disabled])",
+          "a[href]",
+          '[tabindex]:not([tabindex="-1"])',
+        ].join(","),
+      );
 
       if (focusableElements.length === 0) {
         event.preventDefault();
@@ -104,19 +93,12 @@ export default function FilterDrawer({
       }
 
       const firstElement = focusableElements[0];
-      const lastElement =
-        focusableElements[focusableElements.length - 1];
+      const lastElement = focusableElements[focusableElements.length - 1];
 
-      if (
-        event.shiftKey &&
-        document.activeElement === firstElement
-      ) {
+      if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement.focus();
-      } else if (
-        !event.shiftKey &&
-        document.activeElement === lastElement
-      ) {
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
         event.preventDefault();
         firstElement.focus();
       }
@@ -170,9 +152,7 @@ export default function FilterDrawer({
         {/* Header */}
         <header className="flex shrink-0 items-center justify-between border-b border-[#e8e8e3] px-5 py-5 sm:px-7">
           <div>
-            <h2 className="mt-1 text-xl font-bold text-[#171717]">
-              Filters
-            </h2>
+            <h2 className="mt-1 text-xl font-bold text-[#171717]">Filters</h2>
           </div>
 
           <button

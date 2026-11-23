@@ -336,22 +336,22 @@ export default async function ProductListingPage({
         searchMode={mode === "search"}
       >
         {products.length === 0 ? (
-          <section className="border-t border-[#e5e5e0] py-20 text-center sm:py-28">
-            <h2 className="text-xl font-medium text-[#171717]">
+          <section className="py-20 text-center sm:py-28">
+            <h2 className="text-xl font-semibold text-[#171717]">
               {mode === "search"
                 ? "No matching products found"
                 : "Nothing here just yet"}
             </h2>
 
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[#5f5f5a]">
+            <p className="mx-auto mt-3 max-w-sm text-sm font-semibold leading-6 text-[#5f5f5a]">
               {mode === "search"
                 ? "Try another search term or adjust your filters to explore more of the collection."
                 : "There are no products to display in this selection. Explore the full collection instead."}
             </p>
 
             <Link
-              href={mode === "search" ? "/search" : "/products"}
-              className="mt-6 inline-flex border-b border-[#171717] pb-1 text-sm text-[#171717]"
+              href={mode === "search" ? "/" : "/products"}
+              className="mt-6 inline-flex underline underline-offset-4 pb-1 text-sm font-bold text-[#171717]"
             >
               {mode === "search" ? "Search again" : "Explore all products"}
             </Link>

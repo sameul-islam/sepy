@@ -8,10 +8,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
-import {
-  MdCheck,
-  MdExpandMore,
-} from "react-icons/md";
+import { MdCheck, MdExpandMore } from "react-icons/md";
 
 import type { FilterSelectOption } from "./types";
 
@@ -22,6 +19,7 @@ type FilterSelectProps = {
   placeholder: string;
   onChange: (value: string) => void;
   hideLabel?: boolean;
+  menuPosition?: "absolute" | "static";
 };
 
 export default function FilterSelect({
@@ -31,34 +29,27 @@ export default function FilterSelect({
   placeholder,
   onChange,
   hideLabel = false,
+  menuPosition = "absolute",
 }: FilterSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const optionRefs = useRef<
-    Array<HTMLButtonElement | null>
-  >([]);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const listboxId = useId();
 
-  const selectedIndex = options.findIndex(
-    (option) => option.value === value,
-  );
+  const selectedIndex = options.findIndex((option) => option.value === value);
 
   const selectedOption =
     selectedIndex >= 0 ? options[selectedIndex] : undefined;
 
-  // Handle outside click and initial focus.
   useEffect(() => {
     if (!isOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (
-        rootRef.current &&
-        !rootRef.current.contains(event.target as Node)
-      ) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -71,57 +62,34 @@ export default function FilterSelect({
       }
     };
 
-    document.addEventListener(
-      "pointerdown",
-      handlePointerDown,
-    );
-
+    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
 
-    const focusIndex =
-      selectedIndex >= 0 ? selectedIndex : 0;
-
+    const focusIndex = selectedIndex >= 0 ? selectedIndex : 0;
     optionRefs.current[focusIndex]?.focus();
 
     return () => {
-      document.removeEventListener(
-        "pointerdown",
-        handlePointerDown,
-      );
-
-      document.removeEventListener(
-        "keydown",
-        handleEscape,
-      );
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, selectedIndex]);
 
-  const handleMenuKeyDown = (
-    event: ReactKeyboardEvent<HTMLDivElement>,
-  ) => {
+  const handleMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (options.length === 0) return;
 
     const currentIndex = optionRefs.current.findIndex(
       (option) => option === document.activeElement,
     );
 
-    if (
-      event.key === "ArrowDown" ||
-      event.key === "ArrowUp"
-    ) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
 
-      const direction =
-        event.key === "ArrowDown" ? 1 : -1;
+      const direction = event.key === "ArrowDown" ? 1 : -1;
 
       const nextIndex =
         currentIndex === -1
           ? 0
-          : (
-              currentIndex +
-              direction +
-              options.length
-            ) % options.length;
+          : (currentIndex + direction + options.length) % options.length;
 
       optionRefs.current[nextIndex]?.focus();
     }
@@ -142,7 +110,7 @@ export default function FilterSelect({
   };
 
   return (
-    <div ref={rootRef} className="relative min-w-0">
+    <div ref={rootRef} className="relative min-w-0 w-full">
       <span
         className={
           hideLabel
@@ -162,23 +130,19 @@ export default function FilterSelect({
         aria-controls={listboxId}
         onClick={() => setIsOpen((current) => !current)}
         onKeyDown={(event) => {
-          if (
-            event.key === "ArrowDown" ||
-            event.key === "Enter"
-          ) {
+          if (event.key === "ArrowDown" || event.key === "Enter") {
             event.preventDefault();
             openMenu();
           }
         }}
-        className="flex px-3 py-2 items-center justify-between gap-1.5 bg-white text-left text-xs sm:text-sm text-[#171717] transition-colors hover:border-[#a5a59d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] cursor-pointer"
+        className="flex min-h-11 w-full items-center justify-between gap-2 bg-white px-3 py-2 text-left text-xs text-[#171717] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] sm:text-sm cursor-pointer"
       >
-        <span>sort by:</span>
+        <span className="shrink-0 font-bold">Sort by:</span>
+
         <span
-          className={
-            selectedOption
-              ? "font-bold"
-              : "text-[#85857e]"
-          }
+          className={`min-w-0 truncate ${
+            selectedOption ? "font-semibold text-[#171717]" : "text-[#85857e]"
+          }`}
         >
           {selectedOption?.label ?? placeholder}
         </span>
@@ -198,7 +162,11 @@ export default function FilterSelect({
           role="listbox"
           aria-label={label}
           onKeyDown={handleMenuKeyDown}
-          className="absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto border border-[#e5e5e0] bg-white py-1 shadow-xl"
+          className={
+            menuPosition === "static"
+              ? "mt-2 w-full overflow-y-auto border border-[#e5e5e0] bg-white py-1 shadow-lg"
+              : "absolute left-0 right-0 top-full z-30 mt-1 max-h-60 overflow-y-auto border border-[#e5e5e0] bg-white py-1 shadow-xl"
+          }
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -217,20 +185,13 @@ export default function FilterSelect({
                   setIsOpen(false);
                   triggerRef.current?.focus();
                 }}
-                className={`flex min-h-11 w-full items-center justify-between px-4 text-left text-sm transition-colors hover:bg-[#f7f7f5] focus-visible:bg-[#f7f7f5] focus-visible:outline-none ${
-                  isSelected
-                    ? "font-semibold text-[#171717]"
-                    : "text-[#5f5f5a]"
+                className={`flex min-h-11 w-full items-center justify-between px-4 text-left text-sm transition-colors hover:bg-[#f7f7f5] focus-visible:bg-[#f7f7f5] focus-visible:outline-none cursor-pointer ${
+                  isSelected ? "font-semibold text-[#171717]" : "text-[#5f5f5a]"
                 }`}
               >
                 {option.label}
 
-                {isSelected && (
-                  <MdCheck
-                    size={17}
-                    aria-hidden="true"
-                  />
-                )}
+                {isSelected && <MdCheck size={17} aria-hidden="true" />}
               </button>
             );
           })}

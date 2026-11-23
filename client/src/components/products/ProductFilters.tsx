@@ -122,10 +122,7 @@ export default function ProductFilters({
 
   // Keep the skeleton delay consistent across transitions.
   useEffect(() => {
-    if (!isPending) {
-      setIsSkeletonDelayComplete(false);
-      return;
-    }
+    if (!isPending) return;
 
     const timer = setTimeout(() => {
       setIsSkeletonDelayComplete(true);
@@ -230,6 +227,8 @@ export default function ProductFilters({
     if (query === queryRef.current) return;
 
     queryRef.current = query;
+
+    setIsSkeletonDelayComplete(false);
 
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, {
@@ -339,6 +338,8 @@ export default function ProductFilters({
     if (query === queryRef.current) return;
 
     queryRef.current = query;
+
+    setIsSkeletonDelayComplete(false);
 
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, {
