@@ -4,6 +4,9 @@ import { MdTune, MdGridView, MdGridOn } from "react-icons/md";
 
 import FilterSelect from "./filters/FilterSelect";
 import type { ProductGridView } from "./ProductGridViewContext";
+import { HiOutlineViewGrid, HiViewGrid } from "react-icons/hi";
+import { BiCheckbox, BiSolidCheckbox } from "react-icons/bi";
+import { RiCheckboxBlankFill, RiCheckboxBlankLine } from "react-icons/ri";
 
 type SortOption = {
   label: string;
@@ -47,18 +50,19 @@ export default function ProductFiltersToolbar({
 }: ProductFiltersToolbarProps) {
   return (
     <section className="py-2">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+      <div className="flex items-center justify-between gap-3 py-2 border-t border-b border-border rounded-sm">
+        <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             onClick={onToggleFilters}
             aria-haspopup="dialog"
             aria-expanded={isDrawerOpen}
             aria-controls="product-filters-panel"
-            className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2.5 px-3 py-1.5 font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
+            className="inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1.5 px-3 py-1.5 font-bold text-[#171717] transition-opacity hover:opacity-65 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
           >
             <MdTune size={22} aria-hidden="true" />
-            <span>Filter</span>
+            <span className="hidden md:inline">Filter</span>
+            <span className="md:hidden">Filter &amp; Sort</span>
 
             {activeFilterCount > 0 && (
               <span className="flex size-5 items-center justify-center rounded-full bg-[#171717] text-[10px] font-semibold tabular-nums text-white">
@@ -68,7 +72,7 @@ export default function ProductFiltersToolbar({
           </button>
 
           {/* Sort */}
-          <div className="w-40 sm:w-47.5">
+          <div className="hidden w-40 md:block md:w-47.5">
             <FilterSelect
               label="Sort by"
               hideLabel
@@ -82,7 +86,7 @@ export default function ProductFiltersToolbar({
 
         {/* Grid view controls */}
         <div
-          className="flex shrink-0 items-center gap-1"
+          className="flex shrink-0 items-center px-3 gap-1 md:hidden"
           role="group"
           aria-label="Product grid layout"
         >
@@ -92,13 +96,13 @@ export default function ProductFiltersToolbar({
             aria-label="Comfortable grid view"
             aria-pressed={gridView === "comfortable"}
             title="Comfortable grid"
-            className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-              gridView === "comfortable"
-                ? "bg-[#171717] text-white"
-                : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-            }`}
+            className="flex size-6 items-center justify-center transition-colors text-black"
           >
-          <MdGridView size={21} aria-hidden="true" />
+            {gridView === "comfortable" ? (
+              <RiCheckboxBlankFill size={22} />
+            ) : (
+              <RiCheckboxBlankLine size={22} />
+            )}
           </button>
 
           <button
@@ -107,13 +111,13 @@ export default function ProductFiltersToolbar({
             aria-label="Compact grid view"
             aria-pressed={gridView === "compact"}
             title="Compact grid"
-            className={`flex size-10 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-              gridView === "compact"
-                ? "bg-[#171717] text-white"
-                : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-            }`}
+            className="flex size-6 items-center justify-center transition-colors text-black"
           >
-            <MdGridOn size={21} aria-hidden="true" />
+            {gridView === "compact" ? (
+              <HiViewGrid size={22} />
+            ) : (
+              <HiOutlineViewGrid size={22} />
+            )}
           </button>
         </div>
       </div>

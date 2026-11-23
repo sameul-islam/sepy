@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -16,10 +15,7 @@ import ProductFiltersToolbar from "./ProductFiltersToolbar";
 import ProductFilterControls from "./filters/ProductFilterControls";
 import ProductGridSkeleton from "./ProductGridSkeleton";
 
-import type {
-  Category,
-  ProductFilterOptions,
-} from "@/lib/api-types";
+import type { Category, ProductFilterOptions } from "@/lib/api-types";
 
 import {
   ProductGridViewContext,
@@ -84,12 +80,10 @@ export default function ProductFilters({
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [gridView, setGridView] =
-    useState<ProductGridView>("compact");
+  const [gridView, setGridView] = useState<ProductGridView>("compact");
 
   const [isPending, startTransition] = useTransition();
-  const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] =
-    useState(false);
+  const [isSkeletonDelayComplete, setIsSkeletonDelayComplete] = useState(false);
 
   const appliedDraft = useMemo(
     () =>
@@ -102,27 +96,16 @@ export default function ProductFilters({
         maxPrice,
         inStock,
       }),
-    [
-      department,
-      category,
-      size,
-      color,
-      minPrice,
-      maxPrice,
-      inStock,
-    ],
+    [department, category, size, color, minPrice, maxPrice, inStock],
   );
 
-  const [draft, setDraft] = useState<ProductFilterDraft>(
-    () => appliedDraft,
-  );
+  const [draft, setDraft] = useState<ProductFilterDraft>(() => appliedDraft);
 
   const [priceError, setPriceError] = useState("");
 
   const queryRef = useRef(currentQuery);
 
-  const priceTimerRef =
-    useRef<ReturnType<typeof setTimeout> | null>(null);
+  const priceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const priceDraftRef = useRef({
     minPrice: appliedDraft.minPrice,
@@ -249,16 +232,13 @@ export default function ProductFilters({
     queryRef.current = query;
 
     startTransition(() => {
-      router.replace(
-        query ? `${pathname}?${query}` : pathname,
-        { scroll: false },
-      );
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
     });
   };
 
-  const updateDraft = (
-    updates: Partial<ProductFilterDraft>,
-  ) => {
+  const updateDraft = (updates: Partial<ProductFilterDraft>) => {
     const nextDraft = {
       ...draft,
       ...updates,
@@ -266,8 +246,7 @@ export default function ProductFilters({
 
     setDraft(nextDraft);
 
-    const isPriceUpdate =
-      "minPrice" in updates || "maxPrice" in updates;
+    const isPriceUpdate = "minPrice" in updates || "maxPrice" in updates;
 
     if (isPriceUpdate) {
       priceDraftRef.current = {
@@ -347,10 +326,7 @@ export default function ProductFilters({
       }
     }
 
-    if (
-      nextSort === "relevance" ||
-      (nextSort === "newest" && !searchMode)
-    ) {
+    if (nextSort === "relevance" || (nextSort === "newest" && !searchMode)) {
       params.delete("sort");
     } else {
       params.set("sort", nextSort);
@@ -365,10 +341,9 @@ export default function ProductFilters({
     queryRef.current = query;
 
     startTransition(() => {
-      router.replace(
-        query ? `${pathname}?${query}` : pathname,
-        { scroll: false },
-      );
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
     });
   };
 
@@ -436,9 +411,10 @@ export default function ProductFilters({
           draft={draft}
           priceError={priceError}
           isCategoryOpen={isCategoryOpen}
-          onCategoryToggle={() =>
-            setIsCategoryOpen((previous) => !previous)
-          }
+          sort={sort}
+          searchMode={searchMode}
+          onSortChange={updateSort}
+          onCategoryToggle={() => setIsCategoryOpen((previous) => !previous)}
           onDraftChange={updateDraft}
         />
       </FilterDrawer>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,6 +9,7 @@ import ColorFilter from "./ColorFilter";
 import FilterAccordion from "./FilterAccordion";
 import PriceFilter from "./PriceFilter";
 import SizeFilter from "./SizeFilter";
+import FilterSelect from "./FilterSelect";
 
 import { toggleFilterValue } from "./filter-utils";
 import type { ProductFilterDraft } from "./types";
@@ -22,12 +22,27 @@ type ProductFilterControlsProps = {
   isCategoryOpen: boolean;
   onCategoryToggle: () => void;
   onDraftChange: (updates: Partial<ProductFilterDraft>) => void;
+  sort: string;
+  searchMode: boolean;
+  onSortChange: (value: string) => void;
 };
 
 const GENDER_OPTIONS = [
   { label: "All", value: "" },
   { label: "Women", value: "women" },
   { label: "Men", value: "men" },
+];
+
+const SORT_OPTIONS = [
+  { label: "Featured", value: "featured" },
+  { label: "Newest", value: "newest" },
+  { label: "Price: Low to High", value: "price-asc" },
+  { label: "Price: High to Low", value: "price-desc" },
+];
+
+const SEARCH_SORT_OPTIONS = [
+  { label: "Relevance", value: "relevance" },
+  ...SORT_OPTIONS,
 ];
 
 export default function ProductFilterControls({
@@ -38,14 +53,34 @@ export default function ProductFilterControls({
   isCategoryOpen,
   onCategoryToggle,
   onDraftChange,
+  sort,
+  searchMode,
+  onSortChange,
 }: ProductFilterControlsProps) {
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [isSizeOpen, setIsSizeOpen] = useState(false);
-const [isColorOpen, setIsColorOpen] = useState(false);
-const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isColorOpen, setIsColorOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   return (
     <div className="space-y-5">
+      {/* Sort - Mobile */}
+      <div className="md:hidden">
+        <FilterAccordion
+          title="Sort By"
+          isOpen={isSortOpen}
+          onToggle={() => setIsSortOpen((previous) => !previous)}
+        >
+          <FilterSelect
+            label="Sort by"
+            value={sort}
+            options={searchMode ? SEARCH_SORT_OPTIONS : SORT_OPTIONS}
+            placeholder="Sort by"
+            onChange={onSortChange}
+          />
+        </FilterAccordion>
+      </div>
       {/* Gender */}
       <FilterAccordion
         title="Gender"
@@ -112,10 +147,7 @@ const [isPriceOpen, setIsPriceOpen] = useState(false);
                     checked={checked}
                     onChange={() =>
                       onDraftChange({
-                        category: toggleFilterValue(
-                          draft.category,
-                          item.slug,
-                        ),
+                        category: toggleFilterValue(draft.category, item.slug),
                       })
                     }
                     className="size-4 accent-[#171717]"

@@ -310,7 +310,7 @@ export default async function ProductListingPage({
         </p>
 
         <h1 className="mt-3 text-center font-display text-5xl font-semibold tracking-tight text-[#171717] sm:text-7xl">
-          {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle}
+         — {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle} —
         </h1>
         <p
           className="mt-4 text-center text-xs font-bold text-[#5f5f5a]"
