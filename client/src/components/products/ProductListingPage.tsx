@@ -179,16 +179,14 @@ export default async function ProductListingPage({
 
   if (mode === "search" && searchTerm.length < 2) {
     return (
-      <main className="mx-auto w-full max-w-360 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:px-12">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#85857e]">
-          SEPY / Search
-        </p>
+      <main className="mx-auto w-full max-w-360 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:px-12 text-center">
 
-        <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-[#171717] sm:text-5xl">
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[#171717] sm:text-5xl">
           Search SEPY
         </h1>
 
-        <p className="mt-4 max-w-md text-sm leading-6 text-[#5f5f5a]">
+
+        <p className="mt-4 max-w-md text-sm mx-auto font-semibold text-[#5f5f5a]">
           Enter at least two characters to search our collection.
         </p>
       </main>
@@ -350,7 +348,7 @@ export default async function ProductListingPage({
             </p>
 
             <Link
-              href={mode === "search" ? "/" : "/products"}
+              href={mode === "search" ? "/search" : "/products"}
               className="mt-6 inline-flex underline underline-offset-4 pb-1 text-sm font-bold text-[#171717]"
             >
               {mode === "search" ? "Search again" : "Explore all products"}
