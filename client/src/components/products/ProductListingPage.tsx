@@ -75,14 +75,14 @@ function getPrice(value: string | undefined): number | undefined {
 }
 
 function getSort(value: string | undefined, mode: ListingMode): SortOption {
-if (
-  value === "featured" ||
-  value === "price-asc" ||
-  value === "price-desc" ||
-  value === "newest"
-) {
-  return value;
-}
+  if (
+    value === "featured" ||
+    value === "price-asc" ||
+    value === "price-desc" ||
+    value === "newest"
+  ) {
+    return value;
+  }
 
   return mode === "search" ? "relevance" : "newest";
 }
@@ -180,11 +180,9 @@ export default async function ProductListingPage({
   if (mode === "search" && searchTerm.length < 2) {
     return (
       <main className="mx-auto w-full max-w-360 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:px-12 text-center">
-
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[#171717] sm:text-5xl">
           Search SEPY
         </h1>
-
 
         <p className="mt-4 max-w-md text-sm mx-auto font-semibold text-[#5f5f5a]">
           Enter at least two characters to search our collection.
@@ -308,7 +306,8 @@ export default async function ProductListingPage({
         </p>
 
         <h1 className="mt-3 text-center font-display text-5xl font-semibold tracking-tight text-[#171717] sm:text-7xl">
-         — {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle} —
+          — {mode === "search" ? `Results for “${searchTerm}”` : selectedTitle}{" "}
+          —
         </h1>
         <p
           className="mt-4 text-center text-xs font-bold text-[#5f5f5a]"
@@ -318,122 +317,158 @@ export default async function ProductListingPage({
         </p>
       </header>
 
-      <ProductFilters
-        categories={categories}
-        filterOptions={filters}
-        currentQuery={currentQuery}
-        totalProducts={pagination.total}
-        department={department}
-        category={categorySlugs}
-        size={sizes}
-        color={colors}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        inStock={inStock}
-        sort={sort}
-        searchMode={mode === "search"}
-      >
-        {products.length === 0 ? (
-          <section className="py-20 text-center sm:py-28">
-            <h2 className="text-xl font-semibold text-[#171717]">
-              {mode === "search"
-                ? "No matching products found"
-                : "Nothing here just yet"}
-            </h2>
+      {mode === "search" && products.length === 0 ? (
+        <section className="py-20 text-center sm:py-28">
+          <h2 className="text-xl font-semibold text-[#171717]">
+            No matching products found
+          </h2>
 
-            <p className="mx-auto mt-3 max-w-sm text-sm font-semibold leading-6 text-[#5f5f5a]">
-              {mode === "search"
-                ? "Try another search term or adjust your filters to explore more of the collection."
-                : "There are no products to display in this selection. Explore the full collection instead."}
-            </p>
+          <p className="mx-auto mt-3 max-w-sm text-sm font-semibold leading-6 text-[#5f5f5a]">
+            Try another search term or adjust your search to explore more of the
+            collection.
+          </p>
 
-            <Link
-              href={mode === "search" ? "/search" : "/products"}
-              className="mt-6 inline-flex underline underline-offset-4 pb-1 text-sm font-bold text-[#171717]"
+          <form
+            action="/search"
+            method="GET"
+            className="mx-auto mt-8 flex w-full max-w-lg items-center gap-3"
+          >
+            <label htmlFor="search-again" className="sr-only">
+              Search products
+            </label>
+
+            <input
+              id="search-again"
+              type="search"
+              name="q"
+              defaultValue={searchTerm}
+              placeholder="Search for products..."
+              className="h-12 min-w-0 flex-1 border border-[#deded8] bg-white font-semibold px-4 text-sm text-[#171717] outline-none transition-colors placeholder:text-[#999991] focus:border-[#171717]"
+            />
+
+            <button
+              type="submit"
+              className="h-12 shrink-0 bg-[#171717] px-6 text-sm font-bold text-white transition-colors hover:bg-[#333333] cursor-pointer"
             >
-              {mode === "search" ? "Search again" : "Explore all products"}
-            </Link>
-          </section>
-        ) : (
-          <>
-            <ProductGrid products={products} />
+              Search
+            </button>
+          </form>
+        </section>
+      ) : (
+        <ProductFilters
+          categories={categories}
+          filterOptions={filters}
+          currentQuery={currentQuery}
+          totalProducts={pagination.total}
+          department={department}
+          category={categorySlugs}
+          size={sizes}
+          color={colors}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          inStock={inStock}
+          sort={sort}
+          searchMode={mode === "search"}
+        >
+          {products.length === 0 ? (
+            <section className="py-20 text-center sm:py-28">
+              <h2 className="text-xl font-semibold text-[#171717]">
+                Nothing here just yet
+              </h2>
 
-            {pagination.totalPages > 1 && (
-              <nav
-                aria-label="Product pages"
-                className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-border pt-7"
+              <p className="mx-auto mt-3 max-w-sm text-sm font-semibold leading-6 text-[#5f5f5a]">
+                There are no products to display in this selection. Explore the
+                full collection instead.
+              </p>
+
+              <Link
+                href="/products"
+                className="mt-6 inline-flex underline underline-offset-4 pb-1 text-sm font-bold text-[#171717]"
               >
-                {pagination.hasPreviousPage ? (
-                  <Link
-                    href={pageHref(pagination.page - 1)}
-                    rel="prev"
-                    className="flex items-center gap-1 text-xs font-semibold text-[#171717] hover:underline sm:text-sm"
-                  >
-                    <MdOutlineKeyboardDoubleArrowLeft size={22} />
-                    <span>Previous</span>
-                  </Link>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-[#cfcfc8] sm:text-sm">
-                    <MdOutlineKeyboardDoubleArrowLeft size={22} />
-                    <span>Previous</span>
-                  </span>
-                )}
+                Explore all products
+              </Link>
+            </section>
+          ) : (
+            <>
+              <ProductGrid products={products} />
 
-                <div className="flex items-center gap-2">
-                  {pageNumbers.map((page, index) => {
-                    const previousPage = pageNumbers[index - 1];
+              {pagination.totalPages > 1 && (
+                <nav
+                  aria-label="Product pages"
+                  className="mt-14 flex flex-wrap items-center justify-center gap-5 border-t border-border pt-7"
+                >
+                  {pagination.hasPreviousPage ? (
+                    <Link
+                      href={pageHref(pagination.page - 1)}
+                      rel="prev"
+                      className="flex items-center gap-1 text-xs font-semibold text-[#171717] hover:underline sm:text-sm"
+                    >
+                      <MdOutlineKeyboardDoubleArrowLeft size={22} />
+                      <span>Previous</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-[#cfcfc8] sm:text-sm">
+                      <MdOutlineKeyboardDoubleArrowLeft size={22} />
+                      <span>Previous</span>
+                    </span>
+                  )}
 
-                    return (
-                      <span key={page} className="flex items-center gap-2">
-                        {previousPage !== undefined &&
-                          page - previousPage > 1 && (
-                            <span
-                              className="px-1 text-sm text-[#85857e]"
-                              aria-hidden="true"
-                            >
-                              …
-                            </span>
-                          )}
+                  <div className="flex items-center gap-2">
+                    {pageNumbers.map((page, index) => {
+                      const previousPage = pageNumbers[index - 1];
 
-                        <Link
-                          href={pageHref(page)}
-                          aria-current={
-                            page === pagination.page ? "page" : undefined
-                          }
-                          aria-label={`Page ${page}`}
-                          className={`flex size-9 items-center justify-center rounded-full text-sm ${
-                            page === pagination.page
-                              ? "bg-[#171717] text-white"
-                              : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
-                          }`}
-                        >
-                          {page}
-                        </Link>
-                      </span>
-                    );
-                  })}
-                </div>
+                      return (
+                        <span key={page} className="flex items-center gap-2">
+                          {previousPage !== undefined &&
+                            page - previousPage > 1 && (
+                              <span
+                                className="px-1 text-sm text-[#85857e]"
+                                aria-hidden="true"
+                              >
+                                …
+                              </span>
+                            )}
 
-                {pagination.hasNextPage ? (
-                  <Link
-                    href={pageHref(pagination.page + 1)}
-                    rel="next"
-                    className="flex items-center gap-1 text-xs font-semibold text-[#171717] hover:underline sm:text-sm"
-                  >
-                    <span>Next</span>
-                    <MdOutlineKeyboardDoubleArrowRight size={22} />
-                  </Link>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs font-semibold text-[#cfcfc8] sm:text-sm">
-                    <span>Next</span>
-                    <MdOutlineKeyboardDoubleArrowRight size={22} />
-                  </span>
-                )}
-              </nav>
-            )}
-          </>
-        )}
-      </ProductFilters>
+                          <Link
+                            href={pageHref(page)}
+                            aria-current={
+                              page === pagination.page ? "page" : undefined
+                            }
+                            aria-label={`Page ${page}`}
+                            className={`flex size-9 items-center justify-center rounded-full text-sm ${
+                              page === pagination.page
+                                ? "bg-[#171717] text-white"
+                                : "text-[#5f5f5a] hover:bg-[#f1f1ee]"
+                            }`}
+                          >
+                            {page}
+                          </Link>
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  {pagination.hasNextPage ? (
+                    <Link
+                      href={pageHref(pagination.page + 1)}
+                      rel="next"
+                      className="flex items-center gap-1 text-xs font-semibold text-[#171717] hover:underline sm:text-sm"
+                    >
+                      <span>Next</span>
+                      <MdOutlineKeyboardDoubleArrowRight size={22} />
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-[#cfcfc8] sm:text-sm">
+                      <span>Next</span>
+                      <MdOutlineKeyboardDoubleArrowRight size={22} />
+                    </span>
+                  )}
+                </nav>
+              )}
+            </>
+          )}
+        </ProductFilters>
+      )}
     </main>
   );
 }

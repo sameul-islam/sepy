@@ -27,6 +27,16 @@ const SEARCH_DEBOUNCE_MS = 300;
 const MAX_RESULTS = 4;
 
 const POPULAR_SEARCHES = ["T-shirts", "Shorts", "Hoodies", "Training"];
+const SEARCH_SUGGESTIONS = [
+  "Tops",
+  "Women Tops",
+  "Tank Tops",
+  "Training Tops",
+  "T-shirts",
+  "Shorts",
+  "Hoodies",
+  "Training",
+];
 
 const INITIAL_SEARCH_STATE: SearchState = {
   query: "",
@@ -63,6 +73,13 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     searchState.status === "error";
 
   const products = hasResults ? searchState.products : [];
+
+  const searchSuggestions =
+    normalizedQuery.length >= MIN_SEARCH_LENGTH
+      ? SEARCH_SUGGESTIONS.filter((item) =>
+          item.toLowerCase().includes(normalizedQuery.toLowerCase()),
+        ).slice(0, 5)
+      : [];
 
   // Restore recent searches and focus the input.
   useEffect(() => {
@@ -332,6 +349,31 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     </div>
   );
 
+  const renderHighlightedSuggestion = (suggestion: string) => {
+  const match = normalizedQuery.toLowerCase();
+  const text = suggestion.toLowerCase();
+  const matchIndex = text.indexOf(match);
+
+  if (matchIndex === -1) return suggestion;
+
+  const before = suggestion.slice(0, matchIndex);
+  const matched = suggestion.slice(
+    matchIndex,
+    matchIndex + match.length,
+  );
+  const after = suggestion.slice(matchIndex + match.length);
+
+  return (
+    <>
+      {before}
+      <span className="font-bold text-[#171717]">
+        {matched}
+      </span>
+      {after}
+    </>
+  );
+};
+
   const renderPopularSearches = () => (
     <section>
       <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#171717]">
@@ -400,6 +442,27 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
 
     return (
       <div className="py-5 sm:py-6">
+        {searchSuggestions.length > 0 && (
+          <section className="mb-7">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#85857e]">
+              Search Suggestions
+            </h2>
+
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
+              {searchSuggestions.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => navigateToSearch(item)}
+                  className="inline-flex items-center gap-1 text-sm text-[#5f5f5a] transition-colors duration-200 hover:text-[#171717] cursor-pointer"
+                >
+                  <PiMagnifyingGlass size={14} strokeWidth={1.5} />
+                  {renderHighlightedSuggestion(item)}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#85857e]">
             Products
@@ -470,73 +533,73 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
 
   return (
     <>
-    {/* Search backdrop */}
-    <button
-      type="button"
-      aria-label="Close search"
-      tabIndex={-1}
-      onClick={onClose}
-      className="fixed inset-0 z-40 cursor-default bg-transparent"
-    />
-    <div
-      id="sepy-search-dialog"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Search SEPY"
-      className="fixed inset-0 z-60 flex flex-col overflow-y-auto overscroll-contain bg-white lg:inset-x-0 lg:bottom-auto lg:top-18 lg:z-40 lg:max-h-[calc(100dvh-72px)] lg:border-b lg:border-[#e5e5e0] lg:shadow-[0_12px_24px_rgba(0,0,0,0.035)]"
-    >
-      <div className="mx-auto flex w-full max-w-360 flex-1 flex-col px-5 sm:px-8 lg:px-10">
-        {/* Search input */}
-        <div className="flex shrink-0 items-center border-b border-[#e5e5e0] py-3 sm:py-4">
-          <form
-            onSubmit={handleSubmit}
-            role="search"
-            className="flex min-w-0 flex-1 items-center gap-3"
-          >
-            <PiMagnifyingGlass
-              size={20}
-              strokeWidth={1.5}
-              className="shrink-0 text-[#171717]"
-            />
+      {/* Search backdrop */}
+      <button
+        type="button"
+        aria-label="Close search"
+        tabIndex={-1}
+        onClick={onClose}
+        className="fixed inset-0 z-40 cursor-default bg-transparent"
+      />
+      <div
+        id="sepy-search-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search SEPY"
+        className="fixed inset-0 z-60 flex flex-col overflow-y-auto overscroll-contain bg-white lg:inset-x-0 lg:bottom-auto lg:top-18 lg:z-40 lg:max-h-[calc(100dvh-72px)] lg:border-b lg:border-[#e5e5e0] lg:shadow-[0_12px_24px_rgba(0,0,0,0.035)]"
+      >
+        <div className="mx-auto flex w-full max-w-360 flex-1 flex-col px-5 sm:px-8 lg:px-10">
+          {/* Search input */}
+          <div className="flex shrink-0 items-center border-b border-[#e5e5e0] py-3 sm:py-4">
+            <form
+              onSubmit={handleSubmit}
+              role="search"
+              className="flex min-w-0 flex-1 items-center gap-3"
+            >
+              <PiMagnifyingGlass
+                size={20}
+                strokeWidth={1.5}
+                className="shrink-0 text-[#171717]"
+              />
 
-            <input
-              ref={inputRef}
-              type="search"
-              value={query}
-              onChange={(event) => handleQueryChange(event.target.value)}
-              placeholder="What are you looking for?"
-              aria-label="Search products"
-              autoComplete="off"
-              className="h-11 min-w-0 flex-1 appearance-none border-0 bg-transparent text-sm text-[#171717] outline-none placeholder:text-[#85857e] focus:outline-none focus:ring-0 sm:text-base [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
-            />
+              <input
+                ref={inputRef}
+                type="search"
+                value={query}
+                onChange={(event) => handleQueryChange(event.target.value)}
+                placeholder="What are you looking for?"
+                aria-label="Search products"
+                autoComplete="off"
+                className="h-11 min-w-0 flex-1 appearance-none border-0 bg-transparent text-sm font-semibold text-[#171717] outline-none placeholder:text-[#85857e] focus:outline-none focus:ring-0 sm:text-base [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+              />
 
-            {isSearchActive && (
-              <span
-                className="hidden shrink-0 text-[10px] text-[#85857e] sm:block"
-                aria-live="polite"
-              >
-                {isLoading ? "Searching..." : ""}
-              </span>
-            )}
-          </form>
+              {isSearchActive && (
+                <span
+                  className="hidden shrink-0 text-[10px] text-[#85857e] sm:block"
+                  aria-live="polite"
+                >
+                  {isLoading ? "Searching..." : ""}
+                </span>
+              )}
+            </form>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close search"
-            className="ml-3 flex size-9 shrink-0 items-center justify-center text-[#171717] transition-opacity duration-200 hover:opacity-50 cursor-pointer"
-          >
-            <PiX size={23} strokeWidth={1.4} />
-          </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close search"
+              className="ml-3 flex size-9 shrink-0 items-center justify-center text-[#171717] transition-opacity duration-200 hover:opacity-50 cursor-pointer"
+            >
+              <PiX size={23} strokeWidth={1.4} />
+            </button>
+          </div>
+
+          {/* Search content */}
+          <div className="flex-1">{renderSearchContent()}</div>
+
+          {/* Desktop bottom spacing */}
+          <div className="hidden h-2 shrink-0 lg:block" />
         </div>
-
-        {/* Search content */}
-        <div className="flex-1">{renderSearchContent()}</div>
-
-        {/* Desktop bottom spacing */}
-        <div className="hidden h-2 shrink-0 lg:block" />
       </div>
-    </div>
-        </>
+    </>
   );
 }
