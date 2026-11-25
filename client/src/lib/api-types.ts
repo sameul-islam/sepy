@@ -106,3 +106,22 @@ export type ProductListData = {
 export type FeaturedProductsData = {
   products: Product[];
 };
+
+
+export type ProductSearchSuggestion = {
+  _id: string;
+  name: string;
+  slug: string;
+  image?: ProductImage;
+  price: number;
+  compareAtPrice?: number | null;
+  category: {
+    name: string;
+    slug: string;
+  };
+  score: number;
+};
+
+export type ProductSearchSuggestionsData = {
+  suggestions: ProductSearchSuggestion[];
+};

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { MdAdd, MdRemove } from "react-icons/md";
@@ -22,6 +21,7 @@ export default function FilterAccordion({
   onClear,
 }: FilterAccordionProps) {
   const contentId = `filter-${title.toLowerCase().replace(/\s+/g, "-")}-content`;
+  const headingId = `filter-${title.toLowerCase().replace(/\s+/g, "-")}-heading`;
 
   return (
     <section className="border-b border-[#eeeeea] pb-5">
@@ -34,14 +34,12 @@ export default function FilterAccordion({
           className="flex min-h-9 flex-1 items-center justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
         >
           <span className="flex items-center gap-2">
-            <span className="text-sm font-bold uppercase">
+            <span id={headingId} className="text-sm font-bold uppercase">
               {title}
             </span>
 
             {selectedCount > 0 && (
-              <span className="text-xs font-semibold">
-                ({selectedCount})
-              </span>
+              <span className="text-xs font-semibold">({selectedCount})</span>
             )}
           </span>
 
@@ -75,16 +73,11 @@ export default function FilterAccordion({
         id={contentId}
         aria-hidden={!isOpen}
         className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
-          isOpen
-            ? "grid-rows-[1fr] opacity-100"
-            : "grid-rows-[0fr] opacity-0"
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="min-h-0 overflow-hidden">
-          <div
-            className="space-y-3 pt-4"
-            inert={!isOpen}
-          >
+          <div className="space-y-3 pt-4" inert={!isOpen}>
             {children}
           </div>
         </div>

@@ -352,7 +352,6 @@ export default function ProductFilters({
     <div className="min-w-0 space-y-4">
       <ProductFiltersToolbar
         activeFilterCount={activeFilterCount}
-        isSidebarVisible={isDrawerOpen}
         isDrawerOpen={isDrawerOpen}
         sort={sort}
         searchMode={searchMode}

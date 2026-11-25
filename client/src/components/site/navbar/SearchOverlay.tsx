@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PiArrowUpRight, PiMagnifyingGlass, PiX } from "react-icons/pi";
 
-import { getProducts } from "@/lib/api";
-import type { Product } from "@/lib/api-types";
+import { getProductSearchSuggestions } from "@/lib/api";
+import type { ProductSearchSuggestion } from "@/lib/api-types";
 
 type SearchOverlayProps = {
   onClose: () => void;
@@ -17,7 +17,7 @@ type SearchOverlayProps = {
 type SearchState = {
   query: string;
   status: "idle" | "loading" | "success" | "error";
-  products: Product[];
+  products: ProductSearchSuggestion[];
 };
 
 const RECENT_SEARCHES_KEY = "sepy-recent-searches";
@@ -169,19 +169,14 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
     const controller = new AbortController();
 
     const timeoutId = window.setTimeout(() => {
-      getProducts({
-        page: 1,
-        limit: MAX_RESULTS,
-        search: searchQuery,
-        signal: controller.signal,
-      })
+      getProductSearchSuggestions(searchQuery, controller.signal)
         .then((data) => {
           if (controller.signal.aborted) return;
 
           setSearchState({
             query: searchQuery,
             status: "success",
-            products: data.products.slice(0, MAX_RESULTS),
+            products: data.suggestions.slice(0, MAX_RESULTS),
           });
         })
         .catch(() => {
@@ -276,8 +271,8 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
 
   const formatPrice = (price: number) => `৳${price.toLocaleString("en-BD")}`;
 
-  const renderProduct = (product: Product) => {
-    const image = product.images[0];
+  const renderProduct = (product: ProductSearchSuggestion) => {
+    const image = product.image;
 
     return (
       <Link
@@ -292,7 +287,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
               src={image.url}
               alt={image.alt || product.name}
               fill
-              sizes="68px"
+              sizes="(min-width: 640px) 104px, 88px"
               className="object-cover"
             />
           ) : null}
@@ -337,7 +332,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
           className="flex items-center gap-4 py-2.5"
           aria-hidden="true"
         >
-          <div className="size-15 shrink-0 animate-pulse bg-[#f1f1ee] sm:size-17" />
+          <div className="size-22 shrink-0 animate-pulse bg-[#f1f1ee] sm:size-26" />
 
           <div className="flex-1 space-y-2">
             <div className="h-3 w-3/4 animate-pulse bg-[#f1f1ee]" />
@@ -350,29 +345,24 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
   );
 
   const renderHighlightedSuggestion = (suggestion: string) => {
-  const match = normalizedQuery.toLowerCase();
-  const text = suggestion.toLowerCase();
-  const matchIndex = text.indexOf(match);
+    const match = normalizedQuery.toLowerCase();
+    const text = suggestion.toLowerCase();
+    const matchIndex = text.indexOf(match);
 
-  if (matchIndex === -1) return suggestion;
+    if (matchIndex === -1) return suggestion;
 
-  const before = suggestion.slice(0, matchIndex);
-  const matched = suggestion.slice(
-    matchIndex,
-    matchIndex + match.length,
-  );
-  const after = suggestion.slice(matchIndex + match.length);
+    const before = suggestion.slice(0, matchIndex);
+    const matched = suggestion.slice(matchIndex, matchIndex + match.length);
+    const after = suggestion.slice(matchIndex + match.length);
 
-  return (
-    <>
-      {before}
-      <span className="font-bold text-[#171717]">
-        {matched}
-      </span>
-      {after}
-    </>
-  );
-};
+    return (
+      <>
+        {before}
+        <span className="font-bold text-[#171717]">{matched}</span>
+        {after}
+      </>
+    );
+  };
 
   const renderPopularSearches = () => (
     <section>
@@ -567,6 +557,7 @@ export default function SearchOverlay({ onClose }: SearchOverlayProps) {
                 type="search"
                 value={query}
                 onChange={(event) => handleQueryChange(event.target.value)}
+                maxLength={80}
                 placeholder="What are you looking for?"
                 aria-label="Search products"
                 autoComplete="off"

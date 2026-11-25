@@ -342,6 +342,7 @@ export default async function ProductListingPage({
               type="search"
               name="q"
               defaultValue={searchTerm}
+              maxLength={80}
               placeholder="Search for products..."
               className="h-12 min-w-0 flex-1 border border-[#deded8] bg-white font-semibold px-4 text-sm text-[#171717] outline-none transition-colors placeholder:text-[#999991] focus:border-[#171717]"
             />

@@ -4,7 +4,7 @@ import { MdTune } from "react-icons/md";
 
 import FilterSelect from "./filters/FilterSelect";
 import type { ProductGridView } from "./ProductGridViewContext";
-import { HiOutlineViewGrid, HiViewGrid } from "react-icons/hi";;
+import { HiOutlineViewGrid, HiViewGrid } from "react-icons/hi";
 import { RiCheckboxBlankFill, RiCheckboxBlankLine } from "react-icons/ri";
 
 type SortOption = {
@@ -14,7 +14,6 @@ type SortOption = {
 
 type ProductFiltersToolbarProps = {
   activeFilterCount: number;
-  isSidebarVisible: boolean;
   isDrawerOpen: boolean;
   sort: string;
   searchMode: boolean;

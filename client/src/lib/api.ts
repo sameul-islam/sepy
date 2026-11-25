@@ -5,6 +5,7 @@ import type {
   HomepageCategory,
   ProductDetail,
   ProductListData,
+  ProductSearchSuggestionsData,
 } from "./api-types";
 
 const API_BASE_URL =
@@ -137,4 +138,16 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail> {
 
 export async function getFeaturedProducts(): Promise<FeaturedProductsData> {
   return fetchApi<FeaturedProductsData>("/products/featured");
+}
+
+export async function getProductSearchSuggestions(
+  query: string,
+  signal?: AbortSignal,
+): Promise<ProductSearchSuggestionsData> {
+  const searchParams = new URLSearchParams({ q: query });
+
+  return fetchApi<ProductSearchSuggestionsData>(
+    `/products/search/suggestions?${searchParams.toString()}`,
+    signal,
+  );
 }

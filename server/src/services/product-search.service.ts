@@ -98,129 +98,10 @@ export const buildProductSearchFallbackStage = (query: string) => ({
   },
 });
 
-const getSuggestionsBySearchStage = async (searchStage: object) => {
-  const pipeline = [
-    searchStage,
-
-    {
-      $match: {
-        status: "active",
-      },
-    },
-
-    {
-      $lookup: {
-        from: "variants",
-        let: {
-          productId: "$_id",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$product", "$$productId"],
-              },
-              isActive: true,
-            },
-          },
-          {
-            $sort: {
-              price: 1,
-              _id: 1,
-            },
-          },
-          {
-            $limit: 1,
-          },
-          {
-            $project: {
-              price: 1,
-              compareAtPrice: 1,
-            },
-          },
-        ],
-        as: "suggestionVariant",
-      },
-    },
-
-    {
-      $match: {
-        "suggestionVariant.0": {
-          $exists: true,
-        },
-      },
-    },
-
-    {
-      $lookup: {
-        from: "categories",
-        localField: "category",
-        foreignField: "_id",
-        as: "categoryDetails",
-      },
-    },
-
-    {
-      $unwind: "$categoryDetails",
-    },
-
-    {
-      $match: {
-        "categoryDetails.isActive": true,
-      },
-    },
-
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        slug: 1,
-
-        image: {
-          $arrayElemAt: ["$images", 0],
-        },
-
-        price: {
-          $arrayElemAt: ["$suggestionVariant.price", 0],
-        },
-
-        compareAtPrice: {
-          $arrayElemAt: ["$suggestionVariant.compareAtPrice", 0],
-        },
-
-        category: {
-          name: "$categoryDetails.name",
-          slug: "$categoryDetails.slug",
-        },
-
-        score: {
-          $meta: "searchScore",
-        },
-      },
-    },
-
-    {
-      $sort: {
-        score: -1,
-        _id: 1,
-      },
-    },
-
-    {
-      $limit: SUGGESTION_LIMIT,
-    },
-  ];
-
-  return Product.aggregate(pipeline as unknown as PipelineStage[]);
-};
-
-
 export const getProductSearchSuggestions = async (query: string) => {
   const normalizedQuery = query.trim();
 
-  const executeSuggestions = async (
-    tier: ProductSearchTier,
-  ) => {
+  const executeSuggestions = async (tier: ProductSearchTier) => {
     const pipeline = [
       buildProductSearchStage(normalizedQuery, tier),
 
@@ -333,9 +214,7 @@ export const getProductSearchSuggestions = async (query: string) => {
       },
     ];
 
-    return Product.aggregate(
-      pipeline as unknown as PipelineStage[],
-    );
+    return Product.aggregate(pipeline as unknown as PipelineStage[]);
   };
 
   let suggestions = await executeSuggestions("primary");
@@ -348,4 +227,3 @@ export const getProductSearchSuggestions = async (query: string) => {
     suggestions,
   };
 };
-
