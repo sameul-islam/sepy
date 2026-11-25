@@ -136,7 +136,7 @@ export default async function ProductPage({
           grid grid-cols-1
           items-start
           gap-8
-          lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]
+          md:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]
           lg:gap-10
           xl:gap-14
         "
@@ -151,8 +151,8 @@ export default async function ProductPage({
         <section
           className="
             min-w-0
-            lg:sticky lg:top-20
-            lg:self-start
+            md:sticky md:top-20
+            md:self-start
           "
         >
           <p className="text-xs uppercase tracking-[0.16em] text-[#85857e]">
