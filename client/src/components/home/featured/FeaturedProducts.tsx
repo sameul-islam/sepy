@@ -7,6 +7,7 @@ import type { Product as ApiProduct } from "@/lib/api-types";
 
 import ProductRail from "./ProductRail";
 import type { Product } from "./featured-products-data";
+import Link from "next/link";
 
 type Gender = "women" | "men";
 
@@ -177,23 +178,25 @@ export default function FeaturedProducts() {
               })}
             </div>
 
-            <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold underline cursor-pointer text-text-primary sm:text-sm">
-              View All
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="size-4"
-              >
-                <path
-                  d="M4.5 12H19.5M13 5.5L19.5 12L13 18.5"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+            <Link href={"/products?sort=featured"}>
+              <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold underline cursor-pointer text-text-primary sm:text-sm">
+                View All
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="size-4"
+                >
+                  <path
+                    d="M4.5 12H19.5M13 5.5L19.5 12L13 18.5"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </Link>
           </div>
         </header>
 
