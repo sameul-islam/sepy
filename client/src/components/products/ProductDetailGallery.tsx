@@ -141,7 +141,7 @@ export default function ProductDetailGallery({
     setViewerIndex((current) =>
       current === 0 ? images.length - 1 : current - 1,
     );
-  }, [images.length, resetZoom]);
+  }, [images.length, resetZoom, setViewerIndex]);
 
   const showNextImage = useCallback(() => {
     resetZoom();
@@ -149,7 +149,7 @@ export default function ProductDetailGallery({
     setViewerIndex((current) =>
       current === images.length - 1 ? 0 : current + 1,
     );
-  }, [images.length, resetZoom]);
+  }, [images.length, resetZoom, setViewerIndex]);
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 2.5;
