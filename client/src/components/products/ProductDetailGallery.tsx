@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 import type { ProductImage } from "@/lib/api-types";
 import { RiCloseLargeLine } from "react-icons/ri";
@@ -18,6 +24,7 @@ export default function ProductDetailGallery({
 }: ProductDetailGalleryProps) {
   const mobileTrackRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<HTMLDialogElement>(null);
+  const imageElementRef = useRef<HTMLImageElement>(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -41,14 +48,38 @@ export default function ProductDetailGallery({
     y: number;
   } | null>(null);
 
-  const dragRef = useRef<{
+  const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
+
+  const pointerStartRef = useRef<{
     pointerId: number;
-    startX: number;
-    startY: number;
+    x: number;
+    y: number;
     originX: number;
     originY: number;
     moved: boolean;
   } | null>(null);
+
+  const pinchRef = useRef<{
+    distance: number;
+    scale: number;
+    x: number;
+    y: number;
+    midpointX: number;
+    midpointY: number;
+  } | null>(null);
+
+  const resetZoom = useCallback(() => {
+    setZoom({
+      scale: 1,
+      x: 0,
+      y: 0,
+    });
+
+    activePointersRef.current.clear();
+    pointerStartRef.current = null;
+    pinchRef.current = null;
+    lastTapRef.current = null;
+  }, []);
 
   // Keep the mobile indicator synchronized with the carousel.
   const handleMobileScroll = () => {
@@ -104,126 +135,354 @@ export default function ProductDetailGallery({
   };
 
   // Navigate between images inside the fullscreen viewer.
-  const showPreviousImage = () => {
+  const showPreviousImage = useCallback(() => {
+    resetZoom();
+
     setViewerIndex((current) =>
       current === 0 ? images.length - 1 : current - 1,
     );
-  };
+  }, [images.length, resetZoom]);
 
-  const showNextImage = () => {
+  const showNextImage = useCallback(() => {
+    resetZoom();
+
     setViewerIndex((current) =>
       current === images.length - 1 ? 0 : current + 1,
     );
+  }, [images.length, resetZoom]);
+
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 2.5;
+
+  const getDistance = (
+    first: { x: number; y: number },
+    second: { x: number; y: number },
+  ) => {
+    return Math.hypot(second.x - first.x, second.y - first.y);
   };
 
-  const resetZoom = () => {
-    setZoom({
-      scale: 1,
-      x: 0,
-      y: 0,
-    });
+  const getMidpoint = (
+    first: { x: number; y: number },
+    second: { x: number; y: number },
+  ) => ({
+    x: (first.x + second.x) / 2,
+    y: (first.y + second.y) / 2,
+  });
 
-    dragRef.current = null;
-    lastTapRef.current = null;
+  const clampPan = (
+    x: number,
+    y: number,
+    scale: number,
+    container: HTMLDivElement,
+  ) => {
+    const image = imageElementRef.current;
+
+    // Image dimensions are not available yet.
+    if (!image?.naturalWidth || !image.naturalHeight) {
+      return { x: 0, y: 0 };
+    }
+
+    const { width, height } = container.getBoundingClientRect();
+
+    const imageAspectRatio = image.naturalWidth / image.naturalHeight;
+
+    // Calculate the actual rendered dimensions
+    // when object-fit is set to contain.
+    const renderedWidth = Math.min(width, height * imageAspectRatio);
+
+    const renderedHeight = Math.min(height, width / imageAspectRatio);
+
+    // Calculate the maximum permitted pan distance.
+    const maxX = Math.max(0, (renderedWidth * scale - width) / 2);
+
+    const maxY = Math.max(0, (renderedHeight * scale - height) / 2);
+
+    // Keep the image within its permitted boundaries.
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
   };
 
-  const toggleZoom = (x = 0, y = 0) => {
+  const toggleZoomAt = (
+    clientX: number,
+    clientY: number,
+    element: HTMLDivElement,
+  ) => {
+    const rect = element.getBoundingClientRect();
+
     setZoom((current) => {
-      if (current.scale > 1) {
+      if (current.scale > MIN_ZOOM) {
         return {
-          scale: 1,
+          scale: MIN_ZOOM,
           x: 0,
           y: 0,
         };
       }
 
+      const scale = MAX_ZOOM;
+
+      const pointX = clientX - rect.left - rect.width / 2;
+      const pointY = clientY - rect.top - rect.height / 2;
+
+      const nextX = pointX * (1 - scale);
+      const nextY = pointY * (1 - scale);
+
+      const bounded = clampPan(nextX, nextY, scale, element);
+
       return {
-        scale: 2.5,
-        x,
-        y,
+        scale,
+        ...bounded,
       };
     });
   };
 
-  const handleImagePointerDown = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
-    if (zoom.scale <= 1) return;
-
+  const handleImagePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    dragRef.current = {
+    const point = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+
+    if (event.pointerType === "touch") {
+      activePointersRef.current.set(event.pointerId, point);
+
+      const pointers = Array.from(activePointersRef.current.values());
+
+      if (pointers.length >= 2) {
+        const first = pointers[0];
+        const second = pointers[1];
+
+        const midpoint = getMidpoint(first, second);
+        const rect = event.currentTarget.getBoundingClientRect();
+
+        pinchRef.current = {
+          distance: getDistance(first, second),
+          scale: zoom.scale,
+          x: zoom.x,
+          y: zoom.y,
+          midpointX: midpoint.x - rect.left - rect.width / 2,
+          midpointY: midpoint.y - rect.top - rect.height / 2,
+        };
+
+        pointerStartRef.current = null;
+        lastTapRef.current = null;
+        return;
+      }
+    }
+
+    pointerStartRef.current = {
       pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
+      x: event.clientX,
+      y: event.clientY,
       originX: zoom.x,
       originY: zoom.y,
       moved: false,
     };
   };
 
-  const handleImagePointerMove = (
-    event: React.PointerEvent<HTMLDivElement>,
-  ) => {
-    const drag = dragRef.current;
+  const handleImagePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const point = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+
+    if (event.pointerType === "touch") {
+      activePointersRef.current.set(event.pointerId, point);
+    }
+
+    const pinch = pinchRef.current;
+
+    // Mobile: Two-finger pinch-to-zoom.
+    if (
+      event.pointerType === "touch" &&
+      pinch &&
+      activePointersRef.current.size >= 2
+    ) {
+      const pointers = Array.from(activePointersRef.current.values());
+
+      const first = pointers[0];
+      const second = pointers[1];
+
+      const distance = getDistance(first, second);
+      const midpoint = getMidpoint(first, second);
+      const rect = event.currentTarget.getBoundingClientRect();
+
+      const scale = Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, pinch.scale * (distance / pinch.distance)),
+      );
+
+      const currentMidpointX = midpoint.x - rect.left - rect.width / 2;
+
+      const currentMidpointY = midpoint.y - rect.top - rect.height / 2;
+
+      if (scale <= MIN_ZOOM) {
+        setZoom({
+          scale: MIN_ZOOM,
+          x: 0,
+          y: 0,
+        });
+
+        return;
+      }
+
+      const nextX =
+        pinch.x +
+        (pinch.scale - scale) * pinch.midpointX +
+        (currentMidpointX - pinch.midpointX);
+
+      const nextY =
+        pinch.y +
+        (pinch.scale - scale) * pinch.midpointY +
+        (currentMidpointY - pinch.midpointY);
+
+      const bounded = clampPan(nextX, nextY, scale, event.currentTarget);
+
+      setZoom({
+        scale,
+        ...bounded,
+      });
+
+      return;
+    }
+
+    // One-finger or mouse drag while zoomed.
+    const drag = pointerStartRef.current;
 
     if (!drag || drag.pointerId !== event.pointerId) return;
 
-    const deltaX = event.clientX - drag.startX;
-    const deltaY = event.clientY - drag.startY;
+    const deltaX = event.clientX - drag.x;
+    const deltaY = event.clientY - drag.y;
 
     if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
       drag.moved = true;
     }
 
-    setZoom((current) => ({
-      ...current,
-      x: drag.originX + deltaX,
-      y: drag.originY + deltaY,
-    }));
+    if (zoom.scale <= MIN_ZOOM) return;
+
+    const container = event.currentTarget;
+
+    setZoom((current) => {
+      const bounded = clampPan(
+        drag.originX + deltaX,
+        drag.originY + deltaY,
+        current.scale,
+        container,
+      );
+
+      return {
+        ...current,
+        ...bounded,
+      };
+    });
   };
 
-  const handleImagePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
+  const handleImagePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = pointerStartRef.current;
 
-    if (drag && drag.pointerId === event.pointerId) {
-      dragRef.current = null;
+    if (event.pointerType === "touch") {
+      activePointersRef.current.delete(event.pointerId);
 
-      if (drag.moved) return;
-    }
+      // Finish the current pinch gesture.
+      if (pinchRef.current) {
+        pinchRef.current = null;
+        lastTapRef.current = null;
 
-    if (event.pointerType !== "touch") return;
+        // Allow the remaining finger to continue panning.
+        const remaining = Array.from(activePointersRef.current.entries())[0];
 
-    const now = Date.now();
-    const previousTap = lastTapRef.current;
+        if (remaining) {
+          pointerStartRef.current = {
+            pointerId: remaining[0],
+            x: remaining[1].x,
+            y: remaining[1].y,
+            originX: zoom.x,
+            originY: zoom.y,
+            moved: false,
+          };
+        } else {
+          pointerStartRef.current = null;
+        }
 
-    if (
-      previousTap &&
-      now - previousTap.time < 300 &&
-      Math.hypot(event.clientX - previousTap.x, event.clientY - previousTap.y) <
-        40
-    ) {
-      const rect = event.currentTarget.getBoundingClientRect();
+        return;
+      }
 
-      const x = (rect.width / 2 - (event.clientX - rect.left)) * 1.5;
+      if (drag?.pointerId === event.pointerId) {
+        pointerStartRef.current = null;
 
-      const y = (rect.height / 2 - (event.clientY - rect.top)) * 1.5;
+        if (drag.moved) {
+          // Navigate only when the image is not zoomed.
+          if (zoom.scale <= MIN_ZOOM) {
+            const deltaX = event.clientX - drag.x;
+            const deltaY = event.clientY - drag.y;
 
-      toggleZoom(x, y);
-      lastTapRef.current = null;
+            const isHorizontalSwipe =
+              Math.abs(deltaX) >= 50 &&
+              Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+
+            if (isHorizontalSwipe) {
+              if (deltaX < 0) {
+                showNextImage();
+              } else {
+                showPreviousImage();
+              }
+            }
+          }
+
+          return;
+        }
+      }
+
+      // Mobile: Double-tap zoom.
+      const now = Date.now();
+      const previousTap = lastTapRef.current;
+
+      if (
+        previousTap &&
+        now - previousTap.time < 300 &&
+        Math.hypot(
+          event.clientX - previousTap.x,
+          event.clientY - previousTap.y,
+        ) < 40
+      ) {
+        toggleZoomAt(event.clientX, event.clientY, event.currentTarget);
+
+        lastTapRef.current = null;
+        return;
+      }
+
+      lastTapRef.current = {
+        time: now,
+        x: event.clientX,
+        y: event.clientY,
+      };
+
       return;
     }
 
-    lastTapRef.current = {
-      time: now,
-      x: event.clientX,
-      y: event.clientY,
-    };
+    // Desktop: Click to zoom in/out, drag to pan.
+    if (event.pointerType === "mouse") {
+      if (drag?.pointerId === event.pointerId) {
+        pointerStartRef.current = null;
+
+        if (drag.moved) return;
+      }
+
+      toggleZoomAt(event.clientX, event.clientY, event.currentTarget);
+    }
   };
 
-  useEffect(() => {
-    resetZoom();
-  }, [viewerIndex]);
+  const handleImagePointerCancel = (
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) => {
+    activePointersRef.current.delete(event.pointerId);
+
+    pointerStartRef.current = null;
+    pinchRef.current = null;
+    lastTapRef.current = null;
+  };
 
   // Synchronize React state with the native dialog.
   useEffect(() => {
@@ -259,7 +518,7 @@ export default function ProductDetailGallery({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isViewerOpen, images.length]);
+  }, [isViewerOpen, images.length, showNextImage, showPreviousImage]);
 
   if (images.length === 0) {
     return <div className="aspect-3/4 w-full bg-[#f7f7f5]" />;
@@ -413,14 +672,10 @@ export default function ProductDetailGallery({
         <div
           className="
           relative z-10 flex h-16 shrink-0
-          items-center justify-between
+          items-center justify-end
           px-5 sm:px-8
         "
         >
-          <span className="text-xs tabular-nums text-black font-bold bg-white/80 p-1.5 rounded-full">
-            {viewerIndex + 1} / {images.length}
-          </span>
-
           <button
             type="button"
             onClick={closeViewer}
@@ -441,29 +696,27 @@ export default function ProductDetailGallery({
         {/* Main Image */}
         <div
           className="
-          relative min-h-0 flex-1
-          overflow-hidden
-
-        "
+    relative min-h-0 flex-1
+    overflow-hidden
+  "
         >
           <div
-            className="
-    relative h-full w-full
-    touch-none overflow-hidden
-    cursor-grab
-    active:cursor-grabbing
-  "
+            className={`
+      relative h-full w-full
+      touch-none overflow-hidden
+      ${
+        zoom.scale > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"
+      }
+    `}
             onPointerDown={handleImagePointerDown}
             onPointerMove={handleImagePointerMove}
             onPointerUp={handleImagePointerUp}
-            onPointerCancel={() => {
-              dragRef.current = null;
-            }}
-            onDoubleClick={() => toggleZoom()}
+            onPointerCancel={handleImagePointerCancel}
           >
             {currentImage && (
               <Image
                 key={currentImage.url}
+                ref={imageElementRef}
                 src={currentImage.url}
                 alt={
                   currentImage.alt || `${productName} image ${viewerIndex + 1}`
@@ -473,53 +726,126 @@ export default function ProductDetailGallery({
                 sizes="100vw"
                 draggable={false}
                 className="
-        select-none object-contain
-        transition-transform duration-300
-        ease-out
-      "
+          select-none object-contain
+          transition-transform duration-300
+          ease-out
+        "
                 style={{
                   transform: `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`,
                 }}
               />
             )}
           </div>
+        </div>
 
-          {/* Previous Image */}
+        {/* Viewer Navigation Footer */}
+        <div
+          className="
+    relative z-10 flex h-16 shrink-0
+    items-center justify-center
+    px-5 sm:h-20 sm:px-8
+  "
+        >
+          {/* Mobile Dot Indicators */}
           {images.length > 1 && (
-            <button
-              type="button"
-              onClick={showPreviousImage}
-              aria-label="Previous image"
-              className="
-                absolute left-2 top-1/2
-                flex size-10 -translate-y-1/2
-                items-center justify-center
-                rounded-full bg-white/70     
-                transition-colors hover:bg-white/80
-                sm:left-5 sm:size-12 cursor-pointer
-              "
+            <div
+              className="flex items-center justify-center gap-2 md:hidden"
+              role="group"
+              aria-label="Select product image"
             >
-              <MdArrowBackIosNew size={17} />
-            </button>
+              {images.map((image, index) => (
+                <button
+                  key={`${image.url}-${index}-viewer-dot`}
+                  type="button"
+                  onClick={() => {
+                    if (viewerIndex === index) return;
+
+                    resetZoom();
+                    setViewerIndex(index);
+                  }}
+                  aria-label={`View image ${index + 1} of ${images.length}`}
+                  aria-current={viewerIndex === index ? "true" : undefined}
+                  className="
+            flex size-6 items-center justify-center
+            rounded-full
+            focus-visible:outline-2
+            focus-visible:outline-offset-2
+            focus-visible:outline-black
+          "
+                >
+                  <span
+                    className={`
+              size-2 rounded-full border
+              transition-colors duration-200
+              ${
+                viewerIndex === index
+                  ? "border-[#171717] bg-[#171717]"
+                  : "border-[#999999] bg-transparent"
+              }
+            `}
+                  />
+                </button>
+              ))}
+            </div>
           )}
 
-          {/* Next Image */}
+          {/* Desktop Navigation */}
           {images.length > 1 && (
-            <button
-              type="button"
-              onClick={showNextImage}
-              aria-label="Next image"
+            <div
               className="
-                absolute right-2 top-1/2
-                flex size-10 -translate-y-1/2
-                items-center justify-center
-                rounded-full bg-white/70
-                transition-colors hover:bg-white/80
-                sm:right-5 sm:size-12 cursor-pointer
-              "
+        hidden items-center justify-center
+        gap-8 md:flex
+      "
             >
-              <MdArrowForwardIos size={17} />
-            </button>
+              {/* Previous */}
+              <button
+                type="button"
+                onClick={showPreviousImage}
+                aria-label="Previous image"
+                className="
+          flex size-10 items-center justify-center
+          rounded-full bg-white/70
+          transition-colors hover:bg-white
+          focus-visible:outline-2
+          focus-visible:outline-offset-2
+          focus-visible:outline-black
+          cursor-pointer
+        "
+              >
+                <MdArrowBackIosNew size={16} />
+              </button>
+
+              {/* Image Counter */}
+              <span
+                className="
+          min-w-12 text-center
+          text-xs font-semibold
+          tabular-nums tracking-wide
+          text-[#171717]
+        "
+                aria-live="polite"
+              >
+                {viewerIndex + 1} / {images.length}
+              </span>
+
+              {/* Next */}
+              <button
+                type="button"
+                onClick={showNextImage}
+                aria-label="Next image"
+                className="
+          flex size-10 items-center justify-center
+          rounded-full bg-white/70
+          transition-colors hover:bg-white
+          focus-visible:outline-2
+          focus-visible:outline-offset-2
+          focus-visible:outline-black
+          cursor-pointer
+        "
+              >
+                <MdArrowForwardIos size={16} />
+              </button>
+            </div>
           )}
         </div>
       </dialog>
