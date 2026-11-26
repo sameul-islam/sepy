@@ -18,6 +18,11 @@ type ProductDetailGalleryProps = {
   productName: string;
 };
 
+type ViewerTransition = {
+  fromIndex: number;
+  direction: "next" | "previous";
+};
+
 export default function ProductDetailGallery({
   images,
   productName,
@@ -29,7 +34,11 @@ export default function ProductDetailGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [isViewerImageLoaded, setIsViewerImageLoaded] = useState(false);
+  const [loadedViewerImageUrl, setLoadedViewerImageUrl] = useState<
+    string | null
+  >(null);
+  const [viewerTransition, setViewerTransition] =
+    useState<ViewerTransition | null>(null);
 
   type ZoomState = {
     scale: number;
@@ -115,7 +124,6 @@ export default function ProductDetailGallery({
 
   // Open the fullscreen viewer.
   const openViewer = (index: number) => {
-    setIsViewerImageLoaded(false);
     setViewerIndex(index);
     setIsViewerOpen(true);
   };
@@ -138,22 +146,82 @@ export default function ProductDetailGallery({
 
   // Navigate between images inside the fullscreen viewer.
   const showPreviousImage = useCallback(() => {
+    if (viewerTransition) return;
+
     resetZoom();
-    setIsViewerImageLoaded(false);
+
+    setViewerTransition({
+      fromIndex: viewerIndex,
+      direction: "previous",
+    });
 
     setViewerIndex((current) =>
       current === 0 ? images.length - 1 : current - 1,
     );
-  }, [images.length, resetZoom, setIsViewerImageLoaded, setViewerIndex]);
+  }, [
+    images.length,
+    resetZoom,
+    setViewerIndex,
+    setViewerTransition,
+    viewerIndex,
+    viewerTransition,
+  ]);
 
   const showNextImage = useCallback(() => {
+    if (viewerTransition) return;
+
     resetZoom();
-    setIsViewerImageLoaded(false);
+
+    setViewerTransition({
+      fromIndex: viewerIndex,
+      direction: "next",
+    });
 
     setViewerIndex((current) =>
       current === images.length - 1 ? 0 : current + 1,
     );
-  }, [images.length, resetZoom, setIsViewerImageLoaded, setViewerIndex]);
+  }, [
+    images.length,
+    resetZoom,
+    setViewerIndex,
+    setViewerTransition,
+    viewerIndex,
+    viewerTransition,
+  ]);
+
+  const goToViewerImage = useCallback(
+    (index: number) => {
+      if (viewerTransition || index === viewerIndex) return;
+
+      resetZoom();
+
+      setViewerTransition({
+        fromIndex: viewerIndex,
+        direction: index > viewerIndex ? "next" : "previous",
+      });
+
+      setViewerIndex(index);
+    },
+    [
+      resetZoom,
+      setViewerIndex,
+      setViewerTransition,
+      viewerIndex,
+      viewerTransition,
+    ],
+  );
+
+  useEffect(() => {
+    if (!viewerTransition) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setViewerTransition(null);
+    }, 560);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [viewerTransition]);
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 2.5;
@@ -466,14 +534,35 @@ export default function ProductDetailGallery({
       return;
     }
 
-    // Desktop: Click to zoom in/out, drag to pan.
+    // Desktop: Click to zoom, drag to pan or navigate.
     if (event.pointerType === "mouse") {
       if (drag?.pointerId === event.pointerId) {
         pointerStartRef.current = null;
 
-        if (drag.moved) return;
+        if (drag.moved) {
+          // Mouse drag navigates only when the image is not zoomed.
+          if (zoom.scale <= MIN_ZOOM) {
+            const deltaX = event.clientX - drag.x;
+            const deltaY = event.clientY - drag.y;
+
+            const isHorizontalSwipe =
+              Math.abs(deltaX) >= 50 &&
+              Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+
+            if (isHorizontalSwipe) {
+              if (deltaX < 0) {
+                showNextImage();
+              } else {
+                showPreviousImage();
+              }
+            }
+          }
+
+          return;
+        }
       }
 
+      // A simple click toggles zoom.
       toggleZoomAt(event.clientX, event.clientY, event.currentTarget);
     }
   };
@@ -500,6 +589,60 @@ export default function ProductDetailGallery({
       dialog.close();
     }
   }, [isViewerOpen]);
+
+
+// Prevent background scrolling while the fullscreen viewer is open.
+useEffect(() => {
+  if (!isViewerOpen) return;
+
+  const body = document.body;
+  const scrollY = window.scrollY;
+
+  // Preserve the existing inline body styles.
+  const previousStyles = {
+    position: body.style.position,
+    top: body.style.top,
+    left: body.style.left,
+    right: body.style.right,
+    width: body.style.width,
+    overflow: body.style.overflow,
+    paddingRight: body.style.paddingRight,
+  };
+
+  // Compensate for the scrollbar to prevent layout shift.
+  const scrollbarWidth =
+    window.innerWidth - document.documentElement.clientWidth;
+
+  const currentPaddingRight =
+    Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+
+  // Lock the document at its current scroll position.
+  body.style.position = "fixed";
+  body.style.top = `-${scrollY}px`;
+  body.style.left = "0";
+  body.style.right = "0";
+  body.style.width = "100%";
+  body.style.overflow = "hidden";
+
+  if (scrollbarWidth > 0) {
+    body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
+  }
+
+  return () => {
+    // Restore the original body styles.
+    body.style.position = previousStyles.position;
+    body.style.top = previousStyles.top;
+    body.style.left = previousStyles.left;
+    body.style.right = previousStyles.right;
+    body.style.width = previousStyles.width;
+    body.style.overflow = previousStyles.overflow;
+    body.style.paddingRight = previousStyles.paddingRight;
+
+    // Restore the exact previous scroll position.
+    window.scrollTo(0, scrollY);
+  };
+}, [isViewerOpen]);
+
 
   // Keyboard navigation.
   useEffect(() => {
@@ -667,8 +810,8 @@ export default function ProductDetailGallery({
           m-0 h-dvh w-screen
           max-h-none max-w-none
           border-0 p-0
-          bg-[#111111] text-white
-          backdrop:bg-black/90
+          bg-white text-black
+          backdrop:bg-white/90
           open:block
         "
       >
@@ -689,7 +832,8 @@ export default function ProductDetailGallery({
               pointer-events-auto
               flex size-10 items-center justify-center
               cursor-pointer
-              text-white
+              text-black
+              bg-white/60 p-2 rounded-full
               transition-opacity duration-200
               hover:opacity-60
               focus-visible:outline-2
@@ -723,9 +867,33 @@ export default function ProductDetailGallery({
             onPointerUp={handleImagePointerUp}
             onPointerCancel={handleImagePointerCancel}
           >
+            {/* Previous Image — Exit Animation */}
+            {viewerTransition && (
+              <Image
+                key={`outgoing-${viewerTransition.fromIndex}`}
+                src={images[viewerTransition.fromIndex].url}
+                alt={
+                  images[viewerTransition.fromIndex].alt ||
+                  `${productName} image ${viewerTransition.fromIndex + 1}`
+                }
+                fill
+                sizes="100vw"
+                draggable={false}
+                className={`
+      pointer-events-none select-none object-contain
+      ${
+        viewerTransition.direction === "next"
+          ? "sepy-card-exit-left"
+          : "sepy-card-exit-right"
+      }
+    `}
+              />
+            )}
+
+            {/* Current Image — Enter Animation */}
             {currentImage && (
               <Image
-                key={currentImage.url}
+                key={`current-${currentImage.url}`}
                 ref={imageElementRef}
                 src={currentImage.url}
                 alt={
@@ -735,14 +903,19 @@ export default function ProductDetailGallery({
                 priority
                 sizes="100vw"
                 draggable={false}
-                onLoad={() => setIsViewerImageLoaded(true)}
-                className="
-                  select-none object-contain
-                  transition-[opacity,transform]
-                  duration-300 ease-out
-                "
+                onLoad={() => setLoadedViewerImageUrl(currentImage.url)}
+                className={`
+      select-none object-contain
+      ${
+        viewerTransition
+          ? viewerTransition.direction === "next"
+            ? "sepy-card-enter-right"
+            : "sepy-card-enter-left"
+          : "transition-opacity duration-300 ease-out"
+      }
+    `}
                 style={{
-                  opacity: isViewerImageLoaded ? 1 : 0,
+                  opacity: loadedViewerImageUrl === currentImage.url ? 1 : 0,
                   transform: `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`,
                 }}
               />
@@ -764,7 +937,7 @@ export default function ProductDetailGallery({
             <div
               className="
                 pointer-events-auto
-                flex items-center justify-center gap-2
+                flex items-center justify-center gap-0.5
                 md:hidden
               "
               role="group"
@@ -774,21 +947,15 @@ export default function ProductDetailGallery({
                 <button
                   key={`${image.url}-${index}-viewer-dot`}
                   type="button"
-                  onClick={() => {
-                    if (viewerIndex === index) return;
-
-                    resetZoom();
-                    setIsViewerImageLoaded(false);
-                    setViewerIndex(index);
-                  }}
+                  onClick={() => goToViewerImage(index)}
                   aria-label={`View image ${index + 1} of ${images.length}`}
                   aria-current={viewerIndex === index ? "true" : undefined}
                   className="
-                    flex size-6 items-center justify-center
+                    flex size-4 items-center justify-center
                     rounded-full
                     focus-visible:outline-2
                     focus-visible:outline-offset-2
-                    focus-visible:outline-white
+                    focus-visible:outline-black
                   "
                 >
                   <span
@@ -797,8 +964,8 @@ export default function ProductDetailGallery({
                       transition-colors duration-200
                       ${
                         viewerIndex === index
-                          ? "border-white bg-white"
-                          : "border-white/60 bg-transparent"
+                          ? "border-black bg-black/90"
+                          : "border-black/60 bg-transparent"
                       }
                     `}
                   />
@@ -813,7 +980,7 @@ export default function ProductDetailGallery({
               className="
                 pointer-events-auto
                 hidden items-center justify-center
-                gap-8 md:flex
+                gap-8 bg-white/60 p-2 rounded-full md:flex
               "
             >
               {/* Previous */}
@@ -823,12 +990,12 @@ export default function ProductDetailGallery({
                 aria-label="Previous image"
                 className="
                   flex size-10 items-center justify-center
-                  cursor-pointer text-white
+                  cursor-pointer text-black
                   transition-opacity duration-200
                   hover:opacity-60
                   focus-visible:outline-2
                   focus-visible:outline-offset-2
-                  focus-visible:outline-white
+                  focus-visible:outline-black
                 "
               >
                 <MdArrowBackIosNew size={17} />
@@ -840,7 +1007,7 @@ export default function ProductDetailGallery({
                   min-w-12 text-center
                   text-xs font-semibold
                   tabular-nums tracking-wide
-                  text-white
+                  text-black
                 "
                 aria-live="polite"
               >
@@ -854,12 +1021,12 @@ export default function ProductDetailGallery({
                 aria-label="Next image"
                 className="
                   flex size-10 items-center justify-center
-                  cursor-pointer text-white
+                  cursor-pointer text-black
                   transition-opacity duration-200
                   hover:opacity-60
                   focus-visible:outline-2
                   focus-visible:outline-offset-2
-                  focus-visible:outline-white
+                  focus-visible:outline-black
                 "
               >
                 <MdArrowForwardIos size={17} />
