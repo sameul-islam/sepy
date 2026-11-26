@@ -29,6 +29,7 @@ export default function ProductDetailGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [isViewerImageLoaded, setIsViewerImageLoaded] = useState(false);
 
   type ZoomState = {
     scale: number;
@@ -114,6 +115,7 @@ export default function ProductDetailGallery({
 
   // Open the fullscreen viewer.
   const openViewer = (index: number) => {
+    setIsViewerImageLoaded(false);
     setViewerIndex(index);
     setIsViewerOpen(true);
   };
@@ -137,19 +139,21 @@ export default function ProductDetailGallery({
   // Navigate between images inside the fullscreen viewer.
   const showPreviousImage = useCallback(() => {
     resetZoom();
+    setIsViewerImageLoaded(false);
 
     setViewerIndex((current) =>
       current === 0 ? images.length - 1 : current - 1,
     );
-  }, [images.length, resetZoom, setViewerIndex]);
+  }, [images.length, resetZoom, setIsViewerImageLoaded, setViewerIndex]);
 
   const showNextImage = useCallback(() => {
     resetZoom();
+    setIsViewerImageLoaded(false);
 
     setViewerIndex((current) =>
       current === images.length - 1 ? 0 : current + 1,
     );
-  }, [images.length, resetZoom, setViewerIndex]);
+  }, [images.length, resetZoom, setIsViewerImageLoaded, setViewerIndex]);
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 2.5;
@@ -663,51 +667,57 @@ export default function ProductDetailGallery({
           m-0 h-dvh w-screen
           max-h-none max-w-none
           border-0 p-0
-          bg-[#f5f5f5] text-accent
-          backdrop:bg-white/80
-          open:flex open:flex-col
+          bg-[#111111] text-white
+          backdrop:bg-black/90
+          open:block
         "
       >
-        {/* Viewer Header */}
+        {/* Viewer Header — Overlay */}
         <div
           className="
-          relative z-10 flex h-16 shrink-0
-          items-center justify-end
-          px-5 sm:px-8
-        "
+            pointer-events-none
+            absolute inset-x-0 top-0 z-20
+            flex h-16 items-center justify-end
+            px-5 sm:px-8
+          "
         >
           <button
             type="button"
             onClick={closeViewer}
             aria-label="Close image viewer"
             className="
+              pointer-events-auto
               flex size-10 items-center justify-center
-              text-3xl text-black bg-white/80 rounded-full cursor-pointer
-              transition-opacity hover:opacity-60
+              cursor-pointer
+              text-white
+              transition-opacity duration-200
+              hover:opacity-60
               focus-visible:outline-2
               focus-visible:outline-offset-2
-              focus-visible:outline-black
+              focus-visible:outline-white
             "
           >
-            <RiCloseLargeLine size={17} />
+            <RiCloseLargeLine size={22} />
           </button>
         </div>
 
-        {/* Main Image */}
+        {/* Main Image — Full Viewport */}
         <div
           className="
-    relative min-h-0 flex-1
-    overflow-hidden
-  "
+            absolute inset-0
+            overflow-hidden
+          "
         >
           <div
             className={`
-      relative h-full w-full
-      touch-none overflow-hidden
-      ${
-        zoom.scale > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"
-      }
-    `}
+              relative h-full w-full
+              touch-none overflow-hidden
+              ${
+                zoom.scale > 1
+                  ? "cursor-grab active:cursor-grabbing"
+                  : "cursor-zoom-in"
+              }
+            `}
             onPointerDown={handleImagePointerDown}
             onPointerMove={handleImagePointerMove}
             onPointerUp={handleImagePointerUp}
@@ -725,12 +735,14 @@ export default function ProductDetailGallery({
                 priority
                 sizes="100vw"
                 draggable={false}
+                onLoad={() => setIsViewerImageLoaded(true)}
                 className="
-          select-none object-contain
-          transition-transform duration-300
-          ease-out
-        "
+                  select-none object-contain
+                  transition-[opacity,transform]
+                  duration-300 ease-out
+                "
                 style={{
+                  opacity: isViewerImageLoaded ? 1 : 0,
                   transform: `translate3d(${zoom.x}px, ${zoom.y}px, 0) scale(${zoom.scale})`,
                 }}
               />
@@ -738,18 +750,23 @@ export default function ProductDetailGallery({
           </div>
         </div>
 
-        {/* Viewer Navigation Footer */}
+        {/* Viewer Navigation — Overlay */}
         <div
           className="
-    relative z-10 flex h-16 shrink-0
-    items-center justify-center
-    px-5 sm:h-20 sm:px-8
-  "
+            pointer-events-none
+            absolute inset-x-0 bottom-0 z-20
+            flex h-16 items-center justify-center
+            px-5 sm:h-20 sm:px-8
+          "
         >
           {/* Mobile Dot Indicators */}
           {images.length > 1 && (
             <div
-              className="flex items-center justify-center gap-2 md:hidden"
+              className="
+                pointer-events-auto
+                flex items-center justify-center gap-2
+                md:hidden
+              "
               role="group"
               aria-label="Select product image"
             >
@@ -761,28 +778,29 @@ export default function ProductDetailGallery({
                     if (viewerIndex === index) return;
 
                     resetZoom();
+                    setIsViewerImageLoaded(false);
                     setViewerIndex(index);
                   }}
                   aria-label={`View image ${index + 1} of ${images.length}`}
                   aria-current={viewerIndex === index ? "true" : undefined}
                   className="
-            flex size-6 items-center justify-center
-            rounded-full
-            focus-visible:outline-2
-            focus-visible:outline-offset-2
-            focus-visible:outline-black
-          "
+                    flex size-6 items-center justify-center
+                    rounded-full
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-2
+                    focus-visible:outline-white
+                  "
                 >
                   <span
                     className={`
-              size-2 rounded-full border
-              transition-colors duration-200
-              ${
-                viewerIndex === index
-                  ? "border-[#171717] bg-[#171717]"
-                  : "border-[#999999] bg-transparent"
-              }
-            `}
+                      size-2 rounded-full border
+                      transition-colors duration-200
+                      ${
+                        viewerIndex === index
+                          ? "border-white bg-white"
+                          : "border-white/60 bg-transparent"
+                      }
+                    `}
                   />
                 </button>
               ))}
@@ -793,9 +811,10 @@ export default function ProductDetailGallery({
           {images.length > 1 && (
             <div
               className="
-        hidden items-center justify-center
-        gap-8 md:flex
-      "
+                pointer-events-auto
+                hidden items-center justify-center
+                gap-8 md:flex
+              "
             >
               {/* Previous */}
               <button
@@ -803,26 +822,26 @@ export default function ProductDetailGallery({
                 onClick={showPreviousImage}
                 aria-label="Previous image"
                 className="
-          flex size-10 items-center justify-center
-          rounded-full bg-white/70
-          transition-colors hover:bg-white
-          focus-visible:outline-2
-          focus-visible:outline-offset-2
-          focus-visible:outline-black
-          cursor-pointer
-        "
+                  flex size-10 items-center justify-center
+                  cursor-pointer text-white
+                  transition-opacity duration-200
+                  hover:opacity-60
+                  focus-visible:outline-2
+                  focus-visible:outline-offset-2
+                  focus-visible:outline-white
+                "
               >
-                <MdArrowBackIosNew size={16} />
+                <MdArrowBackIosNew size={17} />
               </button>
 
               {/* Image Counter */}
               <span
                 className="
-          min-w-12 text-center
-          text-xs font-semibold
-          tabular-nums tracking-wide
-          text-[#171717]
-        "
+                  min-w-12 text-center
+                  text-xs font-semibold
+                  tabular-nums tracking-wide
+                  text-white
+                "
                 aria-live="polite"
               >
                 {viewerIndex + 1} / {images.length}
@@ -834,16 +853,16 @@ export default function ProductDetailGallery({
                 onClick={showNextImage}
                 aria-label="Next image"
                 className="
-          flex size-10 items-center justify-center
-          rounded-full bg-white/70
-          transition-colors hover:bg-white
-          focus-visible:outline-2
-          focus-visible:outline-offset-2
-          focus-visible:outline-black
-          cursor-pointer
-        "
+                  flex size-10 items-center justify-center
+                  cursor-pointer text-white
+                  transition-opacity duration-200
+                  hover:opacity-60
+                  focus-visible:outline-2
+                  focus-visible:outline-offset-2
+                  focus-visible:outline-white
+                "
               >
-                <MdArrowForwardIos size={16} />
+                <MdArrowForwardIos size={17} />
               </button>
             </div>
           )}
