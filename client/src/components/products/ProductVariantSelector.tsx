@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ProductVariant } from "@/lib/api-types";
 
 type ProductVariantSelectorProps = {
@@ -8,220 +8,195 @@ type ProductVariantSelectorProps = {
 };
 
 function formatPrice(price: number): string {
-  return `TK${price.toLocaleString("en-BD")}`;
+  return `৳ ${price.toLocaleString("en-BD")}`;
 }
 
 export default function ProductVariantSelector({
   variants,
 }: ProductVariantSelectorProps) {
-  const [selectedVariantId, setSelectedVariantId] = useState(
-    () => variants[0]?._id ?? "",
+  const sizes = Array.from(
+    new Set(
+      variants
+        .map((variant) => variant.size)
+        .filter((size): size is string => Boolean(size)),
+    ),
   );
 
-  const selectedVariant = useMemo(
-    () =>
-      variants.find((variant) => variant._id === selectedVariantId) ??
-      variants[0],
-    [variants, selectedVariantId],
+  const colors = Array.from(
+    new Set(
+      variants
+        .map((variant) => variant.color)
+        .filter((color): color is string => Boolean(color)),
+    ),
   );
 
-  const sizes = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          variants
-            .map((variant) => variant.size)
-            .filter((size): size is string => Boolean(size)),
-        ),
-      ),
-    [variants],
-  );
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
 
-  const colors = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          variants
-            .map((variant) => variant.color)
-            .filter((color): color is string => Boolean(color)),
-        ),
-      ),
-    [variants],
-  );
+  const hasSize = sizes.length > 0;
+  const hasColor = colors.length > 0;
 
-const selectedSize = selectedVariant?.size ?? "";
-const selectedColor = selectedVariant?.color ?? "";
+  const selectionComplete =
+    (!hasSize || selectedSize !== "") && (!hasColor || selectedColor !== "");
 
-  if (!selectedVariant) {
-    return (
-      <p className="mt-5 text-sm text-[#5f5f5a]" role="status">
-        No variants are currently available.
-      </p>
-    );
-  }
+  const selectedVariant = selectionComplete
+    ? variants.find(
+        (variant) =>
+          (!hasSize || variant.size === selectedSize) &&
+          (!hasColor || variant.color === selectedColor),
+      )
+    : !hasSize && !hasColor
+      ? variants[0]
+      : undefined;
 
-  const matchingVariants = variants.filter(
-    (variant) =>
-      (!selectedSize || variant.size === selectedSize) &&
-      (!selectedColor || variant.color === selectedColor),
-  );
+  const prices = variants.map((variant) => variant.price);
+  const minimumPrice = Math.min(...prices);
+  const maximumPrice = Math.max(...prices);
 
-  const currentVariant =
-    matchingVariants.find((variant) => variant._id === selectedVariantId) ??
-    matchingVariants[0];
-
-  if (!currentVariant) {
-    return (
-      <p className="mt-5 text-sm text-[#5f5f5a]" role="status">
-        This size and color combination is unavailable.
-      </p>
-    );
-  }
+  const hasPriceRange = minimumPrice !== maximumPrice;
 
   const hasDiscount =
-    typeof currentVariant.compareAtPrice === "number" &&
-    currentVariant.compareAtPrice > currentVariant.price;
+    selectedVariant?.compareAtPrice !== undefined &&
+    selectedVariant.compareAtPrice > selectedVariant.price;
 
-function selectSize(size: string) {
-  const matching = variants.filter(
-    (variant) =>
-      variant.size === size &&
-      (!selectedColor || variant.color === selectedColor),
-  );
+  if (variants.length === 0) {
+    return (
+      <p className="mt-6 text-sm text-text-secondary" role="status">
+        This product is currently unavailable.
+      </p>
+    );
+  }
 
-  const nextVariant =
-    matching.find((variant) => variant._id === selectedVariantId) ??
-    matching[0] ??
-    variants.find((variant) => variant.size === size);
+  function isSizeAvailable(size: string) {
+    return variants.some(
+      (variant) =>
+        variant.size === size &&
+        (!selectedColor || variant.color === selectedColor),
+    );
+  }
 
-  if (!nextVariant) return;
+  function isSizeInStock(size: string) {
+    return variants.some(
+      (variant) =>
+        variant.size === size &&
+        (!selectedColor || variant.color === selectedColor) &&
+        variant.stock > 0,
+    );
+  }
 
-  setSelectedVariantId(nextVariant._id);
-}
- 
+  function isColorAvailable(color: string) {
+    return variants.some(
+      (variant) =>
+        variant.color === color &&
+        (!selectedSize || variant.size === selectedSize),
+    );
+  }
 
-function selectColor(color: string) {
-  const matching = variants.filter(
-    (variant) =>
-      variant.color === color &&
-      (!selectedSize || variant.size === selectedSize),
-  );
+  function isColorInStock(color: string) {
+    return variants.some(
+      (variant) =>
+        variant.color === color &&
+        (!selectedSize || variant.size === selectedSize) &&
+        variant.stock > 0,
+    );
+  }
 
-  const nextVariant =
-    matching.find((variant) => variant._id === selectedVariantId) ??
-    matching[0] ??
-    variants.find((variant) => variant.color === color);
+  function handleSizeSelect(size: string) {
+    setSelectedSize(size);
+  }
 
-  if (!nextVariant) return;
+  function handleColorSelect(color: string) {
+    const sizeStillAvailable = variants.some(
+      (variant) => variant.color === color && variant.size === selectedSize,
+    );
 
-  setSelectedVariantId(nextVariant._id);
-}
+    setSelectedColor(color);
+
+    if (selectedSize && !sizeStillAvailable) {
+      setSelectedSize("");
+    }
+  }
 
   return (
-    <div className="mt-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <p className="text-base text-[#171717]">
-          {formatPrice(currentVariant.price)}
-        </p>
-
-        {hasDiscount && (
+    <div className="mt-2">
+      {/* Pricing */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {selectedVariant ? (
           <>
-            <p className="text-sm text-[#85857e] line-through">
-              {formatPrice(currentVariant.compareAtPrice!)}
+            <p className="text-xl font-medium tracking-tight text-text-primary">
+              {formatPrice(selectedVariant.price)}
             </p>
 
-            <span className="text-xs text-[#5f5f5a]">
-              {Math.round(
-                (1 - currentVariant.price / currentVariant.compareAtPrice!) *
-                  100,
-              )}
-              % off
-            </span>
+            {hasDiscount && (
+              <>
+                <p className="text-sm text-text-muted line-through">
+                  {formatPrice(selectedVariant.compareAtPrice!)}
+                </p>
+
+                <span className="text-xs font-medium text-text-secondary">
+                  {Math.round(
+                    (1 -
+                      selectedVariant.price / selectedVariant.compareAtPrice!) *
+                      100,
+                  )}
+                  % off
+                </span>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="text-xl font-medium tracking-tight text-text-primary">
+              {hasPriceRange
+                ? `From ${formatPrice(minimumPrice)}`
+                : formatPrice(minimumPrice)}
+            </p>
           </>
         )}
       </div>
 
-      {sizes.length > 0 && (
-        <fieldset className="mt-6">
-          <legend className="mb-3 text-sm font-medium text-[#171717]">
-            Size
-          </legend>
+      {/* Color Selection */}
+      {hasColor && (
+        <fieldset className="mt-7">
+          <legend className="mb-3 flex items-center gap-2 text-sm">
+            <span className="font-medium text-text-primary">Color</span>
 
-          <div className="flex flex-wrap gap-2">
-            {sizes.map((size) => {
-              const available = variants.some(
-                (variant) =>
-                  variant.size === size &&
-                  (!selectedColor || variant.color === selectedColor),
-              );
-
-              const inStock = variants.some(
-                (variant) =>
-                  variant.size === size &&
-                  (!selectedColor || variant.color === selectedColor) &&
-                  variant.stock > 0,
-              );
-
-              return (
-                <button
-                  key={size}
-                  type="button"
-                  disabled={!available}
-                  aria-pressed={selectedSize === size}
-                  onClick={() => selectSize(size)}
-                  aria-label={`${size}${available && !inStock ? ", out of stock" : ""}`}
-                  className={`min-w-11 border px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] disabled:cursor-not-allowed disabled:opacity-30 ${
-                    selectedSize === size
-                      ? "border-[#171717] bg-[#171717] text-white"
-                      : `border-[#e5e5e0] text-[#171717] hover:border-[#85857e] ${
-                          available && !inStock ? "line-through opacity-60" : ""
-                        }`
-                  }`}
-                >
-                  {size}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-      )}
-
-      {colors.length > 0 && (
-        <fieldset className="mt-5">
-          <legend className="mb-3 text-sm font-medium text-[#171717]">
-            Color
+            {selectedColor && (
+              <span className="capitalize text-text-secondary">
+                — {selectedColor}
+              </span>
+            )}
           </legend>
 
           <div className="flex flex-wrap gap-2">
             {colors.map((color) => {
-              const available = variants.some(
-                (variant) =>
-                  variant.color === color &&
-                  (!selectedSize || variant.size === selectedSize),
-              );
-
-              const inStock = variants.some(
-                (variant) =>
-                  variant.color === color &&
-                  (!selectedSize || variant.size === selectedSize) &&
-                  variant.stock > 0,
-              );
+              const available = isColorAvailable(color);
+              const inStock = isColorInStock(color);
+              const isSelected = selectedColor === color;
 
               return (
                 <button
                   key={color}
                   type="button"
                   disabled={!available}
-                  aria-pressed={selectedColor === color}
-                  aria-label={`${color}${available && !inStock ? ", out of stock" : ""}`}
-                  onClick={() => selectColor(color)}
-                  className={`border px-3 py-2 text-sm capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] disabled:cursor-not-allowed disabled:opacity-30 ${
-                    selectedColor === color
-                      ? "border-[#171717] text-[#171717]"
-                      : `border-[#e5e5e0] text-[#5f5f5a] hover:border-[#85857e] ${
-                          available && !inStock ? "line-through opacity-60" : ""
-                        }`
-                  }`}
+                  aria-pressed={isSelected}
+                  aria-label={`${color}${!inStock ? ", out of stock" : ""}`}
+                  onClick={() => handleColorSelect(color)}
+                  className={`
+                    min-h-10 border px-4 py-2
+                    text-xs capitalize transition-colors
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-2
+                    focus-visible:outline-accent
+                    disabled:cursor-not-allowed
+                    disabled:opacity-35
+                    ${
+                      isSelected
+                        ? "border-text-primary text-text-primary"
+                        : "border-border text-text-secondary hover:border-border-strong"
+                    }
+                    ${available && !inStock ? "line-through" : ""}
+                  `}
                 >
                   {color}
                 </button>
@@ -231,19 +206,81 @@ function selectColor(color: string) {
         </fieldset>
       )}
 
-      <div className="mt-5 border-t border-[#e5e5e0] pt-4">
-        <p className="text-xs text-[#85857e]">
-          Product code: {currentVariant.sku}
-        </p>
+      {/* Size Selection */}
+      {hasSize && (
+        <fieldset className="mt-7">
+          <legend className="mb-3 flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-text-primary">
+              Select Size
+            </span>
 
-        <p
-          className={`mt-2 text-xs ${
-            currentVariant.stock > 0 ? "text-[#5f5f5a]" : "text-[#85857e]"
-          }`}
-          role="status"
-        >
-          {currentVariant.stock > 0 ? "In stock" : "Out of stock"}
-        </p>
+            {/* Size Guide will be connected after its real data system exists. */}
+          </legend>
+
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((size) => {
+              const available = isSizeAvailable(size);
+              const inStock = isSizeInStock(size);
+              const isSelected = selectedSize === size;
+
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  disabled={!available}
+                  aria-pressed={isSelected}
+                  aria-label={`${size}${!inStock ? ", out of stock" : ""}`}
+                  onClick={() => handleSizeSelect(size)}
+                  className={`
+                    flex min-h-11 min-w-12 items-center justify-center
+                    border px-3 py-2 text-sm transition-colors
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-2
+                    focus-visible:outline-accent
+                    disabled:cursor-not-allowed
+                    disabled:opacity-30
+                    ${
+                      isSelected
+                        ? "border-text-primary bg-text-primary text-white"
+                        : "border-border text-text-primary hover:border-border-strong"
+                    }
+                    ${available && !inStock ? "line-through" : ""}
+                  `}
+                >
+                  {size}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
+
+      {/* Variant Availability */}
+      <div className="mt-6 border-t border-border pt-4">
+        {!selectionComplete ? (
+          <p className="text-xs text-text-secondary" role="status">
+            {hasSize && hasColor
+              ? "Select a color and size to check availability."
+              : hasSize
+                ? "Select a size to check availability."
+                : "Select a color to check availability."}
+          </p>
+        ) : selectedVariant ? (
+          <p
+            className={`text-xs ${
+              selectedVariant.stock > 0
+                ? "text-text-secondary"
+                : "text-text-muted"
+            }`}
+            role="status"
+          >
+            {selectedVariant.stock > 0 ? "In stock" : "Out of stock"}
+          </p>
+        ) : (
+          <p className="text-xs text-text-secondary" role="status">
+            This combination is unavailable.
+          </p>
+        )}
       </div>
     </div>
   );

@@ -135,7 +135,7 @@ export default async function ProductPage({
         className="
           grid grid-cols-1
           items-start
-          gap-8
+          gap-5 sm:gap-8
           md:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]
           lg:gap-10
           xl:gap-14
@@ -155,11 +155,7 @@ export default async function ProductPage({
             md:self-start
           "
         >
-          <p className="text-xs uppercase tracking-[0.16em] text-[#85857e]">
-            SEPY / {product.category.name}
-          </p>
-
-          <h1 className="mt-3 text-3xl font-medium leading-tight text-[#171717] sm:text-4xl">
+          <h1 className="text-xl font-bold leading-tight text-[#171717] sm:text-2xl">
             {product.name}
           </h1>
 

@@ -590,59 +590,57 @@ export default function ProductDetailGallery({
     }
   }, [isViewerOpen]);
 
+  // Prevent background scrolling while the fullscreen viewer is open.
+  useEffect(() => {
+    if (!isViewerOpen) return;
 
-// Prevent background scrolling while the fullscreen viewer is open.
-useEffect(() => {
-  if (!isViewerOpen) return;
+    const body = document.body;
+    const scrollY = window.scrollY;
 
-  const body = document.body;
-  const scrollY = window.scrollY;
+    // Preserve the existing inline body styles.
+    const previousStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      paddingRight: body.style.paddingRight,
+    };
 
-  // Preserve the existing inline body styles.
-  const previousStyles = {
-    position: body.style.position,
-    top: body.style.top,
-    left: body.style.left,
-    right: body.style.right,
-    width: body.style.width,
-    overflow: body.style.overflow,
-    paddingRight: body.style.paddingRight,
-  };
+    // Compensate for the scrollbar to prevent layout shift.
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
 
-  // Compensate for the scrollbar to prevent layout shift.
-  const scrollbarWidth =
-    window.innerWidth - document.documentElement.clientWidth;
+    const currentPaddingRight =
+      Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
 
-  const currentPaddingRight =
-    Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+    // Lock the document at its current scroll position.
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
 
-  // Lock the document at its current scroll position.
-  body.style.position = "fixed";
-  body.style.top = `-${scrollY}px`;
-  body.style.left = "0";
-  body.style.right = "0";
-  body.style.width = "100%";
-  body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
+    }
 
-  if (scrollbarWidth > 0) {
-    body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
-  }
+    return () => {
+      // Restore the original body styles.
+      body.style.position = previousStyles.position;
+      body.style.top = previousStyles.top;
+      body.style.left = previousStyles.left;
+      body.style.right = previousStyles.right;
+      body.style.width = previousStyles.width;
+      body.style.overflow = previousStyles.overflow;
+      body.style.paddingRight = previousStyles.paddingRight;
 
-  return () => {
-    // Restore the original body styles.
-    body.style.position = previousStyles.position;
-    body.style.top = previousStyles.top;
-    body.style.left = previousStyles.left;
-    body.style.right = previousStyles.right;
-    body.style.width = previousStyles.width;
-    body.style.overflow = previousStyles.overflow;
-    body.style.paddingRight = previousStyles.paddingRight;
-
-    // Restore the exact previous scroll position.
-    window.scrollTo(0, scrollY);
-  };
-}, [isViewerOpen]);
-
+      // Restore the exact previous scroll position.
+      window.scrollTo(0, scrollY);
+    };
+  }, [isViewerOpen]);
 
   // Keyboard navigation.
   useEffect(() => {
