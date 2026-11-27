@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import errorHandler from "./middleware/errorHandler.js";
 import notFound from "./middleware/notFound.js";
 import healthRoutes from "./routes/health.routes.js";
@@ -10,11 +11,13 @@ import authRoutes from "./routes/auth.routes.js";
 import { env } from "./config/env.js";
 const app = express();
 app.use(cors({
-    origin: env.CLIENT_URL,
+    origin: [env.CLIENT_URL, env.ADMIN_URL],
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json({ limit: "100kb" }));
+app.use(cookieParser());
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/products", productRoutes);

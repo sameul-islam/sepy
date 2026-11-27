@@ -23,6 +23,7 @@ const envSchema = z
         .string()
         .min(12, "ADMIN_PASSWORD must be at least 12 characters"),
     CLIENT_URL: z.string().url("CLIENT_URL must be a valid URL"),
+    ADMIN_URL: z.string().url("ADMIN_URL must be a valid URL"),
 })
     .superRefine((data, ctx) => {
     if (data.NODE_ENV !== "production") {
@@ -41,20 +42,26 @@ const envSchema = z
             message: "JWT_ACCESS_SECRET must not use a placeholder secret in production",
         });
     }
-    const clientUrl = new URL(data.CLIENT_URL);
-    if (clientUrl.protocol !== "https:") {
-        ctx.addIssue({
-            code: "custom",
-            path: ["CLIENT_URL"],
-            message: "CLIENT_URL must use HTTPS in production",
-        });
-    }
-    if (["localhost", "127.0.0.1", "::1"].includes(clientUrl.hostname)) {
-        ctx.addIssue({
-            code: "custom",
-            path: ["CLIENT_URL"],
-            message: "CLIENT_URL must not use localhost in production",
-        });
+    const appUrls = [
+        { key: "CLIENT_URL", value: data.CLIENT_URL },
+        { key: "ADMIN_URL", value: data.ADMIN_URL },
+    ];
+    for (const { key, value } of appUrls) {
+        const appUrl = new URL(value);
+        if (appUrl.protocol !== "https:") {
+            ctx.addIssue({
+                code: "custom",
+                path: [key],
+                message: `${key} must use HTTPS in production`,
+            });
+        }
+        if (["localhost", "127.0.0.1", "::1"].includes(appUrl.hostname)) {
+            ctx.addIssue({
+                code: "custom",
+                path: [key],
+                message: `${key} must not use localhost in production`,
+            });
+        }
     }
 });
 const parsedEnv = envSchema.safeParse(process.env);
