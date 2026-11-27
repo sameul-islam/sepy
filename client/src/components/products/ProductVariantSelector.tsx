@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ProductVariant } from "@/lib/api-types";
+import { MdArrowRight } from "react-icons/md";
 
 type ProductVariantSelectorProps = {
   variants: ProductVariant[];
@@ -118,35 +119,35 @@ export default function ProductVariantSelector({
   }
 
   return (
-    <div className="mt-2">
+    <div className="mt-3">
       {/* Pricing */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {selectedVariant ? (
           <>
-            <p className="text-xl font-medium tracking-tight text-text-primary">
+            <p className="font-semibold tracking-tight text-text-primary">
               {formatPrice(selectedVariant.price)}
             </p>
 
             {hasDiscount && (
               <>
-                <p className="text-sm text-text-muted line-through">
+                <p className="text-sm font-semibold text-text-secondary line-through">
                   {formatPrice(selectedVariant.compareAtPrice!)}
                 </p>
 
-                <span className="text-xs font-medium text-text-secondary">
+                <span className="text-xs font-semibold text-text-secondary bg-black/10 py-0.5 px-1.5">
                   {Math.round(
                     (1 -
                       selectedVariant.price / selectedVariant.compareAtPrice!) *
                       100,
                   )}
-                  % off
+                  % OFF
                 </span>
               </>
             )}
           </>
         ) : (
           <>
-            <p className="text-xl font-medium tracking-tight text-text-primary">
+            <p className="font-semibold tracking-tight text-text-primary">
               {hasPriceRange
                 ? `From ${formatPrice(minimumPrice)}`
                 : formatPrice(minimumPrice)}
@@ -157,13 +158,13 @@ export default function ProductVariantSelector({
 
       {/* Color Selection */}
       {hasColor && (
-        <fieldset className="mt-7">
-          <legend className="mb-3 flex items-center gap-2 text-sm">
-            <span className="font-medium text-text-primary">Color</span>
+        <fieldset className="mt-5">
+          <legend className="mb-2 flex items-center gap-2 text-sm">
+            <span className="font-bold text-text-primary">Color</span>
 
             {selectedColor && (
-              <span className="capitalize text-text-secondary">
-                — {selectedColor}
+              <span className="flex items-center font-semibold gap-1 capitalize text-text-secondary">
+                <MdArrowRight className="text-text-muted" size={18}/> {selectedColor}
               </span>
             )}
           </legend>
@@ -208,9 +209,9 @@ export default function ProductVariantSelector({
 
       {/* Size Selection */}
       {hasSize && (
-        <fieldset className="mt-7">
-          <legend className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-text-primary">
+        <fieldset className="mt-5">
+          <legend className="mb-2 flex items-center justify-between gap-3">
+            <span className="text-sm font-bold text-text-primary">
               Select Size
             </span>
 
@@ -232,8 +233,8 @@ export default function ProductVariantSelector({
                   aria-label={`${size}${!inStock ? ", out of stock" : ""}`}
                   onClick={() => handleSizeSelect(size)}
                   className={`
-                    flex min-h-11 min-w-12 items-center justify-center
-                    border px-3 py-2 text-sm transition-colors
+                    flex h-9 w-15 md:h-11 md:w-18 items-center justify-center font-semibold cursor-pointer
+                    border text-sm transition-colors
                     focus-visible:outline-2
                     focus-visible:outline-offset-2
                     focus-visible:outline-accent
@@ -242,7 +243,7 @@ export default function ProductVariantSelector({
                     ${
                       isSelected
                         ? "border-text-primary bg-text-primary text-white"
-                        : "border-border text-text-primary hover:border-border-strong"
+                        : "border-border-strong text-text-primary hover:border-accent"
                     }
                     ${available && !inStock ? "line-through" : ""}
                   `}
@@ -254,34 +255,6 @@ export default function ProductVariantSelector({
           </div>
         </fieldset>
       )}
-
-      {/* Variant Availability */}
-      <div className="mt-6 border-t border-border pt-4">
-        {!selectionComplete ? (
-          <p className="text-xs text-text-secondary" role="status">
-            {hasSize && hasColor
-              ? "Select a color and size to check availability."
-              : hasSize
-                ? "Select a size to check availability."
-                : "Select a color to check availability."}
-          </p>
-        ) : selectedVariant ? (
-          <p
-            className={`text-xs ${
-              selectedVariant.stock > 0
-                ? "text-text-secondary"
-                : "text-text-muted"
-            }`}
-            role="status"
-          >
-            {selectedVariant.stock > 0 ? "In stock" : "Out of stock"}
-          </p>
-        ) : (
-          <p className="text-xs text-text-secondary" role="status">
-            This combination is unavailable.
-          </p>
-        )}
-      </div>
     </div>
   );
 }
