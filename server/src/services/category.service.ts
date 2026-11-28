@@ -6,6 +6,7 @@ import type {
   HomepageCategoryConfigInput,
   AdminCategoryListQuery,
 } from "../schemas/category.schema.js";
+import type { CreateCategoryInput } from "../schemas/category.schema.js";
 import AppError from "../utils/AppError.js";
 
 const CATEGORY_ORDER = [
@@ -259,4 +260,50 @@ export const getAdminCategories = async (query: AdminCategoryListQuery) => {
       hasPreviousPage: page > 1,
     },
   };
+};
+
+const generateCategorySlug = (name: string): string => {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
+export const createCategory = async (input: CreateCategoryInput) => {
+  const normalizedName = input.name.trim().replace(/\s+/g, " ");
+  const slug = generateCategorySlug(normalizedName);
+
+  if (!slug) {
+    throw new AppError("Category name cannot generate a valid slug", 400);
+  }
+
+  const existingCategory = await Category.findOne({
+    $or: [
+      {
+        name: {
+          $regex: `^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          $options: "i",
+        },
+      },
+      { slug },
+    ],
+  })
+    .select("_id")
+    .lean();
+
+  if (existingCategory) {
+    throw new AppError("Category with this name or slug already exists", 409);
+  }
+
+  const category = await Category.create({
+    name: normalizedName,
+    slug,
+    images: input.images,
+    isActive: input.isActive,
+  });
+
+  return category;
 };

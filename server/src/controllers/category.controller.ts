@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import {
+  createCategory,
   getActiveCategories,
   getHomepageCategories,
   updateCategoryImages,
@@ -11,6 +12,7 @@ import type {
   HomepageCategoriesQuery,
   HomepageCategoryConfigInput,
   AdminCategoryListQuery,
+  CreateCategoryInput,
 } from "../schemas/category.schema.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
@@ -104,6 +106,24 @@ export const getAdminCategoriesController = async (
     const result = await getAdminCategories(query);
 
     sendSuccess(res, 200, "Admin categories retrieved successfully", result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createCategoryController = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { body } = res.locals.validatedData as {
+      body: CreateCategoryInput;
+    };
+
+    const category = await createCategory(body);
+
+    sendSuccess(res, 201, "Category created successfully", category);
   } catch (error) {
     next(error);
   }

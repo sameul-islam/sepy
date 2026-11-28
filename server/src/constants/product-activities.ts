@@ -1,4 +1,3 @@
-
 export const PRODUCT_ACTIVITIES = [
   "Training",
   "Running",
@@ -6,5 +5,4 @@ export const PRODUCT_ACTIVITIES = [
   "Everyday Movement",
 ] as const;
 
-export type ProductActivity =
-  (typeof PRODUCT_ACTIVITIES)[number];
+export type ProductActivity = (typeof PRODUCT_ACTIVITIES)[number];

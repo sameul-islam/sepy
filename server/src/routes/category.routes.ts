@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createCategoryController,
   getCategories,
   getHomepageCategoriesController,
   updateCategoryImagesController,
@@ -13,6 +14,7 @@ import {
   homepageCategoriesQuerySchema,
   homepageCategoryConfigSchema,
   adminCategoryListQuerySchema,
+  createCategorySchema,
 } from "../schemas/category.schema.js";
 
 const router = Router();
@@ -42,6 +44,13 @@ router.get(
   requireAdmin,
   validate(adminCategoryListQuerySchema),
   getAdminCategoriesController,
+);
+
+router.post(
+  "/admin",
+  requireAdmin,
+  validate(createCategorySchema),
+  createCategoryController,
 );
 
 router.get("/", getCategories);

@@ -117,3 +117,30 @@ export const adminCategoryListQuerySchema = z
 export type AdminCategoryListQuery = z.infer<
   typeof adminCategoryListQuerySchema
 >["query"];
+
+export const createCategorySchema = z
+  .object({
+    body: z
+      .object({
+        name: z.string().trim().min(1).max(100),
+
+        images: z
+          .object({
+            women: z.string().trim().url().max(2048).optional(),
+            men: z.string().trim().url().max(2048).optional(),
+            default: z.string().trim().url().max(2048).optional(),
+          })
+          .strict()
+          .optional(),
+
+        isActive: z.boolean().default(true),
+      })
+      .strict(),
+
+    params: z.object({}).strict(),
+
+    query: z.object({}).strict(),
+  })
+  .strict();
+
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>["body"];
