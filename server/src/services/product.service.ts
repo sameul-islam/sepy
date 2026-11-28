@@ -793,9 +793,10 @@ export const updateProduct = async (
 
   try {
     await session.withTransaction(async () => {
-      const existingProduct = await Product.exists({
-        _id: productId,
-      }).session(session);
+      const existingProduct = await Product.findById(productId)
+        .select("category")
+        .session(session)
+        .lean();
 
       if (!existingProduct) {
         throw new AppError("Product not found", 404);
@@ -815,6 +816,9 @@ export const updateProduct = async (
         }
       }
 
+      let targetCategoryId = existingProduct.category;
+      let targetCategoryIsActive = false;
+
       if (input.category !== undefined) {
         const category = await Category.findOne({
           _id: input.category,
@@ -828,7 +832,23 @@ export const updateProduct = async (
           throw new AppError("Active category not found", 404);
         }
 
+        targetCategoryId = category._id;
+        targetCategoryIsActive = true;
         updates.category = category._id;
+      }
+
+      if (input.status === "active" && !targetCategoryIsActive) {
+        const activeCategory = await Category.exists({
+          _id: targetCategoryId,
+          isActive: true,
+        }).session(session);
+
+        if (!activeCategory) {
+          throw new AppError(
+            "An active category is required before a product can be activated",
+            400,
+          );
+        }
       }
 
       const updatedProduct = await Product.findByIdAndUpdate(
@@ -853,8 +873,7 @@ export const updateProduct = async (
     const product = await Product.findById(productId)
       .populate({
         path: "category",
-        select: "name slug",
-        match: { isActive: true },
+        select: "name slug isActive",
       })
       .lean();
 
@@ -863,7 +882,7 @@ export const updateProduct = async (
     }
 
     if (!product.category) {
-      throw new AppError("Active category not found", 404);
+      throw new AppError("Product category not found", 404);
     }
 
     return product;
