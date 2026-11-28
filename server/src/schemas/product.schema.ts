@@ -421,3 +421,31 @@ export const updateProductSchema = z
 export type UpdateProductRequestInput = z.infer<
   typeof updateProductSchema
 >["body"];
+
+export const adminProductListQuerySchema = z
+  .object({
+    search: z.string().trim().min(1).max(80).optional(),
+
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(Math.floor(Number.MAX_SAFE_INTEGER / 100))
+      .default(1),
+
+    limit: z.coerce.number().int().min(1).max(100).default(12),
+
+    status: z.enum(["draft", "active", "archived"]).optional(),
+
+    category: z
+      .string()
+      .regex(/^[a-f\d]{24}$/i, "Category must be a valid MongoDB ObjectId")
+      .optional(),
+
+    sort: z
+      .enum(["newest", "oldest", "name-asc", "name-desc", "recently-updated"])
+      .default("newest"),
+  })
+  .strict();
+
+export type AdminProductListQuery = z.infer<typeof adminProductListQuerySchema>;

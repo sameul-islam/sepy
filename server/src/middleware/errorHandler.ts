@@ -9,7 +9,6 @@ const errorHandler = (
   _next: NextFunction,
 ): void => {
   if (error instanceof AppError) {
-    
     console.error(error.message);
 
     res.status(error.statusCode).json({

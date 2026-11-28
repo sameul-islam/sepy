@@ -3,6 +3,7 @@ import {
   getProducts,
   getFeaturedProductsController,
   getProductSearchSuggestionsController,
+  getAdminProductsController,
 } from "../controllers/product.controller.js";
 import validate from "../middleware/validate.js";
 import { getProductBySlug } from "../controllers/product-details.controller.js";
@@ -15,6 +16,7 @@ import {
   updateProductSchema,
   productListQuerySchema,
   productSearchSuggestionsQuerySchema,
+  adminProductListQuerySchema,
 } from "../schemas/product.schema.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 
@@ -35,6 +37,14 @@ const listProductsSchema = z
     body: z.object({}).strict().default({}),
     params: z.object({}).strict(),
     query: productListQuerySchema,
+  })
+  .strict();
+
+const listAdminProductsSchema = z
+  .object({
+    body: z.object({}).strict().default({}),
+    params: z.object({}).strict(),
+    query: adminProductListQuerySchema,
   })
   .strict();
 
@@ -61,6 +71,12 @@ router.get(
 );
 router.get("/", validate(listProductsSchema), getProducts);
 router.get("/featured", getFeaturedProductsController);
+router.get(
+  "/admin",
+  requireAdmin,
+  validate(listAdminProductsSchema),
+  getAdminProductsController,
+);
 router.get("/:slug", validate(getProductBySlugSchema), getProductBySlug);
 router.patch(
   "/:id",

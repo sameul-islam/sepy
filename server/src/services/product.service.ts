@@ -13,6 +13,7 @@ import Product from "../models/Product.js";
 import type {
   ProductListQuery,
   CreateProductInput,
+  AdminProductListQuery,
 } from "../schemas/product.schema.js";
 import AppError from "../utils/AppError.js";
 import Variant from "../models/Variant.js";
@@ -869,4 +870,200 @@ export const updateProduct = async (
   } finally {
     await session.endSession();
   }
+};
+
+export const getAdminProducts = async (query: AdminProductListQuery) => {
+  const { search, page, limit, status, category, sort } = query;
+
+  const skip = (page - 1) * limit;
+
+  // Escape special regex characters in user input.
+  const searchRegex = search
+    ? new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
+    : undefined;
+
+  const sortOptions: Record<
+    AdminProductListQuery["sort"],
+    Record<string, 1 | -1>
+  > = {
+    newest: {
+      createdAt: -1,
+      _id: -1,
+    },
+
+    oldest: {
+      createdAt: 1,
+      _id: 1,
+    },
+
+    "name-asc": {
+      name: 1,
+      _id: 1,
+    },
+
+    "name-desc": {
+      name: -1,
+      _id: -1,
+    },
+
+    "recently-updated": {
+      updatedAt: -1,
+      _id: -1,
+    },
+  };
+
+  const matchStage: Record<string, unknown> = {};
+
+  if (status) {
+    matchStage.status = status;
+  }
+
+  if (category) {
+    matchStage.category = new mongoose.Types.ObjectId(category);
+  }
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: matchStage,
+    },
+
+    // Include every variant, including inactive variants.
+    {
+      $lookup: {
+        from: "variants",
+        let: {
+          productId: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$product", "$$productId"],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              sku: 1,
+              size: 1,
+              color: 1,
+              price: 1,
+              compareAtPrice: 1,
+              stock: 1,
+              isActive: 1,
+            },
+          },
+          {
+            $sort: {
+              createdAt: 1,
+              _id: 1,
+            },
+          },
+        ],
+        as: "variants",
+      },
+    },
+  ];
+
+  // Search product name, slug, and variant SKU.
+  if (searchRegex) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { name: searchRegex },
+          { slug: searchRegex },
+          { "variants.sku": searchRegex },
+        ],
+      },
+    });
+  }
+
+  pipeline.push(
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$categoryDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $facet: {
+        products: [
+          {
+            $sort: sortOptions[sort],
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: limit,
+          },
+          {
+            $project: {
+              name: 1,
+              slug: 1,
+              description: 1,
+              audience: 1,
+              images: 1,
+              isFeatured: 1,
+              featuredOrder: 1,
+              highlights: 1,
+              details: 1,
+              seo: 1,
+              status: 1,
+              variants: 1,
+              createdAt: 1,
+              updatedAt: 1,
+              category: {
+                $cond: [
+                  {
+                    $ifNull: ["$categoryDetails._id", false],
+                  },
+                  {
+                    _id: "$categoryDetails._id",
+                    name: "$categoryDetails.name",
+                    slug: "$categoryDetails.slug",
+                    isActive: "$categoryDetails.isActive",
+                  },
+                  null,
+                ],
+              },
+            },
+          },
+        ],
+
+        count: [
+          {
+            $count: "total",
+          },
+        ],
+      },
+    },
+  );
+
+  const [result] = await Product.aggregate(pipeline);
+
+  const products = result?.products ?? [];
+  const total = result?.count?.[0]?.total ?? 0;
+
+  return {
+    products,
+
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total,
+      hasPreviousPage: page > 1,
+    },
+  };
 };

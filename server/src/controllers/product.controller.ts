@@ -2,11 +2,13 @@ import type { Request, Response, NextFunction } from "express";
 import {
   getActiveProducts,
   getFeaturedProducts,
+  getAdminProducts,
 } from "../services/product.service.js";
 import { getProductSearchSuggestions } from "../services/product-search.service.js";
 import type {
   ProductListQuery,
   ProductSearchSuggestionsQuery,
+  AdminProductListQuery,
 } from "../schemas/product.schema.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
@@ -59,6 +61,26 @@ export const getProductSearchSuggestionsController = async (
       "Product search suggestions retrieved successfully",
       result,
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminProductsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await getAdminProducts(
+      req.query as unknown as AdminProductListQuery,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Admin products retrieved successfully",
+      data: result,
+    });
   } catch (error) {
     next(error);
   }
