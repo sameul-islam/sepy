@@ -67,14 +67,14 @@ export const getProductSearchSuggestionsController = async (
 };
 
 export const getAdminProductsController = async (
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const result = await getAdminProducts(
-      req.query as unknown as AdminProductListQuery,
-    );
+    const query = res.locals.validatedData.query as AdminProductListQuery;
+
+    const result = await getAdminProducts(query);
 
     res.status(200).json({
       success: true,
