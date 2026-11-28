@@ -1067,3 +1067,37 @@ export const getAdminProducts = async (query: AdminProductListQuery) => {
     },
   };
 };
+
+export const getAdminProductById = async (productId: string) => {
+  const product = await Product.findById(productId)
+    .select(
+      "name slug description category audience images isFeatured featuredOrder highlights details seo status createdAt updatedAt",
+    )
+    .populate({
+      path: "category",
+      select: "name slug isActive",
+    })
+    .lean();
+
+  if (!product) {
+    throw new AppError("Product not found", 404);
+  }
+
+  // Include all variants, including inactive variants.
+  const variants = await Variant.find({
+    product: product._id,
+  })
+    .select(
+      "sku size color price compareAtPrice stock isActive createdAt updatedAt",
+    )
+    .sort({
+      createdAt: 1,
+      _id: 1,
+    })
+    .lean();
+
+  return {
+    ...product,
+    variants,
+  };
+};
