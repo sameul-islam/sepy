@@ -45,9 +45,6 @@ export type HomepageCategoriesQuery = z.infer<
   typeof homepageCategoriesQuerySchema
 >["query"];
 
-
-
-
 export const categoryImagesUpdateSchema = z
   .object({
     body: z
@@ -78,3 +75,45 @@ export const categoryImagesUpdateSchema = z
 export type CategoryImagesUpdateInput = z.infer<
   typeof categoryImagesUpdateSchema
 >["body"];
+
+export const adminCategoryListQuerySchema = z
+  .object({
+    body: z.object({}).strict().default({}),
+
+    params: z.object({}).strict(),
+
+    query: z
+      .object({
+        search: z.string().trim().min(1).max(80).optional(),
+
+        page: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .max(Math.floor(Number.MAX_SAFE_INTEGER / 100))
+          .default(1),
+
+        limit: z.coerce.number().int().min(1).max(100).default(12),
+
+        isActive: z
+          .enum(["true", "false"])
+          .transform((value) => value === "true")
+          .optional(),
+
+        sort: z
+          .enum([
+            "newest",
+            "oldest",
+            "name-asc",
+            "name-desc",
+            "recently-updated",
+          ])
+          .default("newest"),
+      })
+      .strict(),
+  })
+  .strict();
+
+export type AdminCategoryListQuery = z.infer<
+  typeof adminCategoryListQuerySchema
+>["query"];

@@ -1,15 +1,16 @@
-
 import type { Request, Response, NextFunction } from "express";
 import {
   getActiveCategories,
   getHomepageCategories,
   updateCategoryImages,
   updateHomepageCategories,
+  getAdminCategories,
 } from "../services/category.service.js";
 import type {
   CategoryImagesUpdateInput,
   HomepageCategoriesQuery,
   HomepageCategoryConfigInput,
+  AdminCategoryListQuery,
 } from "../schemas/category.schema.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
@@ -21,12 +22,7 @@ export const getCategories = async (
   try {
     const categories = await getActiveCategories();
 
-    sendSuccess(
-      res,
-      200,
-      "Categories retrieved successfully",
-      categories,
-    );
+    sendSuccess(res, 200, "Categories retrieved successfully", categories);
   } catch (error) {
     next(error);
   }
@@ -67,12 +63,7 @@ export const updateHomepageCategoriesController = async (
 
     const config = await updateHomepageCategories(validatedData.body);
 
-    sendSuccess(
-      res,
-      200,
-      "Homepage categories updated successfully",
-      config,
-    );
+    sendSuccess(res, 200, "Homepage categories updated successfully", config);
   } catch (error) {
     next(error);
   }
@@ -94,12 +85,25 @@ export const updateCategoryImagesController = async (
       validatedData.body,
     );
 
-    sendSuccess(
-      res,
-      200,
-      "Category images updated successfully",
-      category,
-    );
+    sendSuccess(res, 200, "Category images updated successfully", category);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAdminCategoriesController = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { query } = res.locals.validatedData as {
+      query: AdminCategoryListQuery;
+    };
+
+    const result = await getAdminCategories(query);
+
+    sendSuccess(res, 200, "Admin categories retrieved successfully", result);
   } catch (error) {
     next(error);
   }

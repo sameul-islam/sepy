@@ -1,10 +1,10 @@
-
 import { Router } from "express";
 import {
   getCategories,
   getHomepageCategoriesController,
   updateCategoryImagesController,
   updateHomepageCategoriesController,
+  getAdminCategoriesController,
 } from "../controllers/category.controller.js";
 import requireAdmin from "../middleware/requireAdmin.js";
 import validate from "../middleware/validate.js";
@@ -12,6 +12,7 @@ import {
   categoryImagesUpdateSchema,
   homepageCategoriesQuerySchema,
   homepageCategoryConfigSchema,
+  adminCategoryListQuerySchema,
 } from "../schemas/category.schema.js";
 
 const router = Router();
@@ -34,6 +35,13 @@ router.patch(
   requireAdmin,
   validate(categoryImagesUpdateSchema),
   updateCategoryImagesController,
+);
+
+router.get(
+  "/admin",
+  requireAdmin,
+  validate(adminCategoryListQuerySchema),
+  getAdminCategoriesController,
 );
 
 router.get("/", getCategories);
